@@ -1,0 +1,74 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+.side-panel {
+  width: 260px;
+  min-width: 260px;
+  transition: width 220ms ease, min-width 220ms ease;
+  overflow: hidden;
+  background: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  flex-shrink: 0;
+}
+.side-panel.right {
+  border-right: none;
+  border-left: 1px solid #dee2e6;
+}
+.side-panel.collapsed {
+  width: 0;
+  min-width: 0;
+}
+.viewport-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+.viewport-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+.panel-toggle-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+}
+.side-panel:not(.collapsed) .panel-toggle-btn {
+  right: -14px;
+}
+.side-panel.collapsed .panel-toggle-btn {
+  right: -20px;
+}
+.side-panel.right:not(.collapsed) .panel-toggle-btn {
+  left: -14px;
+  right: auto;
+}
+.side-panel.right.collapsed .panel-toggle-btn {
+  left: -20px;
+  right: auto;
+}
