@@ -9,7 +9,7 @@ export const LAYER_KEYS = {
 
 export const DEFAULT_LAYERS = {
   centerlines: true,
-  jointDots: true,
+  jointDots: false,
   annotations: false,
   scalebar: false,
   wireframe: false,

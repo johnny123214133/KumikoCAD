@@ -57,7 +57,7 @@ export class PatternRenderer {
   _buildJointDots(pattern) {
     for (const j of pattern.joints) {
       const color = NOTCH_COLORS[j.notchType] ?? 0xaaaaaa;
-      const geo = new THREE.CircleGeometry(1.5, 16);
+      const geo = new THREE.CircleGeometry(.75, 16);
       const mat = new THREE.MeshBasicMaterial({ color });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(j.position.x, j.position.y, 2);
@@ -96,7 +96,6 @@ export class PatternRenderer {
       return Math.abs(s) < 1e-6 ? x0 : x0 + Math.cos(rad) * y / s;
     };
 
-    if (startNotchType == 'taper') 
 
     // console.log(': ' + )
     // console.log('(xAtY(0,      startRad, -hw), -hw): (' + xAtY(0,      startRad, -hw) + ', ' + -hw + ')')
