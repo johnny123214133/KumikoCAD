@@ -30,7 +30,7 @@
       "end": { "x": 37.5, "y": 21.65 },
       "orientation": 0.5236,
       "cuts": [
-        { "jointId": "j1", "position": { "x": 0, "y": 0 }, "angle": 60, "depth": 1.0, "role": "end" },
+        { "jointId": "j1", "position": { "x": 0, "y": 0 }, "angle": 30, "depth": 1.0, "role": "end" },
         { "jointId": "j0", "position": { "x": 37.5, "y": 21.65 }, "angle": 120, "depth": 1.0, "role": "end" }
       ]
     },
@@ -40,7 +40,7 @@
       "end": { "x": 37.5, "y": 21.65 },
       "orientation": 2.6180,
       "cuts": [
-        { "jointId": "j2", "position": { "x": 75, "y": 0 }, "angle": 60, "depth": 1.0, "role": "end" },
+        { "jointId": "j2", "position": { "x": 75, "y": 0 }, "angle": 30, "depth": 1.0, "role": "end" },
         { "jointId": "j0", "position": { "x": 37.5, "y": 21.65 }, "angle": 120, "depth": 1.0, "role": "end" }
       ]
     },
@@ -50,7 +50,7 @@
       "end": { "x": 37.5, "y": 21.65 },
       "orientation": -1.5708,
       "cuts": [
-        { "jointId": "j3", "position": { "x": 37.5, "y": 64.95 }, "angle": 60, "depth": 1.0, "role": "end" },
+        { "jointId": "j3", "position": { "x": 37.5, "y": 64.95 }, "angle": 30, "depth": 1.0, "role": "end" },
         { "jointId": "j0", "position": { "x": 37.5, "y": 21.65 }, "angle": 120, "depth": 1.0, "role": "end" }
       ]
     }

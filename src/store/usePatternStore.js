@@ -1,11 +1,12 @@
 import { create } from 'zustand';
+import asanohaOne from '../patterns/asanoha-one.json';
 import asanoha from '../patterns/asanoha.json';
 import tsumiishiKikko from '../patterns/tsumiishi-kikko.json';
 import goma from '../patterns/goma.json';
 import mikado from '../patterns/mikado.json';
 import { validatePattern } from '../geometry/schema/validate.js';
 
-const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado];
+const BUILT_INS = [asanohaOne, asanoha, tsumiishiKikko, goma, mikado];
 
 BUILT_INS.forEach((p) => {
   const errs = validatePattern(p);
