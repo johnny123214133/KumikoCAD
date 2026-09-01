@@ -10,10 +10,15 @@ const useAppStore = create((set) => ({
   gridStripWidth : 3,
   defaultPatterStripWidth : 2.3,
   activeLayers: { ...DEFAULT_LAYERS },
+  // Not reactive render state — just a handle Viewport publishes on mount so
+  // sibling components (e.g. ViewControls in the left panel) can call into the
+  // SceneManager/PatternRenderer instances that live inside Viewport's canvas.
+  viewportApi: null,
   setWorkspace: (workspace) => set({ workspace }),
   setLeftPanelOpen: (open) => set({ leftPanelOpen: open }),
   setRightPanelOpen: (open) => set({ rightPanelOpen: open }),
   toggleLayer: (key) => set((s) => ({ activeLayers: { ...s.activeLayers, [key]: !s.activeLayers[key] } })),
+  setViewportApi: (api) => set({ viewportApi: api }),
 }));
 
 export default useAppStore;
