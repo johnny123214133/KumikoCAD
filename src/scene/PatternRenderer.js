@@ -221,8 +221,14 @@ export class PatternRenderer {
   }
 
   getBoundingBox(pattern) {
-    const xs = pattern.strips.flatMap(s => [s.start.x, s.end.x]);
-    const ys = pattern.strips.flatMap(s => [s.start.y, s.end.y]);
+    // Frame the triangle cell itself, not just the strips — for patterns whose
+    // strips don't reach the vertices (Tsumiishi-kikko: edge-midpoint→centroid;
+    // Mikado: chords through centroid), using strip endpoints alone undersizes
+    // the box and zoom-to-fit overshoots. Asanoha looked fine only because its
+    // spokes happen to terminate at the vertices.
+    const { A, B, C } = pattern.vertices;
+    const xs = [A.x, B.x, C.x];
+    const ys = [A.y, B.y, C.y];
     return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
   }
 
