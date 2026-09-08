@@ -2,8 +2,8 @@ import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { Stage, Layer } from 'react-konva'
 import useAppStore from '../../store/useAppStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
-import PatternLayer, { getPatternBoundingBox } from '../panel-editor/PatternLayer.jsx'
-import PanelBoundary from '../panel-editor/PanelBoundary.jsx'
+import PatternLayer, { getPatternBoundingBox } from '../pattern-editor/PatternLayer.jsx'
+import PanelBoundary from '../pattern-editor/PanelBoundary.jsx'
 import { computeZoomToFit, computeWheelZoom } from '../../scene/viewportMath.js'
 
 export default function Viewport() {

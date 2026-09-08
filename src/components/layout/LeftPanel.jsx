@@ -1,9 +1,9 @@
 import React from 'react'
 import useAppStore from '../../store/useAppStore.js'
-import PatternLibrary from '../panel-editor/PatternLibrary.jsx'
-import OverlayControls from '../panel-editor/OverlayControls.jsx'
-import ViewControls from '../panel-editor/ViewControls.jsx'
-import AssemblyLeftPanel from '../assembly-editor/AssemblyLeftPanel.jsx'
+import PatternLibrary from '../pattern-editor/PatternLibrary.jsx'
+import RecentPatterns from '../pattern-editor/RecentPatterns.jsx'
+import ViewControls from '../pattern-editor/ViewControls.jsx'
+import PanelEditorLeftPanel from '../panel-editor/PanelEditorLeftPanel.jsx'
 
 export default function LeftPanel() {
   const { workspace, leftPanelOpen, setLeftPanelOpen } = useAppStore()
@@ -13,17 +13,17 @@ export default function LeftPanel() {
         {leftPanelOpen ? '◀' : '▶'}
       </button>
       {leftPanelOpen && (
-        <div className="p-3 overflow-auto flex-grow-1">
-          {workspace === 'panel-editor' ? (
+        <div className="p-3 d-flex flex-column flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
+          {workspace === 'pattern-editor' ? (
             <>
               <PatternLibrary />
-              <hr className="my-3" />
-              <OverlayControls />
-              <hr className="my-3" />
+              <hr className="my-3 flex-shrink-0" />
+              <RecentPatterns />
+              <hr className="my-3 flex-shrink-0" />
               <ViewControls />
             </>
           ) : (
-            <AssemblyLeftPanel />
+            <PanelEditorLeftPanel />
           )}
         </div>
       )}

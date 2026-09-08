@@ -27,7 +27,13 @@ const usePatternStore = create((set, get) => ({
   builtInPatterns: BUILT_INS,
   userPatterns: loadUserPatterns(),
   activePatternId: BUILT_INS[0].id,
-  setActivePattern: (id) => set({ activePatternId: id }),
+  // Most-recent-first, capped at 5. Seeded with the initial pattern so the
+  // "Recently used" list isn't empty on first load.
+  recentPatternIds: [BUILT_INS[0].id],
+  setActivePattern: (id) => set((state) => ({
+    activePatternId: id,
+    recentPatternIds: [id, ...state.recentPatternIds.filter((pid) => pid !== id)].slice(0, 5),
+  })),
   getActivePattern: () => {
     const { builtInPatterns, userPatterns, activePatternId } = get();
     return [...builtInPatterns, ...userPatterns].find(p => p.id === activePatternId) ?? builtInPatterns[0];
