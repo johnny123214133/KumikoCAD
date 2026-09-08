@@ -41,11 +41,6 @@ export default function GridInspector() {
       </div>
 
       <div className="mb-3">
-        <label className="form-label small mb-1">Overall grid dimensions</label>
-        <div style={{ fontSize: '13px' }}>{formatBoth(panelWidthMm)} × {formatBoth(panelHeightMm)}</div>
-      </div>
-
-      <div className="mb-3">
         <label className="form-label small mb-1">Grid strip width (mm)</label>
         <input type="number" min="0" step="0.1" className="form-control form-control-sm" value={gridStripWidth}
           onChange={(e) => setGridStripWidth(Number(e.target.value))} />
@@ -56,6 +51,11 @@ export default function GridInspector() {
         <input type="number" min="0" step="0.5" className="form-control form-control-sm" value={cellWidth}
           onChange={(e) => setCellWidth(Number(e.target.value))} />
         <div className="form-text" style={{ fontSize: '11px' }}>Side length of the equilateral triangle cell.</div>
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label small mb-1">Overall grid dimensions</label>
+        <div style={{ fontSize: '13px' }}>{formatBoth(panelWidthMm)} × {formatBoth(panelHeightMm)}</div>
       </div>
 
       <div className="mb-3">

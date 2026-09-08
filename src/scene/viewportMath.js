@@ -24,18 +24,25 @@ export function clampZoom(scale) {
 /**
  * bbox is in WORLD (pattern, Y-up) space, e.g. from PatternLayer.getBoundingBox().
  * viewportW/H are the stage's current pixel dimensions.
+ * insetLeft/insetRight (px, default 0): the stage is always full-bleed now
+ * (panels overlay it rather than resizing it — see custom.css), so without
+ * this, "zoom to fit" would size content to the FULL canvas even while an
+ * open panel visually covers part of it, leaving the fitted content partly
+ * hidden underneath. Passing the current open panels' widths here fits the
+ * content into the actually-visible gap between them instead.
  * Returns the Konva stage {scale, x, y} to center and fit that bbox.
  */
-export function computeZoomToFit(bbox, viewportW, viewportH) {
+export function computeZoomToFit(bbox, viewportW, viewportH, insetLeft = 0, insetRight = 0) {
   const cx = (bbox.minX + bbox.maxX) / 2;
   const cyWorld = (bbox.minY + bbox.maxY) / 2;
   const cyScreen = -cyWorld; // Y-flip
   const pw = bbox.maxX - bbox.minX || 1;
   const ph = bbox.maxY - bbox.minY || 1;
-  const scale = clampZoom(Math.min((viewportW * ZOOM_TO_FIT_FILL) / pw, (viewportH * ZOOM_TO_FIT_FILL) / ph));
+  const visibleW = Math.max(1, viewportW - insetLeft - insetRight);
+  const scale = clampZoom(Math.min((visibleW * ZOOM_TO_FIT_FILL) / pw, (viewportH * ZOOM_TO_FIT_FILL) / ph));
   return {
     scale,
-    x: viewportW / 2 - cx * scale,
+    x: insetLeft + visibleW / 2 - cx * scale,
     y: viewportH / 2 - cyScreen * scale,
   };
 }

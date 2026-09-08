@@ -36,9 +36,13 @@ export default function Toolbar() {
     >
       <span className="navbar-brand mb-0 h6 fw-semibold me-1">Kumiko CAD</span>
 
-      <div className="btn-group btn-group-sm">
-        <button className={`btn ${workspace === 'pattern-editor' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setWorkspace('pattern-editor')}>Pattern Editor</button>
-        <button className={`btn ${workspace === 'panel-editor' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setWorkspace('panel-editor')}>Panel Editor</button>
+      <div className="btn-group btn-group-sm" role="group" aria-label="Project">
+        <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-1" title="Save project">
+          <SaveProjectIcon /><span className="d-none d-lg-inline">Save Project</span>
+        </button>
+        <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-1" title="Load project">
+          <LoadProjectIcon /><span className="d-none d-lg-inline">Load Project</span>
+        </button>
       </div>
 
       <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />
@@ -64,18 +68,14 @@ export default function Toolbar() {
         })}
       </div>
 
-      <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />
-
-      <div className="btn-group btn-group-sm" role="group" aria-label="Project">
-        <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-1" title="Save project">
-          <SaveProjectIcon /><span className="d-none d-lg-inline">Save Project</span>
-        </button>
-        <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-1" title="Load project">
-          <LoadProjectIcon /><span className="d-none d-lg-inline">Load Project</span>
-        </button>
-      </div>
-
       <div className="ms-auto d-flex align-items-center" style={{ gap: '0.375rem' }}>
+        <div className="btn-group btn-group-sm">
+          <button className={`btn ${workspace === 'pattern-editor' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setWorkspace('pattern-editor')}>Pattern Editor</button>
+          <button className={`btn ${workspace === 'panel-editor' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setWorkspace('panel-editor')}>Panel Editor</button>
+        </div>
+
+        <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />
+
         <button
           type="button"
           className={`btn btn-sm ${leftPanelOpen ? 'btn-dark' : 'btn-outline-secondary'}`}

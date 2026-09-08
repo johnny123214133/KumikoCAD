@@ -19,11 +19,15 @@ function Cell({ space, pattern, onClick }) {
   )
 
   return (
-    <>
+    <Group onClick={onClick} onTap={onClick}>
       {/* Click hit-region — also the only visual for 'half' spaces, since
           fitting a pattern into a half-cell (per the schema's symmetryAxis/
           handedness fields) isn't implemented yet. A subtle fill so empty
-          cells still read as "there" and clickable. */}
+          cells still read as "there" and clickable. Wrapped together with
+          the strips below in one Group (rather than each having its own
+          onClick) so a click lands the same whether it hits the background
+          or a strip shape drawn on top of it — Konva bubbles child clicks up
+          to the Group either way. */}
       <Line
         points={flippedVertices}
         closed
@@ -31,15 +35,13 @@ function Cell({ space, pattern, onClick }) {
         stroke="#cbd5e1"
         strokeWidth={0.3}
         strokeScaleEnabled={false}
-        onClick={onClick}
-        onTap={onClick}
       />
       {placement && (
         <Group x={placement.x} y={placement.y} rotation={placement.rotationDeg} scaleX={placement.scale} scaleY={placement.scale}>
           <PatternStrips pattern={pattern} />
         </Group>
       )}
-    </>
+    </Group>
   )
 }
 

@@ -16,6 +16,20 @@ export default function Viewport() {
   const workspace = useAppStore(s => s.workspace)
   const activeLayers = useAppStore(s => s.activeLayers)
   const setViewportApi = useAppStore(s => s.setViewportApi)
+  const leftPanelOpen = useAppStore(s => s.leftPanelOpen)
+  const leftPanelWidth = useAppStore(s => s.leftPanelWidth)
+  const rightPanelOpen = useAppStore(s => s.rightPanelOpen)
+  const rightPanelWidth = useAppStore(s => s.rightPanelWidth)
+  // Read via ref (not useCallback deps) inside zoomToFit below — panels are
+  // now an overlay, not a resize, so toggling/resizing one should behave
+  // like the pre-existing "panel toggle doesn't auto-refit" rule always has:
+  // zoomToFit should account for whichever panels happen to be open WHEN
+  // IT'S CALLED (pattern switch, workspace switch, or the manual button),
+  // but a panel opening/closing/resizing shouldn't by itself trigger a fit.
+  const panelStateRef = useRef({ leftPanelOpen, leftPanelWidth, rightPanelOpen, rightPanelWidth })
+  useEffect(() => {
+    panelStateRef.current = { leftPanelOpen, leftPanelWidth, rightPanelOpen, rightPanelWidth }
+  }, [leftPanelOpen, leftPanelWidth, rightPanelOpen, rightPanelWidth])
   const activePatternId = usePatternStore(s => s.activePatternId)
   const getActivePattern = usePatternStore(s => s.getActivePattern)
   const pattern = getActivePattern()
@@ -47,7 +61,12 @@ export default function Viewport() {
           return { minX: 0, maxX: width, minY: 0, maxY: height }
         })()
       : getPatternBoundingBox(pattern)
-    const t = computeZoomToFit(bbox, w, h)
+    const { leftPanelOpen, leftPanelWidth, rightPanelOpen, rightPanelWidth } = panelStateRef.current
+    const t = computeZoomToFit(
+      bbox, w, h,
+      leftPanelOpen ? leftPanelWidth : 0,
+      rightPanelOpen ? rightPanelWidth : 0,
+    )
     stage.scale({ x: t.scale, y: t.scale })
     stage.position({ x: t.x, y: t.y })
     stage.batchDraw()
