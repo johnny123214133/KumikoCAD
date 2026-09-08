@@ -22,14 +22,24 @@ const useGridStore = create((set) => ({
   cornerBehavior: 'fill',
   material: 'hinoki',
   finish: 'natural',
-  setCols: (cols) => set({ cols: Math.max(1, Math.round(cols)) }),
-  setRows: (rows) => set({ rows: Math.max(1, Math.round(rows)) }),
+  // Per-cell pattern placement: { [spaceId]: patternId }. A cell with no
+  // entry here renders the blank pattern. Deliberately reset (not remapped)
+  // whenever the grid's topology changes (cols/rows/orientation/
+  // cornerBehavior) — the space ids from computeGridGeometry() aren't
+  // meaningful across a topology change, and how placements SHOULD carry
+  // over (and how a pattern's own coordinates should scale/normalize against
+  // a changed cell size) is exactly the propagation question flagged as a
+  // later decision, not solved here.
+  spacePatterns: {},
+  setCols: (cols) => set({ cols: Math.max(1, Math.round(cols)), spacePatterns: {} }),
+  setRows: (rows) => set({ rows: Math.max(1, Math.round(rows)), spacePatterns: {} }),
   setCellWidth: (cellWidth) => set({ cellWidth: Math.max(0, cellWidth) }),
   setGridStripWidth: (gridStripWidth) => set({ gridStripWidth: Math.max(0, gridStripWidth) }),
-  setOrientation: (orientation) => set({ orientation }),
-  setCornerBehavior: (cornerBehavior) => set({ cornerBehavior }),
+  setOrientation: (orientation) => set({ orientation, spacePatterns: {} }),
+  setCornerBehavior: (cornerBehavior) => set({ cornerBehavior, spacePatterns: {} }),
   setMaterial: (material) => set({ material }),
   setFinish: (finish) => set({ finish }),
+  setSpacePattern: (spaceId, patternId) => set((s) => ({ spacePatterns: { ...s.spacePatterns, [spaceId]: patternId } })),
 }));
 
 export default useGridStore;

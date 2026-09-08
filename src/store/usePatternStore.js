@@ -3,6 +3,7 @@ import asanoha from '../patterns/asanoha.json';
 import tsumiishiKikko from '../patterns/tsumiishi-kikko.json';
 import goma from '../patterns/goma.json';
 import mikado from '../patterns/mikado.json';
+import blank from '../patterns/blank.json';
 import { validatePattern } from '../geometry/schema/validate.js';
 
 // NOTE: patterns/asanoha-one.json was previously imported here as a built-in.
@@ -10,7 +11,11 @@ import { validatePattern } from '../geometry/schema/validate.js';
 // the implementation plan) and fails validation — its joint j0 references strips
 // s1/s2 that don't exist. Worse, it was BUILT_INS[0], so it was the pattern the
 // app loaded by default, making the app look broken/empty on first launch. Removed.
-const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado];
+//
+// 'blank' is appended at the END deliberately — BUILT_INS[0] is what seeds the
+// default activePatternId below, and an empty pattern being the default on
+// first launch is exactly the bug that got fixed by removing asanoha-one.
+const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, blank];
 
 BUILT_INS.forEach((p) => {
   const errs = validatePattern(p);
