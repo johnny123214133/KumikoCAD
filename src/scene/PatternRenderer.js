@@ -1,3 +1,6 @@
+// DEPRECATED
+
+
 import * as THREE from 'three';
 
 const NOTCH_COLORS = {

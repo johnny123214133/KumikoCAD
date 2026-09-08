@@ -1,75 +1,112 @@
-import React, { useRef, useEffect } from 'react'
-import { SceneManager } from '../../scene/SceneManager.js'
-import { PatternRenderer } from '../../scene/PatternRenderer.js'
-import { PanelRenderer } from '../../scene/PanelRenderer.js'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
+import { Stage, Layer } from 'react-konva'
 import useAppStore from '../../store/useAppStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
+import PatternLayer, { getPatternBoundingBox } from '../panel-editor/PatternLayer.jsx'
+import PanelBoundary from '../panel-editor/PanelBoundary.jsx'
+import { computeZoomToFit, computeWheelZoom } from '../../scene/viewportMath.js'
 
 export default function Viewport() {
-  const canvasRef = useRef(null)
-  const smRef = useRef(null)
-  const prRef = useRef(null)
-  const panelRef = useRef(null)
+  const containerRef = useRef(null)
+  const stageRef = useRef(null)
+  const [size, setSize] = useState({ width: 0, height: 0 }) // drives the <Stage> element's own pixel size
+  const [stageMounted, setStageMounted] = useState(false)
   const activeLayers = useAppStore(s => s.activeLayers)
   const setViewportApi = useAppStore(s => s.setViewportApi)
   const activePatternId = usePatternStore(s => s.activePatternId)
   const getActivePattern = usePatternStore(s => s.getActivePattern)
+  const pattern = getActivePattern()
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const sm = new SceneManager(canvas)
-    smRef.current = sm
-    const pr = new PatternRenderer(sm.scene)
-    prRef.current = pr
-    // Was never instantiated before — acceptance criterion #7 (panel rectangle
-    // placeholder) silently failed. Renders the 300x400mm default per the plan;
-    // TODO (unchanged from PanelRenderer.js): replace with grid tiling once
-    // computeGridGeometry() is implemented.
-    const panel = new PanelRenderer(sm.scene)
-    panel.setDimensions()
-    panelRef.current = panel
-
-    const ro = new ResizeObserver(() => {
-      sm.onResize()
-    })
-    ro.observe(canvas.parentElement)
-    sm.onResize()
-
-    // Publish a handle so ViewControls (left panel) can trigger zoom-to-fit —
-    // previously the button existed but was permanently disabled.
-    setViewportApi({
-      zoomToFit: () => sm.zoomToFit(pr.getBoundingBox(getActivePattern())),
-    })
-
-    return () => {
-      ro.disconnect()
-      pr.dispose()
-      panel.dispose()
-      sm.dispose()
-      setViewportApi(null)
-    }
+  // Stage only mounts once size is known (see the conditional render below), so
+  // stageRef.current is still null on the very first render pass — a plain ref
+  // can't be a dependency, so this state flag is what lets the zoomToFit effect
+  // below notice "the stage just became available" and actually run once, on
+  // top of running on every pattern switch.
+  const setStageRef = useCallback((node) => {
+    stageRef.current = node
+    setStageMounted(!!node)
   }, [])
 
+  const zoomToFit = useCallback(() => {
+    const stage = stageRef.current
+    const container = containerRef.current
+    if (!stage || !container) return
+    // Read live DOM size rather than the `size` state, so this works correctly
+    // even if called before a resize/state round-trip has happened (e.g. the
+    // very first frame) — mirrors how the old SceneManager read
+    // canvas.clientWidth/clientHeight directly rather than relying on React state.
+    const w = container.clientWidth, h = container.clientHeight
+    if (!w || !h) return
+    const bbox = getPatternBoundingBox(pattern)
+    const t = computeZoomToFit(bbox, w, h)
+    stage.scale({ x: t.scale, y: t.scale })
+    stage.position({ x: t.x, y: t.y })
+    stage.batchDraw()
+  }, [pattern])
+
+  // Panel-editor's Stage/canvas sizing — was previously an imperative
+  // sm.onResize() call; now just updates the <Stage> width/height props.
   useEffect(() => {
-    const pr = prRef.current
-    const sm = smRef.current
-    if (!pr || !sm) return
-    const pattern = getActivePattern()
-    pr.setPattern(pattern)
-    pr.applyLayers(activeLayers)
-    sm.zoomToFit(pr.getBoundingBox(pattern))
-  }, [activePatternId])
+    const container = containerRef.current
+    if (!container) return
+    const ro = new ResizeObserver(() => {
+      setSize({ width: container.clientWidth, height: container.clientHeight })
+    })
+    ro.observe(container)
+    setSize({ width: container.clientWidth, height: container.clientHeight })
+    return () => ro.disconnect()
+  }, [])
+
+  // Zoom-to-fit on pattern switch (including the initial mount) — matches the
+  // old behavior: panel-toggle resizes do NOT re-center/re-zoom, only switching
+  // patterns (or the stage first becoming available) does, so the user's
+  // pan/zoom survives a panel toggle. stageMounted is what fixes the original
+  // bug: without it, this effect's only invocation on initial load happened
+  // while the Stage hadn't mounted yet, so zoomToFit() silently no-op'd and
+  // never got a second chance to run.
+  useEffect(() => {
+    zoomToFit()
+  }, [activePatternId, stageMounted, zoomToFit])
 
   useEffect(() => {
-    const pr = prRef.current
-    if (!pr) return
-    pr.applyLayers(activeLayers)
-  }, [activeLayers])
+    setViewportApi({ zoomToFit })
+    return () => setViewportApi(null)
+  }, [zoomToFit, setViewportApi])
+
+  const handleWheel = (e) => {
+    e.evt.preventDefault()
+    const stage = e.target.getStage()
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+    const t = computeWheelZoom({
+      oldScale: stage.scaleX(),
+      stageX: stage.x(),
+      stageY: stage.y(),
+      pointer,
+      deltaY: e.evt.deltaY,
+    })
+    stage.scale({ x: t.scale, y: t.scale })
+    stage.position({ x: t.x, y: t.y })
+    stage.batchDraw()
+  }
 
   return (
-    <div className="viewport-container">
-      <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
+    <div className="viewport-container" ref={containerRef} style={{ width: '100%', height: '100%' }}>
+      {size.width > 0 && size.height > 0 && (
+        <Stage
+          ref={setStageRef}
+          width={size.width}
+          height={size.height}
+          draggable
+          onWheel={handleWheel}
+          style={{ background: '#fafaf8' }}
+        >
+          <Layer>
+            <PanelBoundary />
+            <PatternLayer pattern={pattern} activeLayers={activeLayers} />
+          </Layer>
+        </Stage>
+      )}
     </div>
   )
 }

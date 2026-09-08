@@ -1,3 +1,6 @@
+// DEPRECATED
+
+
 // TODO: replace with grid tiling once computeGridGeometry() is implemented
 import * as THREE from 'three';
 
