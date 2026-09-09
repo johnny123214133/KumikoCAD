@@ -39,6 +39,13 @@ const useAppStore = create((set) => ({
   // viewportLocked) — keeping setActiveTool a plain setter is what lets
   // those two triggers not fight each other.
   viewportLocked: false,
+  // Whether the Inspector's Strips section (pattern-editor right panel) is
+  // expanded. Lives here rather than as local state in Inspector.jsx because
+  // Inspector actually unmounts/remounts every time you switch to
+  // panel-editor and back (RightPanel swaps it for GridInspector) — local
+  // state wouldn't survive that. Collapsed by default, in-session only (not
+  // persisted to localStorage — wasn't asked for here, unlike panel widths).
+  stripsExpanded: false,
   // Not reactive render state — just a handle Viewport publishes on mount so
   // sibling components (e.g. ViewControls in the left panel) can call into the
   // SceneManager/PatternRenderer instances that live inside Viewport's canvas.
@@ -62,6 +69,7 @@ const useAppStore = create((set) => ({
   toggleLayer: (key) => set((s) => ({ activeLayers: { ...s.activeLayers, [key]: !s.activeLayers[key] } })),
   setActiveTool: (tool) => set({ activeTool: tool }),
   setViewportLocked: (locked) => set({ viewportLocked: locked }),
+  setStripsExpanded: (expanded) => set({ stripsExpanded: expanded }),
   setViewportApi: (api) => set({ viewportApi: api }),
 }));
 

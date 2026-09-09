@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
+import useAppStore from '../../store/useAppStore.js'
 import { WOOD_OPTIONS, FINISH_OPTIONS } from '../../geometry/materials.js'
 import { mmToIn, inToMm } from '../../geometry/units.js'
+import OverlayControls from '../pattern-editor/OverlayControls.jsx'
 
 const sectionLabelStyle = { letterSpacing: '0.05em', fontSize: '11px' }
 
@@ -58,6 +60,8 @@ export default function Inspector() {
   const getActivePattern = usePatternStore(s => s.getActivePattern)
   const activePatternId = usePatternStore(s => s.activePatternId)
   const pattern = getActivePattern()
+  const stripsExpanded = useAppStore(s => s.stripsExpanded)
+  const setStripsExpanded = useAppStore(s => s.setStripsExpanded)
 
   // Strip width + material/finish editors below are local UI state, seeded
   // from the active pattern's first stripProperties entry and re-synced
@@ -87,23 +91,45 @@ export default function Inspector() {
   }
 
   return (
-    <div className="d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
-      {/* Upper section — strip list, scrollable */}
-      <div className="d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
-        <div className="fw-semibold small text-uppercase text-muted mb-2" style={sectionLabelStyle}>
+    <div>
+      {/* Strips section — collapsed by default (state lives in useAppStore,
+          not here, so it survives Inspector unmounting on a workspace
+          switch). When expanded this is a FIXED max-height box with its own
+          scroll, not a flex-grow region — flex-grow by construction fills
+          exactly the space left over and can never overflow its container,
+          which is why the rest of the panel (Strip properties, Overlays)
+          used to always stay in view but this section could get squeezed to
+          almost nothing. A fixed box lets total content genuinely exceed the
+          panel's height when expanded, which is what lets RightPanel's
+          existing overflow-auto wrapper actually activate and scroll the
+          whole menu — that mechanism was already there, just never
+          triggered before. */}
+      <div className="d-flex align-items-center justify-content-between mb-2">
+        <div className="fw-semibold small text-uppercase text-muted" style={sectionLabelStyle}>
           Strips ({pattern.strips.length})
         </div>
-        <div className="overflow-auto" style={{ minHeight: 0, flex: '1 1 auto' }}>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-secondary"
+          style={{ padding: '1px 8px', fontSize: '11px' }}
+          onClick={() => setStripsExpanded(!stripsExpanded)}
+          aria-expanded={stripsExpanded}
+        >
+          {stripsExpanded ? '▲ Collapse' : '▼ Expand'}
+        </button>
+      </div>
+      {stripsExpanded && (
+        <div className="overflow-auto mb-1" style={{ maxHeight: '55vh', minHeight: '220px' }}>
           {pattern.strips.map(strip => (
             <StripCard key={strip.id} strip={strip} pattern={pattern} />
           ))}
         </div>
-      </div>
+      )}
 
-      <hr className="my-3 flex-shrink-0" />
+      <hr className="my-3" />
 
-      {/* Lower section — strip width + material, pinned below the scroll area */}
-      <div className="flex-shrink-0">
+      {/* Strip properties */}
+      <div>
         <div className="fw-semibold small text-uppercase text-muted mb-2" style={sectionLabelStyle}>Strip properties</div>
 
         <div className="mb-3">
@@ -137,6 +163,15 @@ export default function Inspector() {
             {FINISH_OPTIONS.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
           </select>
         </div>
+      </div>
+
+      <hr className="my-3" />
+
+      {/* Overlay toggles — this used to live in the left panel, before that
+          sidebar's pattern-list section was built out; the component itself
+          was never deleted, just no longer imported anywhere. Reused as-is. */}
+      <div>
+        <OverlayControls />
       </div>
     </div>
   )
