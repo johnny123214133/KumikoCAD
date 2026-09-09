@@ -16,6 +16,7 @@ export default function Viewport() {
   const workspace = useAppStore(s => s.workspace)
   const activeLayers = useAppStore(s => s.activeLayers)
   const setViewportApi = useAppStore(s => s.setViewportApi)
+  const viewportLocked = useAppStore(s => s.viewportLocked)
   const leftPanelOpen = useAppStore(s => s.leftPanelOpen)
   const leftPanelWidth = useAppStore(s => s.leftPanelWidth)
   const rightPanelOpen = useAppStore(s => s.rightPanelOpen)
@@ -33,6 +34,18 @@ export default function Viewport() {
   const activePatternId = usePatternStore(s => s.activePatternId)
   const getActivePattern = usePatternStore(s => s.getActivePattern)
   const pattern = getActivePattern()
+  // Also read via ref, and NOT included in zoomToFit's own deps below — this
+  // is what actually fixes "changing the active pattern shouldn't move the
+  // panel-editor's viewport": panel-editor's bbox doesn't even use `pattern`
+  // (activePatternId there just means "which pattern the placement tool will
+  // stamp", unrelated to what's visible), but if `pattern` were still in
+  // zoomToFit's deps, its changing identity would still indirectly re-fire
+  // the auto-refit effect below (since that effect depends on zoomToFit
+  // itself) regardless of workspace. Keeping it out of zoomToFit's deps
+  // entirely, and reading the latest value via this ref instead, breaks that
+  // chain at the source rather than special-casing the workspace check.
+  const patternRef = useRef(pattern)
+  useEffect(() => { patternRef.current = pattern }, [pattern])
   const { cols, rows, cellWidth, orientation, cornerBehavior } = useGridStore()
 
   // Stage only mounts once size is known (see the conditional render below), so
@@ -60,7 +73,7 @@ export default function Viewport() {
           const { width, height } = computeGridGeometry({ cols, rows, cellWidth, orientation, cornerBehavior }).bounds
           return { minX: 0, maxX: width, minY: 0, maxY: height }
         })()
-      : getPatternBoundingBox(pattern)
+      : getPatternBoundingBox(patternRef.current)
     const { leftPanelOpen, leftPanelWidth, rightPanelOpen, rightPanelWidth } = panelStateRef.current
     const t = computeZoomToFit(
       bbox, w, h,
@@ -70,7 +83,7 @@ export default function Viewport() {
     stage.scale({ x: t.scale, y: t.scale })
     stage.position({ x: t.x, y: t.y })
     stage.batchDraw()
-  }, [workspace, pattern, cols, rows, cellWidth, orientation, cornerBehavior])
+  }, [workspace, cols, rows, cellWidth, orientation, cornerBehavior])
 
   // Panel-editor's Stage/canvas sizing — was previously an imperative
   // sm.onResize() call; now just updates the <Stage> width/height props.
@@ -85,16 +98,26 @@ export default function Viewport() {
     return () => ro.disconnect()
   }, [])
 
-  // Zoom-to-fit on pattern switch, workspace switch, or grid dimension change
-  // (including the initial mount) — matches the old behavior: panel-toggle
-  // resizes do NOT re-center/re-zoom, only these do, so the user's pan/zoom
-  // survives a panel toggle. stageMounted is what fixes the original bug:
-  // without it, this effect's only invocation on initial load happened while
-  // the Stage hadn't mounted yet, so zoomToFit() silently no-op'd and never
-  // got a second chance to run.
+  // Refit on workspace switch, grid dimension change, or initial mount —
+  // deliberately does NOT include activePatternId: panel-editor's bbox
+  // doesn't depend on which pattern is active (see patternRef comment
+  // above), so this must not re-fire just because a different pattern was
+  // picked in the placement tool while sitting in panel-editor. stageMounted
+  // is what fixes the original "ran once before the Stage existed" bug.
   useEffect(() => {
     zoomToFit()
-  }, [activePatternId, workspace, cols, rows, cellWidth, orientation, cornerBehavior, stageMounted, zoomToFit])
+  }, [workspace, cols, rows, cellWidth, orientation, cornerBehavior, stageMounted, zoomToFit])
+
+  // Separately: in pattern-editor specifically, switching which pattern is
+  // open for editing SHOULD refit (you're now looking at a different shape).
+  // Guarded by a ref rather than listing `workspace` as a dependency so this
+  // doesn't ALSO re-fire on workspace switches — the effect above already
+  // handles those.
+  const workspaceRef = useRef(workspace)
+  useEffect(() => { workspaceRef.current = workspace }, [workspace])
+  useEffect(() => {
+    if (workspaceRef.current === 'pattern-editor') zoomToFit()
+  }, [activePatternId, zoomToFit])
 
   useEffect(() => {
     setViewportApi({ zoomToFit })
@@ -125,8 +148,8 @@ export default function Viewport() {
           ref={setStageRef}
           width={size.width}
           height={size.height}
-          draggable
-          onWheel={handleWheel}
+          draggable={!viewportLocked}
+          onWheel={viewportLocked ? (e) => e.evt.preventDefault() : handleWheel}
           style={{ background: '#fafaf8' }}
         >
           <Layer>

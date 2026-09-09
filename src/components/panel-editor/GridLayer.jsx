@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { Line, Group } from 'react-konva'
+import useAppStore from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import PatternStrips from '../pattern-editor/PatternStrips.jsx'
@@ -50,6 +51,7 @@ export default function GridLayer() {
   const builtInPatterns = usePatternStore(s => s.builtInPatterns)
   const userPatterns = usePatternStore(s => s.userPatterns)
   const activePatternId = usePatternStore(s => s.activePatternId)
+  const activeTool = useAppStore(s => s.activeTool)
 
   const patternsById = useMemo(
     () => Object.fromEntries([...builtInPatterns, ...userPatterns].map(p => [p.id, p])),
@@ -92,7 +94,7 @@ export default function GridLayer() {
           key={space.id}
           space={space}
           pattern={patternsById[spacePatterns[space.id]] ?? blankPattern}
-          onClick={() => setSpacePattern(space.id, activePatternId)}
+          onClick={() => { if (activeTool === 'place-pattern') setSpacePattern(space.id, activePatternId) }}
         />
       ))}
     </>

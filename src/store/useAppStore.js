@@ -27,15 +27,26 @@ const useAppStore = create((set) => ({
   gridStripWidth : 3,
   defaultPatterStripWidth : 2.3,
   activeLayers: { ...DEFAULT_LAYERS },
-  // Which toolbar tool is visually selected (selection / multi-select / area-select /
-  // align-to-gridpoint / fill-paint). UI state only — per this task's instructions,
-  // none of these tools have any actual canvas behavior wired up yet.
+  // Which toolbar tool is visually selected (selection / place-pattern /
+  // multi-select / area-select / align-to-gridpoint / fill-paint).
   activeTool: 'selection',
+  // Locks the viewport's pan/zoom (Stage draggable + wheel-zoom, see
+  // Viewport.jsx). Deliberately NOT auto-derived from activeTool inside this
+  // store — see Toolbar.jsx: selecting a tool sets both activeTool AND
+  // (for selection/place-pattern specifically) viewportLocked together at
+  // the call site, while the lock button itself sets both independently
+  // (always forces activeTool to 'selection' AND independently toggles
+  // viewportLocked) — keeping setActiveTool a plain setter is what lets
+  // those two triggers not fight each other.
+  viewportLocked: false,
   // Not reactive render state — just a handle Viewport publishes on mount so
   // sibling components (e.g. ViewControls in the left panel) can call into the
   // SceneManager/PatternRenderer instances that live inside Viewport's canvas.
   viewportApi: null,
-  setWorkspace: (workspace) => set({ workspace }),
+  // Switching workspaces resets tool selection and unlocks the viewport —
+  // there's only one path to a workspace switch (the toolbar's workspace
+  // buttons), so unlike activeTool this side effect is safe to bake in here.
+  setWorkspace: (workspace) => set({ workspace, activeTool: 'selection', viewportLocked: false }),
   setLeftPanelOpen: (open) => set({ leftPanelOpen: open }),
   setRightPanelOpen: (open) => set({ rightPanelOpen: open }),
   setLeftPanelWidth: (w) => {
@@ -50,6 +61,7 @@ const useAppStore = create((set) => ({
   },
   toggleLayer: (key) => set((s) => ({ activeLayers: { ...s.activeLayers, [key]: !s.activeLayers[key] } })),
   setActiveTool: (tool) => set({ activeTool: tool }),
+  setViewportLocked: (locked) => set({ viewportLocked: locked }),
   setViewportApi: (api) => set({ viewportApi: api }),
 }));
 

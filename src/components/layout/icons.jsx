@@ -88,3 +88,27 @@ export const GridViewIcon = () => (
     <rect x="13.5" y="13.5" width="7" height="7" rx="0.75" />
   </svg>
 )
+
+// A pattern triangle dropping into a grid cell outline — the panel editor's
+// "place the currently-selected pattern into a cell" tool.
+export const PlacePatternIcon = () => (
+  <svg {...base}>
+    <path d="M4 21 L20 21 L12 8 Z" />
+    <path d="M12 2 L12 10" />
+    <path d="M8.5 6.5 L12 10 L15.5 6.5" />
+  </svg>
+)
+
+export const LockIcon = () => (
+  <svg {...base}>
+    <rect x="5" y="11" width="14" height="10" rx="1.5" />
+    <path d="M8 11 L8 7 a4 4 0 0 1 8 0 L16 11" />
+  </svg>
+)
+
+export const UnlockIcon = () => (
+  <svg {...base}>
+    <rect x="5" y="11" width="14" height="10" rx="1.5" />
+    <path d="M8 11 L8 7 a4 4 0 0 1 7.4 -2" />
+  </svg>
+)

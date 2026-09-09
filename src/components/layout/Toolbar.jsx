@@ -1,33 +1,53 @@
 import React from 'react'
 import useAppStore from '../../store/useAppStore.js'
 import {
-  SelectionIcon, MultiSelectIcon, AreaSelectIcon, AlignGridIcon, FillPaintIcon,
-  LeftPanelIcon, RightPanelIcon, SaveProjectIcon, LoadProjectIcon,
+  SelectionIcon, PlacePatternIcon, MultiSelectIcon, AreaSelectIcon, AlignGridIcon, FillPaintIcon,
+  LeftPanelIcon, RightPanelIcon, SaveProjectIcon, LoadProjectIcon, LockIcon, UnlockIcon,
 } from './icons.jsx'
 
-// Which workspace(s) each tool applies to. Plain "Selection" is left enabled
-// in both, since selecting *something* is meaningful whether you're picking a
-// pattern piece in the 2D panel editor or a part in the (not-yet-built) 3D
-// assembly editor. The other four — multi-select, area-select, snap-to-
-// gridpoint, fill/paint — are all inherently 2D pattern-grid concepts, so
-// they're disabled outside pattern-editor. None of these tools have any actual
-// behavior wired up yet either way — this only controls which are enabled to
-// click and which of them is shown as the active selection.
+// Which workspace(s) each tool applies to. Selection is enabled in both — in
+// panel-editor it's for manipulating the grid itself (selecting cells etc.,
+// not yet built); in pattern-editor it's the general selection tool. Place
+// Pattern is panel-editor only: it's what actually stamps the currently-
+// selected pattern into a clicked cell (see GridLayer.jsx) — that used to be
+// bound to plain clicking regardless of tool; now it's gated to this tool
+// specifically. multi-select/area-select/align-gridpoint/fill-paint remain
+// pattern-editor-only 2D concepts. None of these (besides place-pattern's
+// grid-stamping and the two tools' lock behavior below) have real canvas
+// behavior wired up yet.
 const TOOLS = [
   { id: 'selection', label: 'Selection', Icon: SelectionIcon, workspaces: ['pattern-editor', 'panel-editor'] },
+  { id: 'place-pattern', label: 'Place Pattern', Icon: PlacePatternIcon, workspaces: ['panel-editor'] },
   { id: 'multi-select', label: 'Multi-select', Icon: MultiSelectIcon, workspaces: ['pattern-editor'] },
   { id: 'area-select', label: 'Area select', Icon: AreaSelectIcon, workspaces: ['pattern-editor'] },
   { id: 'align-gridpoint', label: 'Align to gridpoint', Icon: AlignGridIcon, workspaces: ['pattern-editor'] },
   { id: 'fill-paint', label: 'Fill / paint', Icon: FillPaintIcon, workspaces: ['pattern-editor'] },
 ]
 
+// Which tools imply which viewport-lock state when selected FROM THE TOOLBAR
+// specifically (as opposed to the lock button's own click, which sets both
+// independently — see the lock button below and useAppStore's comment on
+// viewportLocked for why this lives here rather than inside setActiveTool).
+const TOOL_LOCK = { selection: false, 'place-pattern': true }
+
 export default function Toolbar() {
   const {
     workspace, setWorkspace,
     activeTool, setActiveTool,
+    viewportLocked, setViewportLocked,
     leftPanelOpen, setLeftPanelOpen,
     rightPanelOpen, setRightPanelOpen,
   } = useAppStore()
+
+  const selectTool = (id) => {
+    setActiveTool(id)
+    if (id in TOOL_LOCK) setViewportLocked(TOOL_LOCK[id])
+  }
+
+  const toggleLock = () => {
+    setViewportLocked(!viewportLocked)
+    setActiveTool('selection')
+  }
 
   return (
     <nav
@@ -60,7 +80,7 @@ export default function Toolbar() {
               title={label}
               aria-label={label}
               aria-pressed={active}
-              onClick={() => setActiveTool(id)}
+              onClick={() => selectTool(id)}
             >
               <Icon />
             </button>
@@ -69,6 +89,17 @@ export default function Toolbar() {
       </div>
 
       <div className="ms-auto d-flex align-items-center" style={{ gap: '0.375rem' }}>
+        <button
+          type="button"
+          className={`btn btn-sm ${viewportLocked ? 'btn-dark' : 'btn-outline-secondary'}`}
+          title={viewportLocked ? 'Viewport locked — click to unlock' : 'Viewport unlocked — click to lock'}
+          aria-label="Toggle viewport lock"
+          aria-pressed={viewportLocked}
+          onClick={toggleLock}
+        >
+          {viewportLocked ? <LockIcon /> : <UnlockIcon />}
+        </button>
+
         <div className="btn-group btn-group-sm">
           <button className={`btn ${workspace === 'pattern-editor' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setWorkspace('pattern-editor')}>Pattern Editor</button>
           <button className={`btn ${workspace === 'panel-editor' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setWorkspace('panel-editor')}>Panel Editor</button>
