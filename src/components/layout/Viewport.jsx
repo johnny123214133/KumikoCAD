@@ -46,7 +46,7 @@ export default function Viewport() {
   // chain at the source rather than special-casing the workspace check.
   const patternRef = useRef(pattern)
   useEffect(() => { patternRef.current = pattern }, [pattern])
-  const { cols, rows, cellWidth, orientation, cornerBehavior } = useGridStore()
+  const { cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior } = useGridStore()
 
   // Stage only mounts once size is known (see the conditional render below), so
   // stageRef.current is still null on the very first render pass — a plain ref
@@ -73,7 +73,7 @@ export default function Viewport() {
           const { width, height } = computeGridGeometry({ cols, rows, cellWidth, orientation, cornerBehavior }).bounds
           return { minX: 0, maxX: width, minY: 0, maxY: height }
         })()
-      : getPatternBoundingBox(patternRef.current)
+      : getPatternBoundingBox(patternRef.current, gridStripWidth)
     const { leftPanelOpen, leftPanelWidth, rightPanelOpen, rightPanelWidth } = panelStateRef.current
     const t = computeZoomToFit(
       bbox, w, h,
@@ -83,7 +83,7 @@ export default function Viewport() {
     stage.scale({ x: t.scale, y: t.scale })
     stage.position({ x: t.x, y: t.y })
     stage.batchDraw()
-  }, [workspace, cols, rows, cellWidth, orientation, cornerBehavior])
+  }, [workspace, cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior])
 
   // Panel-editor's Stage/canvas sizing — was previously an imperative
   // sm.onResize() call; now just updates the <Stage> width/height props.

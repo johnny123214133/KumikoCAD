@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react'
 import { Line, Circle } from 'react-konva'
 import PatternStrips from './PatternStrips.jsx'
+import GridBorderStrip from './GridBorderStrip.jsx'
+import useGridStore from '../../store/useGridStore.js'
 
 const NOTCH_COLORS = {
   halfLap: '#4a9eff',
@@ -20,15 +22,26 @@ const flip = (p) => ({ x: p.x, y: -p.y })
  * Viewport's zoomToFit. Frames the triangle cell itself, not just the strips
  * (see the comment this replaced in the old PatternRenderer.getBoundingBox —
  * strips don't reach the vertices for Tsumiishi-kikko or Mikado).
+ *
+ * `margin` (mm, default 0): inflates the box uniformly on all sides. Needed
+ * because GridBorderStrip's band/wireframe extends beyond the nominal
+ * triangle vertices by gridStripWidth/2 — without this, zoom-to-fit could
+ * frame tightly enough that the border's outer edge (especially the thin
+ * wireframe outline sitting right at that boundary) ends up just outside
+ * the fitted view, looking like it isn't rendering at all even though it is.
  */
-export function getPatternBoundingBox(pattern) {
+export function getPatternBoundingBox(pattern, margin = 0) {
   const { A, B, C } = pattern.vertices
   const xs = [A.x, B.x, C.x]
   const ys = [A.y, B.y, C.y]
-  return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) }
+  return {
+    minX: Math.min(...xs) - margin, maxX: Math.max(...xs) + margin,
+    minY: Math.min(...ys) - margin, maxY: Math.max(...ys) + margin,
+  }
 }
 
 export default function PatternLayer({ pattern, activeLayers }) {
+  const gridStripWidth = useGridStore(s => s.gridStripWidth)
   const boundaryPoints = useMemo(() => {
     const { A, B, C } = pattern.vertices
     return [A, B, C].flatMap(v => { const f = flip(v); return [f.x, f.y] })
@@ -36,6 +49,8 @@ export default function PatternLayer({ pattern, activeLayers }) {
 
   return (
     <>
+      <GridBorderStrip pattern={pattern} gridStripWidth={gridStripWidth} wireframe={!!activeLayers.wireframe} />
+
       <PatternStrips pattern={pattern} wireframe={!!activeLayers.wireframe} />
 
       <Line
