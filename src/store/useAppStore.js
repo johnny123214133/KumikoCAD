@@ -50,6 +50,14 @@ const useAppStore = create((set) => ({
   // sibling components (e.g. ViewControls in the left panel) can call into the
   // SceneManager/PatternRenderer instances that live inside Viewport's canvas.
   viewportApi: null,
+  // Current visible world-rect (Y-up, same convention as computeGridGeometry
+  // — {minX,maxX,minY,maxY}), used by GridLayer to cull off-screen cells
+  // instead of mounting every cell in the whole grid regardless of zoom/pan.
+  // Updated by Viewport.jsx on drag/wheel/zoomToFit, throttled to at most
+  // once per animation frame (see Viewport.jsx) — this is read-heavy
+  // (culling recomputes on every change) so it's deliberately NOT updated on
+  // every raw pointermove.
+  viewportVisibleRect: null,
   // Switching workspaces resets tool selection and unlocks the viewport —
   // there's only one path to a workspace switch (the toolbar's workspace
   // buttons), so unlike activeTool this side effect is safe to bake in here.
@@ -71,6 +79,7 @@ const useAppStore = create((set) => ({
   setViewportLocked: (locked) => set({ viewportLocked: locked }),
   setStripsExpanded: (expanded) => set({ stripsExpanded: expanded }),
   setViewportApi: (api) => set({ viewportApi: api }),
+  setViewportVisibleRect: (rect) => set({ viewportVisibleRect: rect }),
 }));
 
 export default useAppStore;

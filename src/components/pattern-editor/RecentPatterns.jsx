@@ -1,5 +1,6 @@
 import React from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
+import useAppStore from '../../store/useAppStore.js'
 import PatternIcon from './PatternIcon.jsx'
 
 // Quick-access list of up to 5 most-recently-selected patterns (most recent
@@ -11,9 +12,22 @@ export default function RecentPatterns() {
   const recentPatternIds = usePatternStore(s => s.recentPatternIds)
   const activePatternId = usePatternStore(s => s.activePatternId)
   const setActivePattern = usePatternStore(s => s.setActivePattern)
+  const workspace = useAppStore(s => s.workspace)
+  const setActiveTool = useAppStore(s => s.setActiveTool)
+  const setViewportLocked = useAppStore(s => s.setViewportLocked)
 
   const byId = Object.fromEntries([...builtInPatterns, ...userPatterns].map(p => [p.id, p]))
   const recent = recentPatternIds.map(id => byId[id]).filter(Boolean).slice(0, 5)
+
+  // Same rule as PatternLibrary.jsx's selectPattern — this is just another
+  // way to select a pattern, so it should behave consistently.
+  const selectPattern = (id) => {
+    setActivePattern(id)
+    if (workspace === 'panel-editor') {
+      setActiveTool('place-pattern')
+      setViewportLocked(true)
+    }
+  }
 
   return (
     <div>
@@ -24,7 +38,7 @@ export default function RecentPatterns() {
             key={p.id}
             className={`list-group-item list-group-item-action py-2 px-2 d-flex align-items-center gap-2 ${activePatternId === p.id ? 'active' : ''}`}
             style={{ fontSize: '13px' }}
-            onClick={() => setActivePattern(p.id)}
+            onClick={() => selectPattern(p.id)}
           >
             <PatternIcon pattern={p} size={24} />
             <div className="fw-medium text-truncate">{p.name}</div>

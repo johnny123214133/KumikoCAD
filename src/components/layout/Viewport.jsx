@@ -16,6 +16,7 @@ export default function Viewport() {
   const workspace = useAppStore(s => s.workspace)
   const activeLayers = useAppStore(s => s.activeLayers)
   const setViewportApi = useAppStore(s => s.setViewportApi)
+  const setViewportVisibleRect = useAppStore(s => s.setViewportVisibleRect)
   const viewportLocked = useAppStore(s => s.viewportLocked)
   const leftPanelOpen = useAppStore(s => s.leftPanelOpen)
   const leftPanelWidth = useAppStore(s => s.leftPanelWidth)
@@ -58,6 +59,31 @@ export default function Viewport() {
     setStageMounted(!!node)
   }, [])
 
+  // Publishes the current visible world-rect for GridLayer's viewport
+  // culling (see useAppStore's viewportVisibleRect comment). Throttled to at
+  // most once per animation frame via rafPendingRef — dragmove and wheel can
+  // both fire far more often than that, and culling only needs "roughly
+  // current", not every intermediate frame.
+  const rafPendingRef = useRef(false)
+  const updateVisibleRect = useCallback(() => {
+    if (rafPendingRef.current) return
+    rafPendingRef.current = true
+    requestAnimationFrame(() => {
+      rafPendingRef.current = false
+      const stage = stageRef.current
+      const container = containerRef.current
+      if (!stage || !container) return
+      const scale = stage.scaleX()
+      const pos = stage.position()
+      const w = container.clientWidth, h = container.clientHeight
+      // Screen (0,0)-(w,h) -> Konva-flipped local space, then flip Y to match
+      // the same Y-up world convention computeGridGeometry's spaces use.
+      const kx0 = (0 - pos.x) / scale, kx1 = (w - pos.x) / scale
+      const ky0 = (0 - pos.y) / scale, ky1 = (h - pos.y) / scale
+      setViewportVisibleRect({ minX: kx0, maxX: kx1, minY: -ky1, maxY: -ky0 })
+    })
+  }, [setViewportVisibleRect])
+
   const zoomToFit = useCallback(() => {
     const stage = stageRef.current
     const container = containerRef.current
@@ -83,7 +109,8 @@ export default function Viewport() {
     stage.scale({ x: t.scale, y: t.scale })
     stage.position({ x: t.x, y: t.y })
     stage.batchDraw()
-  }, [workspace, cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior])
+    updateVisibleRect()
+  }, [workspace, cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior, updateVisibleRect])
 
   // Panel-editor's Stage/canvas sizing — was previously an imperative
   // sm.onResize() call; now just updates the <Stage> width/height props.
@@ -139,6 +166,7 @@ export default function Viewport() {
     stage.scale({ x: t.scale, y: t.scale })
     stage.position({ x: t.x, y: t.y })
     stage.batchDraw()
+    updateVisibleRect()
   }
 
   return (
@@ -150,6 +178,7 @@ export default function Viewport() {
           height={size.height}
           draggable={!viewportLocked}
           onWheel={viewportLocked ? (e) => e.evt.preventDefault() : handleWheel}
+          onDragMove={updateVisibleRect}
           style={{ background: '#fafaf8' }}
         >
           <Layer>

@@ -127,13 +127,24 @@ export function computeGridGeometry({ cols, rows, cellWidth, orientation = 'hori
   // Deduplicated cell-edge list for drawing the grid strip lines — see
   // file-level note on why this isn't the formal GridStrip model.
   const edgeMap = new Map();
+  const pointMap = new Map();
+  const pointKey = (p) => `${p.x.toFixed(3)},${p.y.toFixed(3)}`;
   for (const sp of spaces) {
     const [a, b, c] = sp.vertices;
     for (const [p, q] of [[a, b], [b, c], [c, a]]) {
       edgeMap.set(edgeKey(p, q), [p, q]);
+      pointMap.set(pointKey(p), p);
+      pointMap.set(pointKey(q), q);
     }
   }
   const gridLines = Array.from(edgeMap.values()).map(([p, q]) => [p.x, p.y, q.x, q.y]);
+  // Every unique point where grid-line segments meet — used to patch T/X
+  // junctions when rendering at real width (see GridLayer.jsx): separate
+  // stroked Line segments meeting at a shared point do NOT automatically
+  // miter-join with each other the way vertices within one continuous path
+  // do, so junctions need an explicit small filled patch to avoid visible
+  // gaps/notches where 2+ strips cross.
+  const jointPoints = Array.from(pointMap.values());
 
-  return { spaces, gridLines, bounds: { width, height } };
+  return { spaces, gridLines, jointPoints, bounds: { width, height } };
 }

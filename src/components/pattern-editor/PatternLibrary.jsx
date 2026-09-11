@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
+import useAppStore from '../../store/useAppStore.js'
 import PatternIcon from './PatternIcon.jsx'
 import { ListViewIcon, GridViewIcon } from '../layout/icons.jsx'
 
@@ -8,8 +9,24 @@ export default function PatternLibrary() {
   const userPatterns = usePatternStore(s => s.userPatterns)
   const activePatternId = usePatternStore(s => s.activePatternId)
   const setActivePattern = usePatternStore(s => s.setActivePattern)
+  const workspace = useAppStore(s => s.workspace)
+  const setActiveTool = useAppStore(s => s.setActiveTool)
+  const setViewportLocked = useAppStore(s => s.setViewportLocked)
   const all = [...builtInPatterns, ...userPatterns]
   const [view, setView] = useState('list') // 'list' | 'icon'
+
+  // In the panel editor, picking a pattern here means "place copies of this
+  // pattern" — so it should behave as if the Place Pattern tool button
+  // itself was clicked (switch to that tool, and lock the viewport the same
+  // way selecting that tool from the toolbar does), not just quietly change
+  // which pattern is selected underneath whatever tool was already active.
+  const selectPattern = (id) => {
+    setActivePattern(id)
+    if (workspace === 'panel-editor') {
+      setActiveTool('place-pattern')
+      setViewportLocked(true)
+    }
+  }
 
   return (
     <div className="d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
@@ -51,7 +68,7 @@ export default function PatternLibrary() {
                 key={p.id}
                 className={`list-group-item list-group-item-action py-2 px-2 d-flex align-items-center gap-2 ${activePatternId === p.id ? 'active' : ''}`}
                 style={{ fontSize: '13px' }}
-                onClick={() => setActivePattern(p.id)}
+                onClick={() => selectPattern(p.id)}
               >
                 <PatternIcon pattern={p} size={28} />
                 <div className="fw-medium text-truncate">{p.name}</div>
@@ -68,7 +85,7 @@ export default function PatternLibrary() {
               <button
                 key={p.id}
                 title={p.name}
-                onClick={() => setActivePattern(p.id)}
+                onClick={() => selectPattern(p.id)}
                 className={`btn p-1 d-flex flex-column align-items-center gap-1 ${activePatternId === p.id ? 'btn-dark' : 'btn-outline-secondary'}`}
                 style={{ fontSize: '10px', lineHeight: 1.1 }}
               >

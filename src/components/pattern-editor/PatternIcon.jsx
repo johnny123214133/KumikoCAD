@@ -1,22 +1,44 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import useGridStore from '../../store/useGridStore.js'
+import usePatternStore from '../../store/usePatternStore.js'
+import { getPatternImage, buildPatternCacheKey } from '../../geometry/patternImageCache.js'
 
-// Placeholder pattern thumbnail — an empty square for now. Meant to eventually
-// render something derived from the pattern's actual strips/joints (and any
-// user modifications), but that renderer doesn't exist yet, so this is just a
-// bordered blank square. Every place that shows a pattern (list view, icon
-// view, recently-used) renders through this one component, so wiring up the
-// real thumbnail later only means changing it here.
+// Pattern thumbnail, rendered from the pattern's actual current strips/
+// joints via the shared offscreen-canvas cache (geometry/patternImageCache,
+// geometry/renderPattern) — reflects live dimension changes and per-pattern
+// width overrides, same as the panel view. Every place that shows a pattern
+// (list view, icon view, recently-used) renders through this one component.
 //
-// It does rotate with the grid's cell orientation (horizontal/vertical, set
-// in the grid/panel right-sidebar) — visually a no-op on a plain square right
-// now, but the transform is real, so once an actual thumbnail exists here it
-// rotates correctly with no further plumbing.
+// Rendered as an <img src={canvas.toDataURL()}>, not the raw cached canvas
+// node — a canvas is a real DOM element with exactly one parent, and the
+// same pattern can appear in multiple places at once (the main list AND
+// Recently Used), which would silently steal the node from one of them.
+//
+// It rotates with the grid's cell orientation (horizontal/vertical, set in
+// the grid/panel right-sidebar) via a CSS transform on the img.
 export default function PatternIcon({ pattern, size = 28 }) {
   const orientation = useGridStore(s => s.orientation)
+  const cellWidth = useGridStore(s => s.cellWidth)
+  const gridStripWidth = useGridStore(s => s.gridStripWidth)
+  const getComputedPattern = usePatternStore(s => s.getComputedPattern)
+  const getEffectiveStripWidth = usePatternStore(s => s.getEffectiveStripWidth)
+  const patternOverrides = usePatternStore(s => s.patternOverrides)
   const rotationDeg = orientation === 'vertical' ? 90 : 0
+
+  const dataUrl = useMemo(() => {
+    const computed = getComputedPattern(pattern.id)
+    const stripWidth = getEffectiveStripWidth(pattern.id)
+    const spacing = patternOverrides[pattern.id]?.spacing ?? computed.patternParams?.spacing
+    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, stripWidth, spacing, true)
+    const result = getPatternImage(cacheKey, computed, size, 3, true)
+    return result.canvas.toDataURL()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pattern.id, cellWidth, gridStripWidth, size, patternOverrides])
+
   return (
-    <div
+    <img
+      src={dataUrl}
+      alt=""
       aria-hidden="true"
       style={{
         width: size,
