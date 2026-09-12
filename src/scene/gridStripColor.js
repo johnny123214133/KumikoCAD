@@ -6,4 +6,4 @@
 // see useGridStore's material/finish fields) later; for now it's just this
 // shared constant.
 export const GRID_STRIP_COLOR = '#8a7860';
-export const GRID_STRIP_COLOR_RGB = '138, 120, 96'; // same color, components separated for rgba() use
+export const GRID_STRIP_COLOR_RGB = '138, 120, 96, 1.0'; // same color, components separated for rgba() use

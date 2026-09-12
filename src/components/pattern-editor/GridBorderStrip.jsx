@@ -59,8 +59,8 @@ export default function GridBorderStrip({ pattern, gridStripWidth, wireframe }) 
   if (wireframe) {
     return (
       <>
-        <Line key="inner" points={innerPoints} closed stroke={`rgba(${GRID_STRIP_COLOR_RGB}, 0.6)`} strokeWidth={1} strokeScaleEnabled={false} />
-        <Line key="outer" points={outerPoints} closed stroke={`rgba(${GRID_STRIP_COLOR_RGB}, 0.6)`} strokeWidth={1} strokeScaleEnabled={false} />
+        <Line key="inner" points={innerPoints} closed stroke={`rgba(${GRID_STRIP_COLOR_RGB})`} strokeWidth={1} strokeScaleEnabled={false} />
+        <Line key="outer" points={outerPoints} closed stroke={`rgba(${GRID_STRIP_COLOR_RGB})`} strokeWidth={1} strokeScaleEnabled={false} />
       </>
     )
   }
@@ -69,7 +69,7 @@ export default function GridBorderStrip({ pattern, gridStripWidth, wireframe }) 
     <Line
       points={boundaryPoints}
       closed
-      stroke={`rgba(${GRID_STRIP_COLOR_RGB}, 0.35)`}
+      stroke={`rgba(${GRID_STRIP_COLOR_RGB})`}
       strokeWidth={gridStripWidth}
       lineJoin="miter"
     />
