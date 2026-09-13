@@ -12,13 +12,13 @@ const cache = new Map();
 // inputs that affect a pattern's geometry but aren't reflected in the
 // computed pattern object's own fields (gridStripWidth isn't stored
 // anywhere on the output — only its effect on strip/joint positions is).
-// drawBoundary is included here too — PatternIcon and the panel's per-cell
-// renderer want DIFFERENT variants of the same pattern (with/without the
-// triangle outline baked in); without this in the key they'd collide and
-// silently serve each other's cached image.
-export function buildPatternCacheKey(patternId, cellWidth, gridStripWidth, patternStripWidth, spacing, drawBoundary = false) {
+// drawBoundary and selected are included here too — different variants of
+// the same pattern at the same dimensions (with/without the triangle
+// outline, with/without every strip's selection border); without these in
+// the key they'd collide and silently serve each other's cached image.
+export function buildPatternCacheKey(patternId, cellWidth, gridStripWidth, patternStripWidth, spacing, drawBoundary = false, selected = false) {
   const spacingKey = spacing ? `${spacing.length}${spacing.unit}` : '';
-  return `${patternId}:${cellWidth}:${gridStripWidth}:${patternStripWidth}:${spacingKey}:${drawBoundary ? 'b' : ''}`;
+  return `${patternId}:${cellWidth}:${gridStripWidth}:${patternStripWidth}:${spacingKey}:${drawBoundary ? 'b' : ''}:${selected ? 's' : ''}`;
 }
 
 /**
@@ -31,11 +31,11 @@ export function buildPatternCacheKey(patternId, cellWidth, gridStripWidth, patte
  * itself would mean either re-hashing its full computed geometry (wasteful)
  * or guessing — simpler and more honest to let the caller decide.
  */
-export function getPatternImage(cacheKey, pattern, sizePx, oversample = 3, drawBoundary = false) {
+export function getPatternImage(cacheKey, pattern, sizePx, oversample = 3, drawBoundary = false, selected = false) {
   const key = `${cacheKey}:${sizePx}:${oversample}`;
   let entry = cache.get(key);
   if (!entry) {
-    entry = renderPatternToCanvas(pattern, sizePx, oversample, drawBoundary);
+    entry = renderPatternToCanvas(pattern, sizePx, oversample, drawBoundary, selected);
     cache.set(key, entry);
   }
   return entry;

@@ -3,6 +3,7 @@ import { Line, Circle, Group } from 'react-konva'
 import useAppStore from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
+import useSelectionStore from '../../store/useSelectionStore.js'
 import CachedPatternImage from './CachedPatternImage.jsx'
 import { computeGridGeometry, computeCellPlacement } from '../../geometry/grid/computeGridGeometry.js'
 import { isInteractionLayerActive } from '../../scene/interactionLayers.js'
@@ -11,7 +12,7 @@ import { GRID_STRIP_COLOR } from '../../scene/gridStripColor.js'
 const flip = (p) => ({ x: p.x, y: -p.y })
 const BLANK_PATTERN_ID = 'builtin:blank'
 
-function Cell({ space, pattern, cellWidth, gridStripWidth, patternStripWidth, spacing, onClick, interactive }) {
+function Cell({ space, pattern, cellWidth, gridStripWidth, patternStripWidth, spacing, onClick, interactive, selected }) {
   const flippedVertices = useMemo(
     () => space.vertices.flatMap(v => { const f = flip(v); return [f.x, f.y] }),
     [space]
@@ -55,6 +56,7 @@ function Cell({ space, pattern, cellWidth, gridStripWidth, patternStripWidth, sp
             gridStripWidth={gridStripWidth}
             patternStripWidth={patternStripWidth}
             spacing={spacing}
+            selected={selected}
           />
         </Group>
       )}
@@ -74,12 +76,44 @@ export default function GridLayer() {
   const patternOverrides = usePatternStore(s => s.patternOverrides)
   const activeTool = useAppStore(s => s.activeTool)
   const visibleRect = useAppStore(s => s.viewportVisibleRect)
+  const selectedSpaceIds = useSelectionStore(s => s.selectedSpaceIds)
+  const toggleSpaceSelection = useSelectionStore(s => s.toggleSpaceSelection)
+  const toggleSpaceMultiSelection = useSelectionStore(s => s.toggleSpaceMultiSelection)
   const cellsInteractive = isInteractionLayerActive(activeTool, 'cellHitRegions')
 
   const geometry = useMemo(
     () => computeGridGeometry({ cols, rows, cellWidth, orientation, cornerBehavior }),
     [cols, rows, cellWidth, orientation, cornerBehavior]
   )
+
+  // Publishes every space's ACTUAL triangle polygon (exact, from its own
+  // vertices) rather than its bounding box, for the multi-select tool's
+  // click-and-drag rectangle to hit-test against (geometry/rectSelect.js's
+  // rectTouchesPolygon). Cells are less prone to the bbox-vs-actual-shape
+  // gap than pattern-editor strips are (a triangle's bbox isn't nearly as
+  // oversized relative to its own area as a thin rotated strip's is), but
+  // since the exact vertices are already right here, using them costs
+  // nothing extra and keeps both editors' hit-testing consistently exact
+  // rather than leaving a milder version of the same approximation here.
+  // Published as the FULL set, not just visibleSpaces below — a screen-
+  // bounded drag rectangle can't reach off-screen cells anyway, so culling
+  // this list wouldn't change what's selectable, only risk excluding a
+  // partially-visible cell right at the culling margin's edge.
+  useEffect(() => {
+    const items = geometry.spaces.map(space => {
+      // flip Y to match the Konva-flipped convention the drag rectangle uses
+      const polygon = space.vertices.flatMap(v => [v.x, -v.y])
+      return { id: space.id, polygon }
+    })
+    useSelectionStore.getState().setSelectableSpaces(items)
+  }, [geometry.spaces])
+
+  const handleCellClick = (spaceId) => {
+    if (activeTool === 'place-pattern') setSpacePattern(spaceId, activePatternId)
+    else if (activeTool === 'selection') toggleSpaceSelection(spaceId)
+    else if (activeTool === 'multi-select') toggleSpaceMultiSelection(spaceId)
+    // other tools: no cell-click behavior yet
+  }
 
   // Viewport culling — only mount Cells whose bounding box overlaps the
   // current visible world-rect (+ margin), instead of every cell in the
@@ -175,7 +209,8 @@ export default function GridLayer() {
             patternStripWidth={getEffectiveStripWidth(patternId)}
             spacing={patternOverrides[patternId]?.spacing ?? pattern.patternParams?.spacing}
             interactive={cellsInteractive}
-            onClick={() => { if (activeTool === 'place-pattern') setSpacePattern(space.id, activePatternId) }}
+            selected={selectedSpaceIds.includes(space.id)}
+            onClick={() => handleCellClick(space.id)}
           />
         )
       })}

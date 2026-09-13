@@ -1,8 +1,10 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect } from 'react'
 import { Line, Circle } from 'react-konva'
 import PatternStrips from './PatternStrips.jsx'
 import GridBorderStrip from './GridBorderStrip.jsx'
 import useGridStore from '../../store/useGridStore.js'
+import useSelectionStore from '../../store/useSelectionStore.js'
+import { computeStripRenderData } from '../../geometry/renderPattern.js'
 
 const NOTCH_COLORS = {
   halfLap: '#4a9eff',
@@ -47,6 +49,33 @@ export default function PatternLayer({ pattern, activeLayers }) {
     return [A, B, C].flatMap(v => { const f = flip(v); return [f.x, f.y] })
   }, [pattern])
 
+  // Publishes each strip's ACTUAL cut-shape polygon, transformed into the
+  // same Konva-flipped world space it's actually drawn in — reusing
+  // computeStripRenderData (geometry/renderPattern.js), the same source of
+  // truth PatternStrips.jsx renders from, so this is exactly the shape on
+  // screen, not an approximation of it. Multi-select's click-and-drag
+  // rectangle hit-tests against this (see Viewport.jsx, geometry/
+  // rectSelect.js's rectTouchesPolygon).
+  //
+  // This replaced a bounding-box approximation (centerline bbox expanded by
+  // half the strip's width) that was a real, reported bug: a rotated
+  // strip's own bbox can be dramatically bigger than the strip itself,
+  // so dragging into the box's "phantom" corner — nowhere near the actual
+  // diagonal strip — incorrectly selected it anyway.
+  useEffect(() => {
+    const items = computeStripRenderData(pattern).map((data) => {
+      const rad = (data.rotationDeg * Math.PI) / 180
+      const cos = Math.cos(rad), sin = Math.sin(rad)
+      const polygon = []
+      for (let i = 0; i < data.points.length; i += 2) {
+        const lx = data.points[i], ly = data.points[i + 1]
+        polygon.push(data.x + lx * cos - ly * sin, data.y + lx * sin + ly * cos)
+      }
+      return { id: data.stripId, polygon }
+    })
+    useSelectionStore.getState().setSelectableStrips(items)
+  }, [pattern])
+
   return (
     <>
       <GridBorderStrip pattern={pattern} gridStripWidth={gridStripWidth} wireframe={!!activeLayers.wireframe} />
@@ -59,6 +88,7 @@ export default function PatternLayer({ pattern, activeLayers }) {
         stroke="#334155"
         strokeWidth={1}
         strokeScaleEnabled={false}
+        listening={false}
       />
 
       {activeLayers.centerlines && pattern.strips.map(s => {
@@ -70,6 +100,7 @@ export default function PatternLayer({ pattern, activeLayers }) {
             stroke="#94a3b8"
             strokeWidth={1}
             strokeScaleEnabled={false}
+            listening={false}
           />
         )
       })}
@@ -83,6 +114,7 @@ export default function PatternLayer({ pattern, activeLayers }) {
             y={p.y}
             radius={0.75}
             fill={NOTCH_COLORS[j.notchType] ?? '#aaaaaa'}
+            listening={false}
           />
         )
       })}

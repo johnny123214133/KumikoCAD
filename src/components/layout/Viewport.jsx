@@ -1,12 +1,14 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react'
-import { Stage, Layer } from 'react-konva'
+import { Stage, Layer, Rect } from 'react-konva'
 import useAppStore from '../../store/useAppStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import useGridStore from '../../store/useGridStore.js'
+import useSelectionStore from '../../store/useSelectionStore.js'
 import PatternLayer, { getPatternBoundingBox } from '../pattern-editor/PatternLayer.jsx'
 import GridLayer from '../panel-editor/GridLayer.jsx'
 import { computeGridGeometry } from '../../geometry/grid/computeGridGeometry.js'
 import { computeZoomToFit, computeWheelZoom } from '../../scene/viewportMath.js'
+import { normalizeRect, rectTouchesPolygon } from '../../geometry/rectSelect.js'
 
 export default function Viewport() {
   const containerRef = useRef(null)
@@ -14,6 +16,7 @@ export default function Viewport() {
   const [size, setSize] = useState({ width: 0, height: 0 }) // drives the <Stage> element's own pixel size
   const [stageMounted, setStageMounted] = useState(false)
   const workspace = useAppStore(s => s.workspace)
+  const activeTool = useAppStore(s => s.activeTool)
   const activeLayers = useAppStore(s => s.activeLayers)
   const setViewportApi = useAppStore(s => s.setViewportApi)
   const setViewportVisibleRect = useAppStore(s => s.setViewportVisibleRect)
@@ -151,6 +154,70 @@ export default function Viewport() {
     return () => setViewportApi(null)
   }, [zoomToFit, setViewportApi])
 
+  // Multi-select's click-and-drag rectangle selection. One corner anchors
+  // at mousedown, the opposite corner follows the cursor, and releasing
+  // REPLACES the current selection with whatever overlaps the rectangle
+  // (touch-select — see geometry/rectSelect.js for where a future contain-
+  // select mode would slot in). dragRectRef holds the anchor point in
+  // Konva-local coordinates (not React state) so mousemove doesn't need a
+  // state round-trip just to read it back; dragRectState IS React state,
+  // since the rectangle's current extent needs to actually re-render as the
+  // cursor moves. A small screen-pixel distance threshold distinguishes a
+  // real drag from a plain click — below it, this does nothing and leaves
+  // the click to the individual strip/cell's own onClick handler (which is
+  // how multi-select's "add one clicked item to the list" behavior already
+  // works, entirely separately from this).
+  const DRAG_THRESHOLD_PX = 4
+  const dragAnchorRef = useRef(null) // { worldX, worldY, screenX, screenY } | null
+  const [dragRectState, setDragRectState] = useState(null) // { x1, y1, x2, y2 } in Konva-local coords, for rendering only
+
+  const toKonvaLocal = (stage, screenPos) => {
+    const scale = stage.scaleX()
+    const pos = stage.position()
+    return { x: (screenPos.x - pos.x) / scale, y: (screenPos.y - pos.y) / scale }
+  }
+
+  const handleStageMouseDown = (e) => {
+    if (activeTool !== 'multi-select') return
+    const stage = e.target.getStage()
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+    const world = toKonvaLocal(stage, pointer)
+    dragAnchorRef.current = { worldX: world.x, worldY: world.y, screenX: pointer.x, screenY: pointer.y }
+    setDragRectState({ x1: world.x, y1: world.y, x2: world.x, y2: world.y })
+  }
+
+  const handleStageMouseMove = (e) => {
+    if (activeTool !== 'multi-select' || !dragAnchorRef.current) return
+    const stage = e.target.getStage()
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+    const world = toKonvaLocal(stage, pointer)
+    const a = dragAnchorRef.current
+    setDragRectState({ x1: a.worldX, y1: a.worldY, x2: world.x, y2: world.y })
+  }
+
+  const handleStageMouseUp = (e) => {
+    if (activeTool !== 'multi-select') return
+    const anchor = dragAnchorRef.current
+    dragAnchorRef.current = null
+    setDragRectState(null)
+    if (!anchor) return
+    const stage = e.target.getStage()
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+    const screenDist = Math.hypot(pointer.x - anchor.screenX, pointer.y - anchor.screenY)
+    if (screenDist < DRAG_THRESHOLD_PX) return // a plain click — the shape's own onClick already handled it
+    const world = toKonvaLocal(stage, pointer)
+    const rect = normalizeRect(anchor.worldX, anchor.worldY, world.x, world.y)
+    const sel = useSelectionStore.getState()
+    if (workspace === 'panel-editor') {
+      sel.setSpaceSelection(sel.selectableSpaces.filter(c => rectTouchesPolygon(rect, c.polygon)).map(c => c.id))
+    } else {
+      sel.setStripSelection(sel.selectableStrips.filter(c => rectTouchesPolygon(rect, c.polygon)).map(c => c.id))
+    }
+  }
+
   const handleWheel = (e) => {
     e.evt.preventDefault()
     const stage = e.target.getStage()
@@ -179,12 +246,30 @@ export default function Viewport() {
           draggable={!viewportLocked}
           onWheel={viewportLocked ? (e) => e.evt.preventDefault() : handleWheel}
           onDragMove={updateVisibleRect}
+          onMouseDown={handleStageMouseDown}
+          onMouseMove={handleStageMouseMove}
+          onMouseUp={handleStageMouseUp}
           style={{ background: '#fafaf8' }}
         >
           <Layer>
             {workspace === 'panel-editor'
               ? <GridLayer />
               : <PatternLayer pattern={pattern} activeLayers={activeLayers} />}
+            {dragRectState && (() => {
+              const r = normalizeRect(dragRectState.x1, dragRectState.y1, dragRectState.x2, dragRectState.y2)
+              return (
+                <Rect
+                  x={r.minX}
+                  y={r.minY}
+                  width={r.maxX - r.minX}
+                  height={r.maxY - r.minY}
+                  stroke="rgba(13, 110, 253, 0.6)"
+                  strokeWidth={1}
+                  strokeScaleEnabled={false}
+                  listening={false}
+                />
+              )
+            })()}
           </Layer>
         </Stage>
       )}

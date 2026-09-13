@@ -18,7 +18,7 @@ const CELL_CACHE_SIZE_PX = 128
 // parent Group so Konva's bubbling still reaches it if a click lands on this
 // image) — this image doesn't need its own hit-testing, which would just be
 // redundant hit-canvas cost for every cell in the grid.
-export default function CachedPatternImage({ pattern, cellWidth, gridStripWidth, patternStripWidth, spacing }) {
+export default function CachedPatternImage({ pattern, cellWidth, gridStripWidth, patternStripWidth, spacing, selected = false }) {
   const { canvas, worldX, worldY, worldSize } = useMemo(() => {
     // drawBoundary=false, explicitly — the grid already draws its own
     // real-width cell boundaries (GridLayer.jsx), so baking a triangle
@@ -26,9 +26,9 @@ export default function CachedPatternImage({ pattern, cellWidth, gridStripWidth,
     // PatternIcon.jsx, which has no such surrounding context and passes
     // true. Written out explicitly rather than left to the default so this
     // choice doesn't silently drift if that default ever changes.
-    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, patternStripWidth, spacing, false)
-    return getPatternImage(cacheKey, pattern, CELL_CACHE_SIZE_PX, 3, false)
-  }, [pattern, cellWidth, gridStripWidth, patternStripWidth, spacing])
+    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, patternStripWidth, spacing, false, selected)
+    return getPatternImage(cacheKey, pattern, CELL_CACHE_SIZE_PX, 3, false, selected)
+  }, [pattern, cellWidth, gridStripWidth, patternStripWidth, spacing, selected])
 
   return (
     <KonvaImage

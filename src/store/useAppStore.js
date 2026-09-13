@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { DEFAULT_LAYERS } from '../scene/layers.js';
+import useSelectionStore from './useSelectionStore.js';
+import { TOOL_LOCK } from '../scene/toolLock.js';
 
 const PANEL_WIDTH_MIN = 180;
 const PANEL_WIDTH_MAX = 480;
@@ -31,14 +33,22 @@ const useAppStore = create((set) => ({
   // multi-select / area-select / align-to-gridpoint / fill-paint).
   activeTool: 'selection',
   // Locks the viewport's pan/zoom (Stage draggable + wheel-zoom, see
-  // Viewport.jsx). Deliberately NOT auto-derived from activeTool inside this
-  // store — see Toolbar.jsx: selecting a tool sets both activeTool AND
-  // (for selection/place-pattern specifically) viewportLocked together at
-  // the call site, while the lock button itself sets both independently
-  // (always forces activeTool to 'selection' AND independently toggles
-  // viewportLocked) — keeping setActiveTool a plain setter is what lets
-  // those two triggers not fight each other.
-  viewportLocked: false,
+  // Viewport.jsx). Deliberately NOT auto-derived from activeTool via a
+  // reactive rule inside this store — see Toolbar.jsx: selecting a tool
+  // sets both activeTool AND viewportLocked together at the call site
+  // (reading TOOL_LOCK), while the lock button itself sets both
+  // independently (always forces activeTool to 'selection' AND
+  // independently toggles viewportLocked) — keeping setActiveTool a plain
+  // setter is what lets those two triggers not fight each other. This
+  // INITIAL value still has to agree with TOOL_LOCK[activeTool] by hand,
+  // though, since nothing runs selectTool's logic before the app has even
+  // rendered — reading TOOL_LOCK.selection directly here (rather than
+  // hardcoding true/false again) is what keeps it from silently drifting
+  // out of sync with Toolbar.jsx's mapping the way it did before (this bug
+  // shipped twice: once here, once in setWorkspace below, because the fact
+  // "selection locks" lived only in Toolbar.jsx's copy of TOOL_LOCK and
+  // nothing enforced the other two spots matching it).
+  viewportLocked: TOOL_LOCK.selection,
   // Whether the Inspector's Strips section (pattern-editor right panel) is
   // expanded. Lives here rather than as local state in Inspector.jsx because
   // Inspector actually unmounts/remounts every time you switch to
@@ -58,10 +68,17 @@ const useAppStore = create((set) => ({
   // (culling recomputes on every change) so it's deliberately NOT updated on
   // every raw pointermove.
   viewportVisibleRect: null,
-  // Switching workspaces resets tool selection and unlocks the viewport —
-  // there's only one path to a workspace switch (the toolbar's workspace
-  // buttons), so unlike activeTool this side effect is safe to bake in here.
-  setWorkspace: (workspace) => set({ workspace, activeTool: 'selection', viewportLocked: false }),
+  // Switching workspaces resets tool selection to 'selection' and its
+  // corresponding lock state (read from the same shared TOOL_LOCK the
+  // initial state above uses — not hardcoded separately, which is exactly
+  // how this went stale before) — there's only one path to a workspace
+  // switch (the toolbar's workspace buttons), so unlike activeTool this
+  // side effect is safe to bake in here. Also clears the active selection
+  // (useSelectionStore) — same rule as setActiveTool below.
+  setWorkspace: (workspace) => {
+    useSelectionStore.getState().clearSelection();
+    set({ workspace, activeTool: 'selection', viewportLocked: TOOL_LOCK.selection });
+  },
   setLeftPanelOpen: (open) => set({ leftPanelOpen: open }),
   setRightPanelOpen: (open) => set({ rightPanelOpen: open }),
   setLeftPanelWidth: (w) => {
@@ -75,7 +92,16 @@ const useAppStore = create((set) => ({
     set({ rightPanelWidth: width });
   },
   toggleLayer: (key) => set((s) => ({ activeLayers: { ...s.activeLayers, [key]: !s.activeLayers[key] } })),
-  setActiveTool: (tool) => set({ activeTool: tool }),
+  // Confirmed explicitly: changing tools always clears the active selection
+  // (not just transitions specifically between Selection and Multi-select).
+  // Safe to bake in here regardless of caller (Toolbar's selectTool, the
+  // lock button, PatternLibrary's selectPattern) — unlike the lock
+  // relationship, there's no case where clearing selection on tool change
+  // should behave differently depending on who called this.
+  setActiveTool: (tool) => {
+    useSelectionStore.getState().clearSelection();
+    set({ activeTool: tool });
+  },
   setViewportLocked: (locked) => set({ viewportLocked: locked }),
   setStripsExpanded: (expanded) => set({ stripsExpanded: expanded }),
   setViewportApi: (api) => set({ viewportApi: api }),

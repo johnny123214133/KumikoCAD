@@ -1,34 +1,33 @@
 import React from 'react'
 import useAppStore from '../../store/useAppStore.js'
+import { TOOL_LOCK } from '../../scene/toolLock.js'
 import {
   SelectionIcon, PlacePatternIcon, MultiSelectIcon, AreaSelectIcon, AlignGridIcon, FillPaintIcon,
   LeftPanelIcon, RightPanelIcon, SaveProjectIcon, LoadProjectIcon, LockIcon, UnlockIcon,
 } from './icons.jsx'
 
-// Which workspace(s) each tool applies to. Selection is enabled in both — in
-// panel-editor it's for manipulating the grid itself (selecting cells etc.,
-// not yet built); in pattern-editor it's the general selection tool. Place
+// Which workspace(s) each tool applies to. Selection and Multi-select are
+// enabled in both — in panel-editor they select cells (see GridLayer.jsx),
+// in pattern-editor they select strips (see PatternStrips.jsx). Place
 // Pattern is panel-editor only: it's what actually stamps the currently-
-// selected pattern into a clicked cell (see GridLayer.jsx) — that used to be
-// bound to plain clicking regardless of tool; now it's gated to this tool
-// specifically. multi-select/area-select/align-gridpoint/fill-paint remain
-// pattern-editor-only 2D concepts. None of these (besides place-pattern's
-// grid-stamping and the two tools' lock behavior below) have real canvas
-// behavior wired up yet.
+// selected pattern into a clicked cell — that used to be bound to plain
+// clicking regardless of tool; now it's gated to this tool specifically.
+// area-select/align-gridpoint/fill-paint remain pattern-editor-only 2D
+// concepts. None of these (besides place-pattern's grid-stamping,
+// selection/multi-select's selection behavior, and the relevant tools'
+// lock behavior below) have real canvas behavior wired up yet.
 const TOOLS = [
   { id: 'selection', label: 'Selection', Icon: SelectionIcon, workspaces: ['pattern-editor', 'panel-editor'] },
   { id: 'place-pattern', label: 'Place Pattern', Icon: PlacePatternIcon, workspaces: ['panel-editor'] },
-  { id: 'multi-select', label: 'Multi-select', Icon: MultiSelectIcon, workspaces: ['pattern-editor'] },
+  { id: 'multi-select', label: 'Multi-select', Icon: MultiSelectIcon, workspaces: ['pattern-editor', 'panel-editor'] },
   { id: 'area-select', label: 'Area select', Icon: AreaSelectIcon, workspaces: ['pattern-editor'] },
   { id: 'align-gridpoint', label: 'Align to gridpoint', Icon: AlignGridIcon, workspaces: ['pattern-editor'] },
   { id: 'fill-paint', label: 'Fill / paint', Icon: FillPaintIcon, workspaces: ['pattern-editor'] },
 ]
 
-// Which tools imply which viewport-lock state when selected FROM THE TOOLBAR
-// specifically (as opposed to the lock button's own click, which sets both
-// independently — see the lock button below and useAppStore's comment on
-// viewportLocked for why this lives here rather than inside setActiveTool).
-const TOOL_LOCK = { selection: false, 'place-pattern': true }
+// TOOL_LOCK now lives in scene/toolLock.js — shared with useAppStore.js,
+// which needed the same mapping for its own initial state and setWorkspace
+// (see that file's comment for why duplicating it by value was the bug).
 
 export default function Toolbar() {
   const {
@@ -92,9 +91,10 @@ export default function Toolbar() {
         <button
           type="button"
           className={`btn btn-sm ${viewportLocked ? 'btn-dark' : 'btn-outline-secondary'}`}
-          title={viewportLocked ? 'Viewport locked — click to unlock' : 'Viewport unlocked — click to lock'}
+          title={activeTool === 'multi-select' ? 'Viewport locked while Multi-select is active' : (viewportLocked ? 'Viewport locked — click to unlock' : 'Viewport unlocked — click to lock')}
           aria-label="Toggle viewport lock"
           aria-pressed={viewportLocked}
+          disabled={activeTool === 'multi-select'}
           onClick={toggleLock}
         >
           {viewportLocked ? <LockIcon /> : <UnlockIcon />}

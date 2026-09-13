@@ -6,6 +6,7 @@
 // polygon" — see PatternStrips.jsx's StripBody for the Y-flip/rotation-sign
 // reasoning this carries over unchanged.
 import { buildStripLocalPoints } from './stripShape.js';
+import { darkenHex } from './color.js';
 
 export function computeStripRenderData(pattern) {
   const spMap = Object.fromEntries(pattern.stripProperties.map(sp => [sp.id, sp]));
@@ -14,6 +15,11 @@ export function computeStripRenderData(pattern) {
     const sp = pt ? spMap[pt.stripPropertyId] : pattern.stripProperties[0];
     const width = sp?.width ?? 6;
     const color = sp?.color ?? '#e8d5b0';
+    // Darkened per-strip rather than one fixed color, so this keeps making
+    // sense once strip colors vary by wood/finish choice — see the request
+    // that prompted this ("we'll revisit it when we add the color mappings
+    // for all the wood and finish types").
+    const borderColor = darkenHex(color, 0.35);
 
     const dx = strip.end.x - strip.start.x;
     const dy = strip.end.y - strip.start.y;
@@ -48,6 +54,7 @@ export function computeStripRenderData(pattern) {
       y: -strip.start.y,
       rotationDeg: -(strip.orientation * 180) / Math.PI,
       color,
+      borderColor,
     };
   });
 }
@@ -68,6 +75,12 @@ export function computeStripRenderData(pattern) {
  * (PatternIcon.jsx), where nothing else supplies that context and the
  * strips would otherwise look like they're just floating in space.
  *
+ * `selected` (default false): draws every strip with its darker border
+ * stroke — this is the panel's "whole cell is selected" variant (a
+ * different cached image, swapped in wholesale — see CachedPatternImage.jsx
+ * — as opposed to the pattern editor's per-strip selection, which toggles
+ * individual strips' borders in the live Konva rendering instead).
+ *
  * Deliberately reuses computeStripRenderData's output AS-IS (same points/x/
  * y/rotationDeg values fed to the live Konva <Line> elsewhere) rather than
  * re-deriving a differently-flipped version for canvas — the outer
@@ -76,7 +89,7 @@ export function computeStripRenderData(pattern) {
  * with already-correct Konva-convention data can't introduce a new sign bug
  * the way re-deriving a second flip convention could.
  */
-export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBoundary = false) {
+export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBoundary = false, selected = false) {
   const { A, B, C } = pattern.vertices;
   const flip = (p) => ({ x: p.x, y: -p.y }); // same convention as scene/viewportMath.js
   const [fA, fB, fC] = [A, B, C].map(flip);
@@ -111,6 +124,13 @@ export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBound
     ctx.closePath();
     ctx.fillStyle = s.color;
     ctx.fill();
+    if (selected) {
+      // Same 1/scale trick as the boundary stroke below — a fixed, crisp
+      // on-image thickness regardless of the pattern's own size.
+      ctx.strokeStyle = s.borderColor;
+      ctx.lineWidth = 2.5 / scale;
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
