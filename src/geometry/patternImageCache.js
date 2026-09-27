@@ -16,9 +16,15 @@ const cache = new Map();
 // the same pattern at the same dimensions (with/without the triangle
 // outline, with/without every strip's selection border); without these in
 // the key they'd collide and silently serve each other's cached image.
-export function buildPatternCacheKey(patternId, cellWidth, gridStripWidth, patternStripWidth, spacing, drawBoundary = false, selected = false) {
+// `color` (the strip's fully-resolved render color, e.g.
+// stripProperties[0].color) is included directly rather than passing
+// material+finish separately and re-deriving it here — the caller already
+// has the resolved color on the computed pattern object, and keying on the
+// actual output rather than its inputs means this cache key stays correct
+// even if getMaterialColor's derivation logic changes shape later.
+export function buildPatternCacheKey(patternId, cellWidth, gridStripWidth, patternStripWidth, spacing, drawBoundary = false, selected = false, color = '') {
   const spacingKey = spacing ? `${spacing.length}${spacing.unit}` : '';
-  return `${patternId}:${cellWidth}:${gridStripWidth}:${patternStripWidth}:${spacingKey}:${drawBoundary ? 'b' : ''}:${selected ? 's' : ''}`;
+  return `${patternId}:${cellWidth}:${gridStripWidth}:${patternStripWidth}:${spacingKey}:${drawBoundary ? 'b' : ''}:${selected ? 's' : ''}:${color}`;
 }
 
 /**

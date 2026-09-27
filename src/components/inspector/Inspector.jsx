@@ -59,35 +59,57 @@ function StripCard({ strip, pattern }) {
 export default function Inspector() {
   const getActivePattern = usePatternStore(s => s.getActivePattern)
   const activePatternId = usePatternStore(s => s.activePatternId)
+  const getEffectiveStripWidth = usePatternStore(s => s.getEffectiveStripWidth)
+  const setPatternStripWidth = usePatternStore(s => s.setPatternStripWidth)
+  const getEffectiveMaterial = usePatternStore(s => s.getEffectiveMaterial)
+  const getEffectiveFinish = usePatternStore(s => s.getEffectiveFinish)
+  const setPatternMaterial = usePatternStore(s => s.setPatternMaterial)
+  const setPatternFinish = usePatternStore(s => s.setPatternFinish)
+  // Not read directly — subscribed so this re-renders (and the effect below
+  // re-syncs the draft input) when patternOverrides changes for a reason
+  // OTHER than this component's own edit, e.g. useGridStore.setCellWidth's
+  // shrink-clamp broadcast reaching this pattern from outside.
+  usePatternStore(s => s.patternOverrides)
   const pattern = getActivePattern()
   const stripsExpanded = useAppStore(s => s.stripsExpanded)
   const setStripsExpanded = useAppStore(s => s.setStripsExpanded)
 
-  // Strip width + material/finish editors below are local UI state, seeded
-  // from the active pattern's first stripProperties entry and re-synced
-  // whenever the active pattern changes. Built-in patterns are readOnly, and
-  // there's no fork/save-to-user-pattern wiring yet (still a TODO in
-  // usePatternStore), so — same as the toolbar's Save/Load Project buttons —
-  // these are editable in the UI but don't yet write back to the pattern or
-  // affect rendering.
-  const sp = pattern?.stripProperties?.[0]
-  const [widthMm, setWidthMm] = useState(sp?.width ?? 0)
+  // Strip width is genuinely live now — draft is a plain string so the user
+  // can freely clear/retype (a bare controlled number input fights you the
+  // instant the field is empty), and only commits to the store (which does
+  // its own clamping and IS what drives rendering everywhere this pattern
+  // appears — pattern editor and every matching cell in the panel) when the
+  // typed value parses to a valid positive number. Typing 0 or clearing the
+  // field just doesn't commit — "don't update the render when set to 0" —
+  // rather than reverting what's displayed.
+  const effectiveWidthMm = getEffectiveStripWidth(activePatternId)
   const [widthUnit, setWidthUnit] = useState('mm')
-  const [material, setMaterial] = useState(sp?.material ?? WOOD_OPTIONS[0].id)
-  const [finish, setFinish] = useState(sp?.finish ?? FINISH_OPTIONS[0].id)
+  const [draftWidth, setDraftWidth] = useState(String(effectiveWidthMm))
+  // Material/finish are now genuinely live — same pattern as strip width
+  // above: read through getEffectiveMaterial/Finish (template default, or a
+  // live override), write through setPatternMaterial/Finish, which is what
+  // drives rendering everywhere this pattern appears (see usePatternStore's
+  // getComputedPattern -> factory -> makeStripProperties ->
+  // geometry/woodFinishColors.js's getMaterialColor). No local-only state
+  // or draft-string dance needed here — a <select> has no equivalent of the
+  // empty-text-field problem a number input has, so every change commits
+  // straight to the store.
+  const material = getEffectiveMaterial(activePatternId)
+  const finish = getEffectiveFinish(activePatternId)
 
   useEffect(() => {
-    setWidthMm(sp?.width ?? 0)
-    setMaterial(sp?.material ?? WOOD_OPTIONS[0].id)
-    setFinish(sp?.finish ?? FINISH_OPTIONS[0].id)
-  }, [activePatternId]) // eslint-disable-line react-hooks/exhaustive-deps
+    setDraftWidth(String(Number((widthUnit === 'mm' ? effectiveWidthMm : mmToIn(effectiveWidthMm)).toFixed(widthUnit === 'mm' ? 2 : 3))))
+  }, [activePatternId, effectiveWidthMm, widthUnit])
 
   if (!pattern) return null
 
-  const displayedWidth = widthUnit === 'mm' ? widthMm : mmToIn(widthMm)
   const onWidthInputChange = (e) => {
-    const v = Number(e.target.value)
-    setWidthMm(widthUnit === 'mm' ? v : inToMm(v))
+    const raw = e.target.value
+    setDraftWidth(raw)
+    const v = Number(raw)
+    if (Number.isFinite(v) && v > 0) {
+      setPatternStripWidth(activePatternId, widthUnit === 'mm' ? v : inToMm(v))
+    }
   }
 
   return (
@@ -140,7 +162,7 @@ export default function Inspector() {
               min="0"
               step={widthUnit === 'mm' ? 0.1 : 0.01}
               className="form-control"
-              value={Number(displayedWidth.toFixed(widthUnit === 'mm' ? 2 : 3))}
+              value={draftWidth}
               onChange={onWidthInputChange}
             />
             <select className="form-select" style={{ maxWidth: '70px', flex: '0 0 auto' }} value={widthUnit} onChange={(e) => setWidthUnit(e.target.value)}>
@@ -152,14 +174,14 @@ export default function Inspector() {
 
         <div className="mb-2">
           <label className="form-label small mb-1">Wood</label>
-          <select className="form-select form-select-sm" value={material} onChange={(e) => setMaterial(e.target.value)}>
+          <select className="form-select form-select-sm" value={material} onChange={(e) => setPatternMaterial(activePatternId, e.target.value)}>
             {WOOD_OPTIONS.map(w => <option key={w.id} value={w.id}>{w.label}</option>)}
           </select>
         </div>
 
         <div>
           <label className="form-label small mb-1">Finish</label>
-          <select className="form-select form-select-sm" value={finish} onChange={(e) => setFinish(e.target.value)}>
+          <select className="form-select form-select-sm" value={finish} onChange={(e) => setPatternFinish(activePatternId, e.target.value)}>
             {FINISH_OPTIONS.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
           </select>
         </div>

@@ -92,15 +92,27 @@ const usePatternStore = create((set, get) => ({
     const { cellWidth, gridStripWidth } = useGridStore.getState();
     const overrides = state.patternOverrides[id] || {};
     const patternStripWidth = overrides.patternStripWidth ?? template.stripProperties?.[0]?.width ?? 6;
+    const material = overrides.material ?? template.stripProperties?.[0]?.material ?? 'hinoki';
+    const finish = overrides.finish ?? template.stripProperties?.[0]?.finish ?? 'natural';
     const patternParams = overrides.spacing
       ? { ...template.patternParams, spacing: overrides.spacing }
       : template.patternParams;
-    return build({ cellWidth, gridStripWidth, patternStripWidth, patternParams });
+    return build({ cellWidth, gridStripWidth, patternStripWidth, patternParams, material, finish });
   },
   getEffectiveStripWidth: (id) => {
     const state = get();
     const template = [...state.builtInPatterns, ...state.userPatterns].find(p => p.id === id);
     return state.patternOverrides[id]?.patternStripWidth ?? template?.stripProperties?.[0]?.width ?? 6;
+  },
+  getEffectiveMaterial: (id) => {
+    const state = get();
+    const template = [...state.builtInPatterns, ...state.userPatterns].find(p => p.id === id);
+    return state.patternOverrides[id]?.material ?? template?.stripProperties?.[0]?.material ?? 'hinoki';
+  },
+  getEffectiveFinish: (id) => {
+    const state = get();
+    const template = [...state.builtInPatterns, ...state.userPatterns].find(p => p.id === id);
+    return state.patternOverrides[id]?.finish ?? template?.stripProperties?.[0]?.finish ?? 'natural';
   },
   // Ignores 0/negative — "don't update the render when set to 0" — and
   // clamps to the current cellWidth/3 limit.
@@ -111,6 +123,16 @@ const usePatternStore = create((set, get) => ({
     const clamped = Math.min(width, max);
     set((state) => ({
       patternOverrides: { ...state.patternOverrides, [id]: { ...state.patternOverrides[id], patternStripWidth: clamped } },
+    }));
+  },
+  setPatternMaterial: (id, material) => {
+    set((state) => ({
+      patternOverrides: { ...state.patternOverrides, [id]: { ...state.patternOverrides[id], material } },
+    }));
+  },
+  setPatternFinish: (id, finish) => {
+    set((state) => ({
+      patternOverrides: { ...state.patternOverrides, [id]: { ...state.patternOverrides[id], finish } },
     }));
   },
   setPatternSpacing: (id, length, unit) => {

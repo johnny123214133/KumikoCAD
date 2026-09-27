@@ -7,7 +7,7 @@ import useSelectionStore from '../../store/useSelectionStore.js'
 import CachedPatternImage from './CachedPatternImage.jsx'
 import { computeGridGeometry, computeCellPlacement } from '../../geometry/grid/computeGridGeometry.js'
 import { isInteractionLayerActive } from '../../scene/interactionLayers.js'
-import { GRID_STRIP_COLOR } from '../../scene/gridStripColor.js'
+import { getGridStripColor } from '../../scene/gridStripColor.js'
 
 const flip = (p) => ({ x: p.x, y: -p.y })
 const BLANK_PATTERN_ID = 'builtin:blank'
@@ -69,7 +69,7 @@ function Cell({ space, pattern, cellWidth, gridStripWidth, patternStripWidth, sp
 const CULL_MARGIN_CELLS = 2
 
 export default function GridLayer() {
-  const { cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior, spacePatterns, setSpacePattern } = useGridStore()
+  const { cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior, spacePatterns, setSpacePattern, material, finish } = useGridStore()
   const getComputedPattern = usePatternStore(s => s.getComputedPattern)
   const getEffectiveStripWidth = usePatternStore(s => s.getEffectiveStripWidth)
   const activePatternId = usePatternStore(s => s.activePatternId)
@@ -148,6 +148,18 @@ export default function GridLayer() {
     [geometry.jointPoints]
   )
 
+  // Shared with GridBorderStrip.jsx's pattern-editor reference border via
+  // scene/gridStripColor.js's getGridStripColor — both derive from this
+  // grid's own material/finish (see GridInspector.jsx's Wood/Finish
+  // selectors), so the two stay visually in sync by construction rather
+  // than by matching a literal value by hand. Declared BEFORE the effect
+  // below that depends on it — `const` isn't hoisted the way a function
+  // declaration is, so referencing it in that effect's deps array while
+  // it was still declared further down threw "Cannot access 'strokeColor'
+  // before initialization" on every render, which is why the whole panel
+  // editor went blank.
+  const strokeColor = getGridStripColor(material, finish)
+
   const gridLinesRef = useRef(null)
   // Grid lines (now real-width strips, not thin reference lines) only
   // change when the grid's topology/dimensions change, never on pan/zoom —
@@ -158,9 +170,7 @@ export default function GridLayer() {
   // junction patch every frame.
   useEffect(() => {
     gridLinesRef.current?.cache()
-  }, [geometry.gridLines, geometry.jointPoints, gridStripWidth])
-
-  const strokeColor = GRID_STRIP_COLOR // now shared with GridBorderStrip.jsx's pattern-editor reference (scene/gridStripColor.js) — matched by literal value for now, to be linked to the same real parameter later
+  }, [geometry.gridLines, geometry.jointPoints, gridStripWidth, strokeColor])
 
   return (
     <>

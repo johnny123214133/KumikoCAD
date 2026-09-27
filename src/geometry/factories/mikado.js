@@ -25,7 +25,7 @@ import { triangleVertices, centroidOf, inradius, scaleFromCentroid, lineIntersec
 // project slightly into the retraction direction and could in principle
 // poke very slightly past the inset boundary depending on patternStripWidth
 // and the cut angle. Not accounted for — flagged rather than guessed at.
-export function buildMikado({ cellWidth, gridStripWidth = 0, patternStripWidth = 6 }) {
+export function buildMikado({ cellWidth, gridStripWidth = 0, patternStripWidth = 6, material = 'hinoki', finish = 'natural' }) {
   const { A, B, C } = triangleVertices(cellWidth);
   const G = centroidOf(A, B, C);
   const r = inradius(cellWidth);
@@ -86,7 +86,7 @@ export function buildMikado({ cellWidth, gridStripWidth = 0, patternStripWidth =
     version: 3,
     sideLength: cellWidth,
     patternParams: {},
-    stripProperties: makeStripProperties(patternStripWidth),
+    stripProperties: makeStripProperties(patternStripWidth, material, finish),
     vertices: { A, B, C },
     centroid: G,
     strips,

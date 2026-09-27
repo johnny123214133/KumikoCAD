@@ -26,7 +26,8 @@ export default function CachedPatternImage({ pattern, cellWidth, gridStripWidth,
     // PatternIcon.jsx, which has no such surrounding context and passes
     // true. Written out explicitly rather than left to the default so this
     // choice doesn't silently drift if that default ever changes.
-    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, patternStripWidth, spacing, false, selected)
+    const color = pattern.stripProperties?.[0]?.color
+    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, patternStripWidth, spacing, false, selected, color)
     return getPatternImage(cacheKey, pattern, CELL_CACHE_SIZE_PX, 3, false, selected)
   }, [pattern, cellWidth, gridStripWidth, patternStripWidth, spacing, selected])
 

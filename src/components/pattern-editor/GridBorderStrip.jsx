@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react'
 import { Line } from 'react-konva'
 import { centroidOf, inradius, scaleFromCentroid, dist } from '../../geometry/factories/_shared.js'
-import { GRID_STRIP_COLOR_RGB } from '../../scene/gridStripColor.js'
+import { getGridStripColorRgb } from '../../scene/gridStripColor.js'
+import useGridStore from '../../store/useGridStore.js'
 
 // See scene/viewportMath.js for the Y-flip convention.
 const flip = (p) => ({ x: p.x, y: -p.y })
@@ -12,10 +13,11 @@ const toFlippedPoints = (pts) => pts.flatMap(v => { const f = flip(v); return [f
 // cell, half outside — per the brainstorm: grid strip centerlines sit
 // exactly on the nominal edge).
 //
-// Color matches GridLayer.jsx's real grid strips in the panel editor
-// (GRID_STRIP_COLOR_RGB, scene/gridStripColor.js) — same literal value for
-// now; will become the same actual parameter once grid material/color is
-// wired up for real, per the request that prompted this.
+// Color matches GridLayer.jsx's real grid strips in the panel editor —
+// both derive from useGridStore's material/finish via
+// scene/gridStripColor.js's getGridStripColorRgb, so this reference border
+// always shows the grid's actual chosen wood/finish combination, not a
+// fixed placeholder.
 //
 // Non-wireframe: a single stroked Line along the boundary path with
 // strokeWidth set to the real gridStripWidth. Canvas centers strokes on the
@@ -38,6 +40,9 @@ const toFlippedPoints = (pts) => pts.flatMap(v => { const f = flip(v); return [f
 // (activeLayers.centerlines). This component only draws the band/outlines;
 // the centerline stays exactly as it already was in PatternLayer.
 export default function GridBorderStrip({ pattern, gridStripWidth, wireframe }) {
+  const material = useGridStore(s => s.material)
+  const finish = useGridStore(s => s.finish)
+  const strokeColor = `rgba(${getGridStripColorRgb(material, finish)})`
   const { A, B, C } = pattern.vertices
   const G = useMemo(() => centroidOf(A, B, C), [A, B, C])
 
@@ -59,8 +64,8 @@ export default function GridBorderStrip({ pattern, gridStripWidth, wireframe }) 
   if (wireframe) {
     return (
       <>
-        <Line key="inner" points={innerPoints} closed stroke={`rgba(${GRID_STRIP_COLOR_RGB})`} strokeWidth={1} strokeScaleEnabled={false} listening={false} />
-        <Line key="outer" points={outerPoints} closed stroke={`rgba(${GRID_STRIP_COLOR_RGB})`} strokeWidth={1} strokeScaleEnabled={false} listening={false} />
+        <Line key="inner" points={innerPoints} closed stroke={strokeColor} strokeWidth={1} strokeScaleEnabled={false} listening={false} />
+        <Line key="outer" points={outerPoints} closed stroke={strokeColor} strokeWidth={1} strokeScaleEnabled={false} listening={false} />
       </>
     )
   }
@@ -69,7 +74,7 @@ export default function GridBorderStrip({ pattern, gridStripWidth, wireframe }) 
     <Line
       points={boundaryPoints}
       closed
-      stroke={`rgba(${GRID_STRIP_COLOR_RGB})`}
+      stroke={strokeColor}
       strokeWidth={gridStripWidth}
       lineJoin="miter"
       listening={false}

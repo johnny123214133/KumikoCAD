@@ -29,7 +29,8 @@ export default function PatternIcon({ pattern, size = 28 }) {
     const computed = getComputedPattern(pattern.id)
     const stripWidth = getEffectiveStripWidth(pattern.id)
     const spacing = patternOverrides[pattern.id]?.spacing ?? computed.patternParams?.spacing
-    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, stripWidth, spacing, true)
+    const color = computed.stripProperties?.[0]?.color
+    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, stripWidth, spacing, true, false, color)
     const result = getPatternImage(cacheKey, computed, size, 3, true)
     return result.canvas.toDataURL()
     // eslint-disable-next-line react-hooks/exhaustive-deps

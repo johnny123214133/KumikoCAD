@@ -20,7 +20,7 @@ import { triangleVertices, centroidOf, inradius, scaleFromCentroid, makeStripPro
 // clearance needed beyond clearing the grid strip itself — unlike Goma,
 // where the strip runs PARALLEL to the edge it's offset from, so the
 // strip's own width really does add directly to the needed clearance.
-export function buildAsanoha({ cellWidth, gridStripWidth = 0, patternStripWidth = 6 }) {
+export function buildAsanoha({ cellWidth, gridStripWidth = 0, patternStripWidth = 6, material = 'hinoki', finish = 'natural' }) {
   const { A, B, C } = triangleVertices(cellWidth);
   const G = centroidOf(A, B, C);
   const r = inradius(cellWidth);
@@ -60,7 +60,7 @@ export function buildAsanoha({ cellWidth, gridStripWidth = 0, patternStripWidth 
     version: 3,
     sideLength: cellWidth,
     patternParams: {},
-    stripProperties: makeStripProperties(patternStripWidth),
+    stripProperties: makeStripProperties(patternStripWidth, material, finish),
     vertices: { A, B, C },
     centroid: G,
     strips,

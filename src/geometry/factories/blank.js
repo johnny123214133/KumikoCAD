@@ -5,7 +5,7 @@ import { triangleVertices, centroidOf, makeStripProperties } from './_shared.js'
 // pattern.vertices directly, unlike the grid view which draws its own cell
 // shape from computeGridGeometry regardless of this pattern's data) stays
 // correctly sized.
-export function buildBlank({ cellWidth, patternStripWidth = 6 }) {
+export function buildBlank({ cellWidth, patternStripWidth = 6, material = 'hinoki', finish = 'natural' }) {
   const { A, B, C } = triangleVertices(cellWidth);
   return {
     id: 'builtin:blank',
@@ -14,7 +14,7 @@ export function buildBlank({ cellWidth, patternStripWidth = 6 }) {
     version: 3,
     sideLength: cellWidth,
     patternParams: {},
-    stripProperties: makeStripProperties(patternStripWidth),
+    stripProperties: makeStripProperties(patternStripWidth, material, finish),
     vertices: { A, B, C },
     centroid: centroidOf(A, B, C),
     strips: [],

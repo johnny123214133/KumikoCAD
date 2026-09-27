@@ -65,11 +65,19 @@ export function lineIntersect(p1, d1, p2, d2) {
 }
 
 // Standard stripProperties/pieceTemplates shape, factored out since every
-// pattern builds these the same way once it has its strips.
-export function makeStripProperties(patternStripWidth) {
+// pattern builds these the same way once it has its strips. `color` is
+// derived live from material+finish (geometry/woodFinishColors.js) rather
+// than a fixed hex — this is what makes the right panel's Wood/Finish
+// selectors actually affect rendering, since everything downstream
+// (computeStripRenderData, the canvas cache, the live Konva strips) reads
+// stripProperties[0].color rather than knowing about material/finish
+// itself.
+import { getMaterialColor } from '../woodFinishColors.js';
+
+export function makeStripProperties(patternStripWidth, material = 'hinoki', finish = 'natural') {
   return [{
     id: 'sp0', width: patternStripWidth, thickness: 6.0,
-    material: 'hinoki', grain: 'along', color: '#E8D5B0', finish: 'natural', edgeProfile: null,
+    material, grain: 'along', color: getMaterialColor(material, finish), finish, edgeProfile: null,
   }];
 }
 

@@ -22,7 +22,7 @@ import { triangleVertices, centroidOf, inradius, scaleFromCentroid, rotatePoint,
 // The fix clips against the triangle inset by gridStripWidth/2 on every
 // edge instead (same centroid-scaling relationship used to fix
 // asanoha/tsumiishi/mikado's boundary retraction).
-export function buildGoma({ cellWidth, gridStripWidth = 0, patternStripWidth = 6, patternParams = {} }) {
+export function buildGoma({ cellWidth, gridStripWidth = 0, patternStripWidth = 6, patternParams = {}, material = 'hinoki', finish = 'natural' }) {
   const spacingMm = patternParams?.spacing?.length ?? 6.0;
   const offset = gridStripWidth / 2 + spacingMm + patternStripWidth / 2;
 
@@ -100,7 +100,7 @@ export function buildGoma({ cellWidth, gridStripWidth = 0, patternStripWidth = 6
     version: 3,
     sideLength: cellWidth,
     patternParams: { spacing: { length: spacingMm, unit: 'mm' } },
-    stripProperties: makeStripProperties(patternStripWidth),
+    stripProperties: makeStripProperties(patternStripWidth, material, finish),
     vertices: { A, B, C },
     centroid: G,
     strips,

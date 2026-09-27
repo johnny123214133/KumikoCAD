@@ -12,7 +12,7 @@ import { triangleVertices, centroidOf, inradius, scaleFromCentroid, makeStripPro
 // retraction by `inset` was already numerically equivalent to the correct
 // scaled retraction here; the bug was purely the extra patternStripWidth/2
 // term, not the retraction mechanism itself.
-export function buildTsumiishiKikko({ cellWidth, gridStripWidth = 0, patternStripWidth = 6 }) {
+export function buildTsumiishiKikko({ cellWidth, gridStripWidth = 0, patternStripWidth = 6, material = 'hinoki', finish = 'natural' }) {
   const { A, B, C } = triangleVertices(cellWidth);
   const G = centroidOf(A, B, C);
   const r = inradius(cellWidth);
@@ -53,7 +53,7 @@ export function buildTsumiishiKikko({ cellWidth, gridStripWidth = 0, patternStri
     version: 3,
     sideLength: cellWidth,
     patternParams: {},
-    stripProperties: makeStripProperties(patternStripWidth),
+    stripProperties: makeStripProperties(patternStripWidth, material, finish),
     vertices: { A, B, C },
     centroid: G,
     strips,
