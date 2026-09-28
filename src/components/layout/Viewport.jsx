@@ -37,6 +37,23 @@ export default function Viewport() {
   }, [leftPanelOpen, leftPanelWidth, rightPanelOpen, rightPanelWidth])
   const activePatternId = usePatternStore(s => s.activePatternId)
   const getActivePattern = usePatternStore(s => s.getActivePattern)
+  // Not read directly — subscribed purely so this component re-renders (and
+  // re-calls getActivePattern() below) whenever a live edit changes the
+  // active pattern's own computed geometry/color WITHOUT activePatternId
+  // itself changing (strip width, wood, finish — all live in
+  // patternOverrides, see Inspector.jsx). getActivePattern()/
+  // getComputedPattern() are plain functions, not reactive state on their
+  // own — Zustand only re-renders a subscriber when a slice it actually
+  // subscribed to changes, so without this the pattern editor's strips kept
+  // showing stale geometry/color until something UNRELATED (switching
+  // workspace and back, which remounts this component and calls
+  // getActivePattern() fresh) happened to force a re-render. Was previously
+  // masked for strip width by incidental re-renders (pan/zoom state changes
+  // while the mouse was over the canvas); wood/finish changes from the
+  // right panel never touch the canvas, so there was nothing to mask it —
+  // reported as "pattern editor doesn't update strip color on a wood/finish
+  // change until switching workspaces and back."
+  usePatternStore(s => s.patternOverrides)
   const pattern = getActivePattern()
   // Also read via ref, and NOT included in zoomToFit's own deps below — this
   // is what actually fixes "changing the active pattern shouldn't move the

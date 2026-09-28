@@ -15,10 +15,16 @@ function StripBody({ data, wireframe, selected, onClick }) {
   // no direct equivalent of Three.js's material.wireframe flag — adapted as:
   // hide the fill and show only the outline.
   //
-  // Selection border takes priority over the wireframe outline color when
-  // both apply (selected while wireframe is also on) — selection is the
-  // more specific state of the two, so its color should win rather than
-  // being visually indistinguishable from the plain wireframe stroke.
+  // Selection border takes priority over both the wireframe outline color
+  // AND the plain always-on edge below when both apply — selection is the
+  // more specific state, so its color should win rather than being visually
+  // indistinguishable from either. In filled (non-wireframe) mode, every
+  // strip now gets a thin edge a touch darker than its OWN color
+  // (data.edgeColor, geometry/renderPattern.js — moves with wood/finish
+  // just like the selection border already did) purely so adjacent strips
+  // read as separate pieces rather than one flat color field; wireframe
+  // mode is unchanged (it's already all outline, in the strip's own color,
+  // no separate fill to set apart from a neighbor's).
   // fill is NEVER left undefined, even in wireframe mode — Konva only
   // hit-tests a shape's STROKE LINE when fill is unset, not its visual
   // interior, so a wireframe strip with fill=undefined would silently fail
@@ -34,7 +40,7 @@ function StripBody({ data, wireframe, selected, onClick }) {
       y={data.y}
       rotation={data.rotationDeg}
       fill={wireframe ? 'transparent' : data.color}
-      stroke={selected ? data.borderColor : (wireframe ? data.color : undefined)}
+      stroke={selected ? data.borderColor : (wireframe ? data.color : data.edgeColor)}
       strokeWidth={selected ? 2 : 1}
       strokeScaleEnabled={false}
       onClick={onClick}

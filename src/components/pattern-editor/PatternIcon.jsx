@@ -3,11 +3,19 @@ import useGridStore from '../../store/useGridStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import { getPatternImage, buildPatternCacheKey } from '../../geometry/patternImageCache.js'
 
-// Pattern thumbnail, rendered from the pattern's actual current strips/
-// joints via the shared offscreen-canvas cache (geometry/patternImageCache,
-// geometry/renderPattern) — reflects live dimension changes and per-pattern
-// width overrides, same as the panel view. Every place that shows a pattern
-// (list view, icon view, recently-used) renders through this one component.
+// Pattern thumbnail, rendered from the pattern's own SAVED/canonical recipe
+// via the shared offscreen-canvas cache (geometry/patternImageCache,
+// geometry/renderPattern) — via getCanonicalPattern, NOT getComputedPattern,
+// so it deliberately does NOT reflect this session's live, not-yet-saved
+// edits (strip width/wood/finish typed into the Inspector while this
+// pattern is active). Per the request that prompted this: the icon should
+// only change when Save Pattern actually creates a new library entry with
+// its own baked-in recipe, not on every keystroke of an in-progress edit —
+// otherwise an unsaved edit looked indistinguishable from an already-saved
+// pattern. Still reactive to the grid's actual cellWidth/gridStripWidth
+// (panel-wide, not a per-pattern "parameter" in this sense). Every place
+// that shows a pattern (list view, icon view, recently-used) renders
+// through this one component.
 //
 // Rendered as an <img src={canvas.toDataURL()}>, not the raw cached canvas
 // node — a canvas is a real DOM element with exactly one parent, and the
@@ -20,21 +28,24 @@ export default function PatternIcon({ pattern, size = 28 }) {
   const orientation = useGridStore(s => s.orientation)
   const cellWidth = useGridStore(s => s.cellWidth)
   const gridStripWidth = useGridStore(s => s.gridStripWidth)
-  const getComputedPattern = usePatternStore(s => s.getComputedPattern)
-  const getEffectiveStripWidth = usePatternStore(s => s.getEffectiveStripWidth)
-  const patternOverrides = usePatternStore(s => s.patternOverrides)
+  const getCanonicalPattern = usePatternStore(s => s.getCanonicalPattern)
   const rotationDeg = orientation === 'vertical' ? 90 : 0
 
   const dataUrl = useMemo(() => {
-    const computed = getComputedPattern(pattern.id)
-    const stripWidth = getEffectiveStripWidth(pattern.id)
-    const spacing = patternOverrides[pattern.id]?.spacing ?? computed.patternParams?.spacing
-    const color = computed.stripProperties?.[0]?.color
+    const computed = getCanonicalPattern(pattern.id)
+    const stripWidth = computed.stripProperties?.[0]?.width ?? 6
+    const spacing = computed.patternParams?.spacing
+    // Every distinct color in use, not just stripProperties[0] — a per-strip
+    // wood/finish override (usePatternStore's applyStripColorOverrides) adds
+    // ADDITIONAL stripProperties entries beyond index 0, so keying on [0]
+    // alone would miss a color-only change that only affects some other
+    // strip and keep serving a stale cached thumbnail.
+    const color = computed.stripProperties?.map(sp => sp.color).join(',')
     const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, stripWidth, spacing, true, false, color)
     const result = getPatternImage(cacheKey, computed, size, 3, true)
     return result.canvas.toDataURL()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pattern.id, cellWidth, gridStripWidth, size, patternOverrides])
+  }, [pattern.id, cellWidth, gridStripWidth, size])
 
   return (
     <img

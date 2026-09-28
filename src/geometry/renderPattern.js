@@ -20,6 +20,13 @@ export function computeStripRenderData(pattern) {
     // that prompted this ("we'll revisit it when we add the color mappings
     // for all the wood and finish types").
     const borderColor = darkenHex(color, 0.35);
+    // A much subtler always-on edge (vs. borderColor's stronger selection
+    // darkening) — "a thin border to the pattern strips just a touch darker
+    // than the current color of the strip... some visual indicator that
+    // shows the strips are separate entities." Derived from the strip's own
+    // (possibly per-strip-overridden) color the same way borderColor is, so
+    // it moves with wood/finish changes too, just far less aggressively.
+    const edgeColor = darkenHex(color, 0.15);
 
     const dx = strip.end.x - strip.start.x;
     const dy = strip.end.y - strip.start.y;
@@ -55,6 +62,7 @@ export function computeStripRenderData(pattern) {
       rotationDeg: -(strip.orientation * 180) / Math.PI,
       color,
       borderColor,
+      edgeColor,
     };
   });
 }
@@ -124,13 +132,15 @@ export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBound
     ctx.closePath();
     ctx.fillStyle = s.color;
     ctx.fill();
-    if (selected) {
-      // Same 1/scale trick as the boundary stroke below — a fixed, crisp
-      // on-image thickness regardless of the pattern's own size.
-      ctx.strokeStyle = s.borderColor;
-      ctx.lineWidth = 2.5 / scale;
-      ctx.stroke();
-    }
+    // Selection border takes priority when selected (same as the live Konva
+    // rendering — PatternStrips.jsx's StripBody); otherwise every strip
+    // still gets the subtle always-on edge, so cached renders (pattern
+    // icons, panel cells) look consistent with the live pattern editor.
+    ctx.strokeStyle = selected ? s.borderColor : s.edgeColor;
+    // Same 1/scale trick as the boundary stroke below — a fixed, crisp
+    // on-image thickness regardless of the pattern's own size.
+    ctx.lineWidth = (selected ? 2.5 : 1) / scale;
+    ctx.stroke();
     ctx.restore();
   }
 

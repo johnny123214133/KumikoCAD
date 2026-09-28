@@ -8,7 +8,7 @@ export const LAYER_KEYS = {
 };
 
 export const DEFAULT_LAYERS = {
-  centerlines: true,
+  centerlines: false,
   jointDots: false,
   annotations: false,
   scalebar: false,

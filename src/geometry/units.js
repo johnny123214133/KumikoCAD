@@ -33,3 +33,29 @@ export const roundToInStep = (inches) => Math.round(inches / IN_STEP) * IN_STEP;
 // sub-1/8" remainder).
 export const roundUpToMmStep = (mm) => Math.ceil(mm / MM_STEP) * MM_STEP;
 export const roundDownToInStep = (mm) => Math.floor(mmToIn(mm) / IN_STEP) * IN_STEP;
+
+// Strip width: increments by whole mm in metric (same as cell width), but by
+// a SIXTEENTH of an inch in imperial — finer than cell width's 1/8", since
+// strip width sits at a much smaller absolute scale and 1/8" jumps would be
+// coarse relative to it.
+export const STRIP_IN_STEP = 1 / 16;
+// "Always ensure the lower bound is 1 millimeter" — a hard floor independent
+// of unit; the imperial display value is whatever that 1mm converts to, not
+// separately rounded to a "clean" 1/16" figure.
+export const MIN_STRIP_WIDTH_MM = 1;
+
+// Strip width's unit-toggle rounding goes the OPPOSITE direction from cell
+// width's: round UP when landing on inches (a finer metric value should
+// never quietly imply a strip narrower than what ends up displayed) and
+// round DOWN when landing on mm (avoid ending up over a limit purely from
+// rounding up).
+export const roundUpToStripInStep = (mm) => Math.ceil(mmToIn(mm) / STRIP_IN_STEP) * STRIP_IN_STEP;
+export const roundDownToMmStep = (mm) => Math.floor(mm / MM_STEP) * MM_STEP;
+
+// Nearest-value rounding for strip width, used when a manually TYPED value
+// loses focus (blur) — snaps it onto the strip step grid without forcing a
+// particular direction, unlike the unit-toggle helpers above which round
+// only one way. mm reuses roundToMmStep (MM_STEP is the same 1mm grid for
+// both cell and strip width); inches needs its own since strip width's
+// imperial step (1/16") is finer than cell width's (1/8").
+export const roundToStripInStep = (mm) => Math.round(mmToIn(mm) / STRIP_IN_STEP) * STRIP_IN_STEP;

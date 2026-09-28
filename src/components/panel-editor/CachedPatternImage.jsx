@@ -26,7 +26,10 @@ export default function CachedPatternImage({ pattern, cellWidth, gridStripWidth,
     // PatternIcon.jsx, which has no such surrounding context and passes
     // true. Written out explicitly rather than left to the default so this
     // choice doesn't silently drift if that default ever changes.
-    const color = pattern.stripProperties?.[0]?.color
+    // Every distinct color in use, not just stripProperties[0] — see
+    // PatternIcon.jsx's identical comment: a per-strip wood/finish override
+    // adds stripProperties entries beyond index 0.
+    const color = pattern.stripProperties?.map(sp => sp.color).join(',')
     const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, patternStripWidth, spacing, false, selected, color)
     return getPatternImage(cacheKey, pattern, CELL_CACHE_SIZE_PX, 3, false, selected)
   }, [pattern, cellWidth, gridStripWidth, patternStripWidth, spacing, selected])
