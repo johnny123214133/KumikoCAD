@@ -34,25 +34,31 @@ const SQRT3 = Math.sqrt(3);
 // face at every lap.
 const STACK_ORDER = ['s3', 's4', 's5', 's6', 's7', 's8'];
 
+// The secondary strips' width — shared by the yae-zakura and yae-asanoha patterns.
+export const SECONDARY_STRIP_WIDTH = {
+  key: 'secondaryStripWidth',
+  label: 'Secondary strip width',
+  kind: 'length',
+  default: 3.0,
+  min: MIN_STRIP_WIDTH_MM,
+  // Wider than ~15% of the cell and neighbouring secondaries start overlapping
+  // at their corners without their centrelines crossing, which no lap can join.
+  max: ({ cellWidth }) => Math.min(cellWidth * MAX_STRIP_WIDTH_FRACTION, cellWidth * 0.15),
+  description: 'Width of the six secondary strips (the regular Strip width sets the three main strips).',
+};
+
 const sub = (p, q) => ({ x: p.x - q.x, y: p.y - q.y });
 const dot = (p, q) => p.x * q.x + p.y * q.y;
 const cross = (p, q) => p.x * q.y - p.y * q.x;
 
-export const buildKawariYaeZakura = definePattern({
-  id: 'builtin:kawari-yae-zakura-sixth',
-  name: 'Kawari yae-zakura — sixth',
+// Both patterns share all of this; `kikko` switches the centre treatment (see
+// yaeZakuraKikko below).
+function defineYaeZakura({ id, name, meta, kikko }) {
+  return definePattern({
+  id,
+  name,
   paramDefs: [
-    {
-      key: 'secondaryStripWidth',
-      label: 'Secondary strip width',
-      kind: 'length',
-      default: 3.0,
-      min: MIN_STRIP_WIDTH_MM,
-      // Wider than ~15% of the cell and neighbouring secondaries start overlapping
-      // at their corners without their centrelines crossing, which no lap can join.
-      max: ({ cellWidth }) => Math.min(cellWidth * MAX_STRIP_WIDTH_FRACTION, cellWidth * 0.15),
-      description: 'Width of the six secondary strips (the regular Strip width sets the three main strips).',
-    },
+    SECONDARY_STRIP_WIDTH,
     {
       key: 'secondarySpacing',
       label: 'Secondary spacing',
@@ -61,17 +67,14 @@ export const buildKawariYaeZakura = definePattern({
       min: 0,
       max: ({ cellWidth, gridStripWidth, patternStripWidth, params }) => Math.max(
         0,
-        SQRT3 * (inradius(cellWidth) - gridStripWidth / 2) - patternStripWidth - params.secondaryStripWidth,
+        // Kikko: the main strips stop short of the centre, at the secondaries' arrowhead, so
+        // the arrowhead must still clear their corner tapers: √3·inr − 1.25·w − w₂.
+        SQRT3 * (inradius(cellWidth) - gridStripWidth / 2) - (kikko ? 1.25 : 1) * patternStripWidth - params.secondaryStripWidth,
       ),
       description: 'Gap between each main strip and the secondary strips beside it.',
     },
   ],
-  meta: {
-    difficulty: 'advanced',
-    tags: ['six-fold', 'traditional'],
-    description: 'Asanoha with two extra strips beside each of its three main strips, parallel to them. Each runs from the cell border and stops against another main strip; where the extra strips cross they share half-lap joints.',
-    thumbnail: null,
-  },
+  meta,
   build: ({ cell, params, patternStripWidth }) => {
     const { G } = cell;
     const w = patternStripWidth, w2 = params.secondaryStripWidth;
@@ -126,10 +129,11 @@ export const buildKawariYaeZakura = definePattern({
         // End: flush with the face of the main strip it meets, on the side it approaches from.
         const sgn = Math.sign(dot(sub(start.x, contact.x), contact.mj.n)) || 1;
         const faceOrigin = { x: G.x + sgn * (w / 2) * contact.mj.n.x, y: G.y + sgn * (w / 2) * contact.mj.n.y };
-        const end = lineIntersect(q0, e, faceOrigin, contact.mj.u);
+        // Kikko: it runs on to the main strip's centerline instead, where its partner meets it.
+        const end = kikko ? contact.x : lineIntersect(q0, e, faceOrigin, contact.mj.u);
 
         secondaries.push({
-          id: `s${3 + secondaries.length}`, e,
+          id: `s${3 + secondaries.length}`, e, contactJ: contact.j,
           start: start.x, end,
           startEdgeDir: start.ed.d, endFaceDir: contact.mj.u,
         });
@@ -148,6 +152,7 @@ export const buildKawariYaeZakura = definePattern({
       for (let b = a + 1; b < secondaries.length; b++) {
         const A = secondaries[a], B = secondaries[b];
         if (Math.abs(cross(A.e, B.e)) < 1e-9) continue; // parallel
+        if (kikko && A.contactJ === B.contactJ) continue; // the arrowhead pair: they meet end to end, not cross
         const pt = lineIntersect(A.start, A.e, B.start, B.e);
         if (within(A, pt) && within(B, pt)) laps.push({ id: nextJoint(), a: A, b: B, position: pt });
       }
@@ -155,8 +160,24 @@ export const buildKawariYaeZakura = definePattern({
 
     const strips = [];
     const joints = [...main.joints];
+    // Kikko: the arrowhead where two secondaries meet on a main strip's centerline.
+    const arrowJoint = {};
+    if (kikko) {
+      mains.forEach((m, j) => {
+        const pair = secondaries.filter((sec) => sec.contactJ === j);
+        if (pair.length === 0) return;
+        const id = nextJoint();
+        arrowJoint[j] = id;
+        joints.push({
+          id, position: { ...pair[0].end },
+          members: pair.map((sec) => ({ stripId: sec.id, role: 'end' })),
+          notchType: 'miter',
+        });
+      });
+    }
     secondaries.forEach((sec) => {
-      const jStart = nextJoint(), jEnd = nextJoint();
+      const jStart = nextJoint();
+      const jEnd = kikko ? arrowJoint[sec.contactJ] : nextJoint();
       const lapCuts = laps
         .filter((l) => l.a === sec || l.b === sec)
         .map((l) => {
@@ -178,7 +199,8 @@ export const buildKawariYaeZakura = definePattern({
         ...lapCuts,
         endCut(jEnd, sec.end, localCutAngle(sec.e, sec.endFaceDir)),
       ]));
-      joints.push(endJoint(jStart, sec.start, sec.id, 'miter'), endJoint(jEnd, sec.end, sec.id, 'butt'));
+      joints.push(endJoint(jStart, sec.start, sec.id, 'miter'));
+      if (!kikko) joints.push(endJoint(jEnd, sec.end, sec.id, 'butt'));
     });
     laps.forEach((l) => joints.push({
       id: l.id,
@@ -190,10 +212,62 @@ export const buildKawariYaeZakura = definePattern({
       notchType: 'halfLap',
     }));
 
+    let mainStrips = main.strips;
+    if (kikko) {
+      // Main strips stop at the arrowhead's outer point, in a V-notch whose
+      // faces are the secondaries' leading edges.
+      const centre = joints.findIndex((j) => j.id === 'j0');
+      joints.splice(centre, 1);
+      mainStrips = mains.map((m, j) => {
+        const pair = secondaries.filter((sec) => sec.contactJ === j);
+        const e = pair[0].e;
+        const half = Math.acos(-dot(e, m.u)); // faces' angle to the centerline
+        const tip = {
+          x: pair[0].end.x - (w2 / (2 * Math.sin(half))) * m.u.x,
+          y: pair[0].end.y - (w2 / (2 * Math.sin(half))) * m.u.y,
+        };
+        const jn = nextJoint();
+        joints.push(endJoint(jn, tip, m.strip.id, 'vNotch'));
+        return makeStrip(m.strip.id, m.strip.start, tip, [
+          m.strip.cuts[0],
+          endCut(jn, tip, 180 - (half * 180) / Math.PI),
+        ]);
+      });
+    }
+
     return {
-      strips: [...main.strips, ...strips],
+      strips: [...mainStrips, ...strips],
       joints,
       stripWidths: Object.fromEntries(strips.map((s) => [s.id, w2])),
     };
+  },
+  });
+}
+
+export const buildKawariYaeZakura = defineYaeZakura({
+  id: 'builtin:kawari-yae-zakura-sixth',
+  name: 'Kawari yae-zakura — sixth',
+  kikko: false,
+  meta: {
+    difficulty: 'advanced',
+    tags: ['six-fold', 'traditional'],
+    description: 'Asanoha with two extra strips beside each of its three main strips, parallel to them. Each runs from the cell border and stops against another main strip; where the extra strips cross they share half-lap joints.',
+    thumbnail: null,
+  },
+});
+
+// Yae-zakura kikko: as Kawari yae-zakura, but the three main strips no longer
+// meet at the centroid. Each ends short of it in a V-notch, where the two
+// secondary strips that would have butted its sides run on to meet each other
+// on its centerline instead, mitred into an arrowhead that sits in the notch.
+export const buildYaeZakuraKikko = defineYaeZakura({
+  id: 'builtin:yae-zakura-kikko-sixth',
+  name: 'Yae-zakura kikko — sixth',
+  kikko: true,
+  meta: {
+    difficulty: 'advanced',
+    tags: ['six-fold', 'traditional'],
+    description: 'Like Kawari yae-zakura, but the three main strips stop short of the centre in V-notches. Pairs of secondary strips meet on each main strip\'s centerline with mitres, forming arrowheads that sit in the notches; elsewhere the secondaries cross in half-laps.',
+    thumbnail: null,
   },
 });

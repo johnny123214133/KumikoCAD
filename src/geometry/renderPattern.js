@@ -8,7 +8,39 @@
 import { buildStripLocalPoints } from './stripShape.js';
 import { darkenHex } from './color.js';
 
+// Paint order for the strips, bottom first. Strips are normally painted in
+// array order, but where strips overlap at a lap joint the one on top must be
+// painted last: a half-lap's members carry 'role-top-2' / 'role-bottom-2', a
+// three-strip lap 'role-top-3' / 'role-middle-3' / 'role-bottom-3'. Each lap
+// gives "A is above B" edges; the order is a stable topological sort (ties keep
+// array order), and a cyclic weave — which no pattern here has — just falls
+// back to array order for what's left.
+const RANK = { 'role-top-2': 0, 'role-bottom-2': 1, 'role-top-3': 0, 'role-middle-3': 1, 'role-bottom-3': 2 };
+export function stripPaintOrder(pattern) {
+  const ids = pattern.strips.map((s) => s.id);
+  const index = new Map(ids.map((id, i) => [id, i]));
+  const below = new Map(ids.map((id) => [id, new Set()])); // id -> strips painted before it
+  for (const j of pattern.joints) {
+    if (j.notchType !== 'halfLap' && j.notchType !== 'triLap') continue;
+    for (const a of j.members) for (const b of j.members) {
+      if (RANK[a.role] != null && RANK[b.role] != null && RANK[a.role] < RANK[b.role] && index.has(a.stripId) && index.has(b.stripId)) below.get(a.stripId).add(b.stripId);
+    }
+  }
+  const out = [], done = new Set();
+  while (out.length < ids.length) {
+    const next = ids.find((id) => !done.has(id) && [...below.get(id)].every((b) => done.has(b)))
+      ?? ids.find((id) => !done.has(id));
+    out.push(next); done.add(next);
+  }
+  return out;
+}
+
 export function computeStripRenderData(pattern) {
+  const order = new Map(stripPaintOrder(pattern).map((id, i) => [id, i]));
+  return computeUnorderedStripRenderData(pattern).sort((a, b) => order.get(a.stripId) - order.get(b.stripId));
+}
+
+function computeUnorderedStripRenderData(pattern) {
   const spMap = Object.fromEntries(pattern.stripProperties.map(sp => [sp.id, sp]));
   return pattern.strips.map((strip) => {
     const pt = pattern.pieceTemplates.find(p => p.stripId === strip.id);

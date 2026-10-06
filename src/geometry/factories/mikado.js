@@ -1,4 +1,4 @@
-import { definePattern, makeStrip, endCut, endJoint, lineIntersect } from './_shared.js';
+import { definePattern, makeStrip, endCut, endJoint, lineIntersect, triLapCuts, triLapJoint } from './_shared.js';
 
 // Mikado: three strips, each a line through the centroid parallel to one
 // edge, spanning between the OTHER two edges. Boundary ends are 'miter'.
@@ -21,13 +21,6 @@ import { definePattern, makeStrip, endCut, endJoint, lineIntersect } from './_sh
 // in different layers, so nothing collides — it only leaves a small hidden
 // void. Interior cuts aren't visible from the front, so none of this affects
 // rendering.
-const TRI_LAP_CUTS = {
-  s0: [{ role: 'cut-bottom-3', depth: 2 / 3 }],
-  s1: [{ role: 'cut-top-3', depth: 1 / 3 }, { role: 'cut-bottom-3', depth: 1 / 3 }],
-  s2: [{ role: 'cut-top-3', depth: 2 / 3 }],
-};
-const TRI_LAP_ROLE = { s0: 'role-top-3', s1: 'role-middle-3', s2: 'role-bottom-3' };
-
 // Known remaining approximation: no patternStripWidth term is added to the
 // boundary retraction. The 60°/120° miter faces' corners project slightly
 // into the retraction direction and could in principle poke very slightly
@@ -63,17 +56,13 @@ export const buildMikado = definePattern({
       const [jStart, jEnd] = boundaryJointIds[id];
       return makeStrip(id, start, end, [
         endCut(jStart, start, 60),
-        ...TRI_LAP_CUTS[id].map(({ role, depth }) => ({ jointId: 'j0', position: { ...G }, angle: 60, depth, role })),
+        ...triLapCuts(id, 'j0', G),
         endCut(jEnd, end, 120),
       ]);
     });
 
     const joints = [
-      {
-        id: 'j0', position: { ...G },
-        members: strips.map((s) => ({ stripId: s.id, role: TRI_LAP_ROLE[s.id] })),
-        notchType: 'triLap',
-      },
+      triLapJoint('j0', G),
       ...strips.flatMap((s) => {
         const [jStart, jEnd] = boundaryJointIds[s.id];
         return [endJoint(jStart, s.start, s.id, 'miter'), endJoint(jEnd, s.end, s.id, 'miter')];

@@ -31,15 +31,22 @@ function LengthParamInput({ def, valueMm, bounds, onCommit }) {
   const onBlur = () => setDraft(String(toDisplay(valueMm, unit)))
 
   const hasMax = Number.isFinite(bounds.max)
+  // The arrows step by the def's own `step` (mm; default half a millimetre).
+  // A number input steps from its `min`, so a fractional minimum (a stub's
+  // (√3/2)·w floor, say) would put every arrow-step off the grid; round the
+  // attribute up to a whole step so 8 → 8.5 → 9. The store still clamps to the
+  // true range.
+  const stepMm = def.step ?? MM_STEP / 2
+  const minAttr = unit === 'mm' ? Math.ceil(bounds.min / stepMm - 1e-9) * stepMm : toDisplay(bounds.min, unit)
   return (
     <div className="mb-3">
       <label className="form-label small mb-1">{def.label}</label>
       <div className="input-group input-group-sm">
         <input
           type="number"
-          min={toDisplay(bounds.min, unit)}
+          min={unit === 'mm' ? Number(minAttr.toFixed(4)) : minAttr}
           max={hasMax ? toDisplay(bounds.max, unit) : undefined}
-          step={unit === 'mm' ? MM_STEP / 2 : STRIP_IN_STEP}
+          step={unit === 'mm' ? stepMm : STRIP_IN_STEP}
           className="form-control"
           value={draft}
           onChange={onChange}

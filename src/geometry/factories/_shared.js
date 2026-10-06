@@ -157,6 +157,86 @@ export function buildSpokes(cell, { outerPoints, boundaryAngle, boundaryNotch })
   return { strips, joints };
 }
 
+// Three-strip lap at a point where three strips cross at 60° (Mikado's
+// centroid, Tsuno-asanoha's). The strips are stacked top / middle / bottom as
+// s0 / s1 / s2 and each is notched so that, with front faces flush, it keeps
+// one third of its thickness at the crossing:
+//   s0 — notched from its bottom face, 2/3 deep (keeps the top third)
+//   s1 — notched from both faces, 1/3 deep each (keeps the middle third)
+//   s2 — notched from its top face, 2/3 deep (keeps the bottom third)
+// A cut's `role` names the face it is cut into; a joint member's `role` is the
+// strip's place in the stack. Strips are s0, s1, s2 in order of 120° rotation.
+const TRI_LAP_CUTS = {
+  s0: [{ role: 'cut-bottom-3', depth: 2 / 3 }],
+  s1: [{ role: 'cut-top-3', depth: 1 / 3 }, { role: 'cut-bottom-3', depth: 1 / 3 }],
+  s2: [{ role: 'cut-top-3', depth: 2 / 3 }],
+};
+const TRI_LAP_ROLE = { s0: 'role-top-3', s1: 'role-middle-3', s2: 'role-bottom-3' };
+// `stack` lists the strip ids top → bottom (default s0, s1, s2); the cuts and
+// roles above are the ones for each place in that stack.
+const STACK_SLOTS = ['s0', 's1', 's2'];
+export function triLapCuts(stripId, jointId, position, stack = STACK_SLOTS) {
+  const slot = STACK_SLOTS[stack.indexOf(stripId)];
+  return TRI_LAP_CUTS[slot].map(({ role, depth }) => ({ jointId, position: { ...position }, angle: 60, depth, role }));
+}
+export function triLapJoint(jointId, position, stack = STACK_SLOTS) {
+  return {
+    id: jointId, position: { ...position },
+    members: [...stack].sort().map((id) => ({ stripId: id, role: TRI_LAP_ROLE[STACK_SLOTS[stack.indexOf(id)]] })),
+    notchType: 'triLap',
+  };
+}
+
+// Shift the numeric part of every strip id (s<n>) and joint id (j<n>) in a
+// built { strips, joints } part, so two parts can be merged without clashes.
+export function renumber(part, stripOffset, jointOffset) {
+  const sid = (id) => `s${Number(id.slice(1)) + stripOffset}`;
+  const jid = (id) => `j${Number(id.slice(1)) + jointOffset}`;
+  return {
+    strips: part.strips.map((s) => ({ ...s, id: sid(s.id), cuts: s.cuts.map((c) => ({ ...c, jointId: jid(c.jointId) })) })),
+    joints: part.joints.map((j) => ({ ...j, id: jid(j.id), members: j.members.map((m) => ({ ...m, stripId: sid(m.stripId) })) })),
+  };
+}
+
+// Two sub-patterns laid over each other (Komachi-kikko, Ryuso-asanoha): every
+// strip of `top` that crosses a strip of `bottom` gets a half-lap there. The
+// top strip is notched from its bottom face and the bottom strip from its top
+// face, so `top` lies over `bottom` at every crossing. Only crossings inside
+// both strips count. Lap cuts go in along each strip in the order met from its
+// start; joint ids continue from `firstJointNumber`. Mutates strips' cuts and
+// returns the new lap joints. Interior cut angle follows the Goma convention
+// (180° minus the crossing strip's line angle relative to this strip).
+export function addCrossLaps(topStrips, bottomStrips, firstJointNumber) {
+  const dirOf = (s) => normalize({ x: s.end.x - s.start.x, y: s.end.y - s.start.y });
+  const lenOf = (s) => Math.hypot(s.end.x - s.start.x, s.end.y - s.start.y);
+  const along = (s, pt) => (pt.x - s.start.x) * dirOf(s).x + (pt.y - s.start.y) * dirOf(s).y;
+  const pending = new Map([...topStrips, ...bottomStrips].map((s) => [s.id, []]));
+  const joints = [];
+  let n = firstJointNumber;
+  for (const t of topStrips) {
+    for (const b of bottomStrips) {
+      const dt = dirOf(t), db = dirOf(b);
+      if (Math.abs(dt.x * db.y - dt.y * db.x) < 1e-9) continue; // parallel
+      const pt = lineIntersect(t.start, dt, b.start, db);
+      const at = along(t, pt), ab = along(b, pt);
+      if (at <= 1e-6 || at >= lenOf(t) - 1e-6 || ab <= 1e-6 || ab >= lenOf(b) - 1e-6) continue;
+      const id = `j${n++}`;
+      pending.get(t.id).push({ at, cut: { jointId: id, position: { ...pt }, angle: 180 - localCutAngle(dt, db), depth: 0.5, role: 'cut-bottom-2' } });
+      pending.get(b.id).push({ at: ab, cut: { jointId: id, position: { ...pt }, angle: 180 - localCutAngle(db, dt), depth: 0.5, role: 'cut-top-2' } });
+      joints.push({
+        id, position: { ...pt },
+        members: [{ stripId: t.id, role: 'role-top-2' }, { stripId: b.id, role: 'role-bottom-2' }],
+        notchType: 'halfLap',
+      });
+    }
+  }
+  for (const s of [...topStrips, ...bottomStrips]) {
+    const laps = pending.get(s.id).sort((p, q) => p.at - q.at).map((x) => x.cut);
+    if (laps.length) s.cuts = [s.cuts[0], ...laps, ...s.cuts.slice(1)];
+  }
+  return joints;
+}
+
 // Three strips that cross each other at half-laps: Goma, and Kuruma-kikko's
 // triangle variant. `height` is where s0's centerline sits above the cell's AB
 // edge (cell coordinates, A at y = 0): below the centroid gives Goma's

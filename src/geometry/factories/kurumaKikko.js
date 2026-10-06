@@ -47,7 +47,7 @@ export function triangleRadii(cell, inset, w) {
 // The closed triangle: three strips meeting at mitered corners (they do not
 // cross), `vertexRadius` being the distance from the centroid to each
 // centerline corner. Shared by Kuruma-kikko (+ spokes) and Mitsukude.
-export function buildMitredTriangle(cell, vertexRadius) {
+export function buildMitredTriangle(cell, vertexRadius, rotation = 0) {
   const { G } = cell;
   const polar = (deg, rad) => ({
     x: G.x + rad * Math.cos((deg * Math.PI) / 180),
@@ -59,7 +59,9 @@ export function buildMitredTriangle(cell, vertexRadius) {
   // 120°/240° — so the loop s0 → s2 → s1 runs clockwise and the strips' left
   // (outer) side faces away from G.
   const s0Start = polar(150, vertexRadius), s0End = polar(30, vertexRadius);
-  const sides = [0, 120, 240].map((deg) => ({ start: cell.rotate(s0Start, deg), end: cell.rotate(s0End, deg) }));
+  // `rotation` (degrees about the centroid) turns the whole triangle — 180°
+  // points its corners at the cell's corners instead (Kikyo-asanoha).
+  const sides = [0, 120, 240].map((deg) => ({ start: cell.rotate(s0Start, deg + rotation), end: cell.rotate(s0End, deg + rotation) }));
 
   // Corner joint j_i sits where side i ENDS and side (i+2)%3 starts; so side i
   // starts at joint j_((i+1)%3). Both strips are cut along the corner's

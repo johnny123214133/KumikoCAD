@@ -9,6 +9,15 @@ import sakura from '../patterns/sakura.json';
 import mitsukude from '../patterns/mitsukude.json';
 import rindo from '../patterns/rindo.json';
 import kawariYaeZakura from '../patterns/kawari-yae-zakura.json';
+import yaeZakuraKikko from '../patterns/yae-zakura-kikko.json';
+import tsunoAsanoha from '../patterns/tsuno-asanoha.json';
+import yaeAsanoha from '../patterns/yae-asanoha.json';
+import tsunoAsanohaPointed from '../patterns/tsuno-asanoha-pointed.json';
+import kikyoAsanoha from '../patterns/kikyo-asanoha.json';
+import komachiKikkoA from '../patterns/komachi-kikko-a.json';
+import komachiKikkoB from '../patterns/komachi-kikko-b.json';
+import ryusoAsanohaA from '../patterns/ryuso-asanoha-a.json';
+import ryusoAsanohaB from '../patterns/ryuso-asanoha-b.json';
 import blank from '../patterns/blank.json';
 import { validatePattern } from '../geometry/schema/validate.js';
 import { buildAsanoha } from '../geometry/factories/asanoha.js';
@@ -19,7 +28,11 @@ import { buildKurumaKikko, buildKurumaKikkoTriangle } from '../geometry/factorie
 import { buildSakura } from '../geometry/factories/sakura.js';
 import { buildMitsukude } from '../geometry/factories/mitsukude.js';
 import { buildRindo } from '../geometry/factories/rindo.js';
-import { buildKawariYaeZakura } from '../geometry/factories/kawariYaeZakura.js';
+import { buildKawariYaeZakura, buildYaeZakuraKikko } from '../geometry/factories/kawariYaeZakura.js';
+import { buildTsunoAsanoha, buildTsunoAsanohaPointed } from '../geometry/factories/tsunoAsanoha.js';
+import { buildKikyoAsanoha } from '../geometry/factories/kikyoAsanoha.js';
+import { buildKomachiKikkoA, buildKomachiKikkoB, buildRyusoAsanohaA, buildRyusoAsanohaB } from '../geometry/factories/lappedTriangles.js';
+import { buildYaeAsanoha } from '../geometry/factories/yaeAsanoha.js';
 import { buildBlank } from '../geometry/factories/blank.js';
 import useGridStore from './useGridStore.js';
 import useSelectionStore from './useSelectionStore.js';
@@ -37,7 +50,7 @@ import { readLengthMm, lengthParam, resolveParamState } from '../geometry/params
 // 'blank' is appended at the END deliberately — BUILT_INS[0] is what seeds the
 // default activePatternId below, and an empty pattern being the default on
 // first launch is exactly the bug that got fixed by removing asanoha-one.
-const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, rindo, sakura, kawariYaeZakura, blank];
+const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, rindo, sakura, kawariYaeZakura, yaeZakuraKikko, tsunoAsanoha, tsunoAsanohaPointed, yaeAsanoha, kikyoAsanoha, komachiKikkoA, komachiKikkoB, ryusoAsanohaA, ryusoAsanohaB, blank];
 
 BUILT_INS.forEach((p) => {
   const errs = validatePattern(p);
@@ -63,6 +76,15 @@ const FACTORY_BY_ID = {
   'builtin:rindo-sixth': buildRindo,
   'builtin:sakura-sixth': buildSakura,
   'builtin:kawari-yae-zakura-sixth': buildKawariYaeZakura,
+  'builtin:yae-zakura-kikko-sixth': buildYaeZakuraKikko,
+  'builtin:tsuno-asanoha-sixth': buildTsunoAsanoha,
+  'builtin:tsuno-asanoha-pointed-sixth': buildTsunoAsanohaPointed,
+  'builtin:kikyo-asanoha-sixth': buildKikyoAsanoha,
+  'builtin:komachi-kikko-a-sixth': buildKomachiKikkoA,
+  'builtin:komachi-kikko-b-sixth': buildKomachiKikkoB,
+  'builtin:ryuso-asanoha-a-sixth': buildRyusoAsanohaA,
+  'builtin:ryuso-asanoha-b-sixth': buildRyusoAsanohaB,
+  'builtin:yae-asanoha-sixth': buildYaeAsanoha,
   'builtin:blank': buildBlank,
 };
 
