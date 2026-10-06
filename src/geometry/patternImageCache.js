@@ -1,4 +1,5 @@
 import { renderPatternToCanvas } from './renderPattern.js';
+import { paramsKey } from './params.js';
 
 // Simple growing Map cache — deliberately not doing LRU eviction or a size
 // cap. The number of DISTINCT patterns actually in use at once (built-ins +
@@ -22,9 +23,11 @@ const cache = new Map();
 // has the resolved color on the computed pattern object, and keying on the
 // actual output rather than its inputs means this cache key stays correct
 // even if getMaterialColor's derivation logic changes shape later.
-export function buildPatternCacheKey(patternId, cellWidth, gridStripWidth, patternStripWidth, spacing, drawBoundary = false, selected = false, color = '') {
-  const spacingKey = spacing ? `${spacing.length}${spacing.unit}` : '';
-  return `${patternId}:${cellWidth}:${gridStripWidth}:${patternStripWidth}:${spacingKey}:${drawBoundary ? 'b' : ''}:${selected ? 's' : ''}:${color}`;
+// `patternParams` is the pattern's whole parameter map ({ key: {length, unit} },
+// e.g. Goma's inset) — keyed generically so a new pattern's parameters
+// invalidate its cached images without touching this function.
+export function buildPatternCacheKey(patternId, cellWidth, gridStripWidth, patternStripWidth, patternParams, drawBoundary = false, selected = false, color = '') {
+  return `${patternId}:${cellWidth}:${gridStripWidth}:${patternStripWidth}:${paramsKey(patternParams)}:${drawBoundary ? 'b' : ''}:${selected ? 's' : ''}:${color}`;
 }
 
 /**
@@ -32,7 +35,7 @@ export function buildPatternCacheKey(patternId, cellWidth, gridStripWidth, patte
  * object { canvas, worldX, worldY, worldSize } (see renderPatternToCanvas),
  * computing and storing it on first request. `cacheKey` is supplied by the
  * caller rather than derived here — the caller already knows which inputs
- * (cellWidth, gridStripWidth, this pattern's effective strip width/spacing)
+ * (cellWidth, gridStripWidth, this pattern's effective strip width/parameters)
  * should invalidate the cache, and re-deriving that from the pattern object
  * itself would mean either re-hashing its full computed geometry (wasteful)
  * or guessing — simpler and more honest to let the caller decide.

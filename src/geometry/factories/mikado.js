@@ -1,102 +1,84 @@
-import { triangleVertices, centroidOf, inradius, scaleFromCentroid, lineIntersect, dist, makeStripProperties, makePieceTemplates } from './_shared.js';
+import { definePattern, makeStrip, endCut, endJoint, lineIntersect } from './_shared.js';
 
 // Mikado: three strips, each a line through the centroid parallel to one
-// edge, spanning between the OTHER two edges. A three-strip dado joint at
-// the shared centroid crossing (notchType still a 'halfLap' placeholder —
-// see the FIXME this carries over from the original design docs: the real
-// triLap/dado3 notch type was never resolved). Boundary ends are 'miter'.
+// edge, spanning between the OTHER two edges. Boundary ends are 'miter'.
 //
-// Boundary retraction uses scaleFromCentroid, same fix as asanoha/tsumiishi
-// and for the same underlying bug (a fixed-distance retraction only equals
-// the correct answer when the raw endpoint's distance to the centroid
-// equals the inradius — true for tsumiishi's edge-midpoints, false for
-// asanoha's vertices at 2x, and neither for mikado's raw endpoints, which
-// sit at some other uniform distance depending on cellWidth). Since a raw
-// endpoint here is computed as the intersection of a line THROUGH the
-// centroid with a nominal edge, scaling that point from the centroid lands
-// exactly where the line crosses the gridStripWidth/2-inset edge instead —
-// no need to redo the intersection against an inset edge directly.
+// Centre joint — a three-strip lap ('triLap'). The strips cross at the
+// centroid at 60° and are stacked top / middle / bottom (s0 / s1 / s2, per
+// the joint's member roles). With the front faces flush, each strip keeps
+// one third of its thickness at the crossing and is notched away elsewhere:
+//   top strip (s0)     — notched from its BOTTOM face, 2/3 deep (keeps top third)
+//   middle strip (s1)  — notched from BOTH faces, 1/3 deep each (keeps middle third)
+//   bottom strip (s2)  — notched from its TOP face, 2/3 deep (keeps bottom third)
+// A cut's `role` names the face it is cut into ('cut-top-3' / 'cut-bottom-3');
+// a joint member's `role` ('role-top-3', ...) is the strip's place in the
+// stack — so the top strip carries a 'cut-bottom-3'.
 //
-// Known remaining approximation: no patternStripWidth term is added here,
-// same reasoning as asanoha/tsumiishi (the strip's width shouldn't matter
-// for a boundary end whose face doesn't extend width-wise into the
-// retraction direction) — but mikado's ends are 'miter' (an angled cut,
-// 60°/120°), not a flush butt or a point taper, so the cut face's corners
-// project slightly into the retraction direction and could in principle
-// poke very slightly past the inset boundary depending on patternStripWidth
-// and the cut angle. Not accounted for — flagged rather than guessed at.
-export function buildMikado({ cellWidth, gridStripWidth = 0, patternStripWidth = 6, material = 'hinoki', finish = 'natural' }) {
-  const { A, B, C } = triangleVertices(cellWidth);
-  const G = centroidOf(A, B, C);
-  const r = inradius(cellWidth);
-  const inset = gridStripWidth / 2;
-  const factor = Math.max(0, (r - inset) / r);
-  const dir = (P, Q) => ({ x: Q.x - P.x, y: Q.y - P.y });
+// Every notch is centred on the centroid and, for strips of width w crossing
+// at 60°, runs √3·w (= w·cot 30°) along the strip — the full footprint of a
+// crossing strip on the one being cut. That is wider than the region where
+// all three overlap; in the leftover two-strip corners the bands simply sit
+// in different layers, so nothing collides — it only leaves a small hidden
+// void. Interior cuts aren't visible from the front, so none of this affects
+// rendering.
+const TRI_LAP_CUTS = {
+  s0: [{ role: 'cut-bottom-3', depth: 2 / 3 }],
+  s1: [{ role: 'cut-top-3', depth: 1 / 3 }, { role: 'cut-bottom-3', depth: 1 / 3 }],
+  s2: [{ role: 'cut-top-3', depth: 2 / 3 }],
+};
+const TRI_LAP_ROLE = { s0: 'role-top-3', s1: 'role-middle-3', s2: 'role-bottom-3' };
 
-  // s0 ∥ AB, spans edges CA and BC; s1 ∥ BC, spans AB and CA; s2 ∥ CA, spans BC and AB.
-  // Order of the two intersection points (which is "start" vs "end") matches
-  // the original static mikado.json's convention, verified numerically
-  // (retraction=0 reproduces it exactly) before this was finalized.
-  const raw = {
-    s0: [lineIntersect(G, dir(A, B), C, dir(C, A)), lineIntersect(G, dir(A, B), B, dir(B, C))],
-    s1: [lineIntersect(G, dir(B, C), A, dir(A, B)), lineIntersect(G, dir(B, C), C, dir(C, A))],
-    s2: [lineIntersect(G, dir(C, A), B, dir(B, C)), lineIntersect(G, dir(C, A), A, dir(A, B))],
-  };
+// Known remaining approximation: no patternStripWidth term is added to the
+// boundary retraction. The 60°/120° miter faces' corners project slightly
+// into the retraction direction and could in principle poke very slightly
+// past the grid strip's inner face, depending on strip width — not
+// accounted for.
+export const buildMikado = definePattern({
+  id: 'builtin:mikado-sixth',
+  name: 'Mikado — sixth',
+  meta: {
+    difficulty: 'intermediate',
+    tags: ['six-fold', 'traditional'],
+    description: 'Three strips each parallel to one triangle edge with centerlines intersecting at the centroid. One three-strip lap (triLap) at the centroid. All strip ends terminate at 60° miter joints against grid strip faces.',
+    thumbnail: null,
+  },
+  build: ({ cell }) => {
+    const { A, B, C, G } = cell;
+    const dir = (P, Q) => ({ x: Q.x - P.x, y: Q.y - P.y });
 
-  const boundaryJointIds = { s0: ['j1', 'j2'], s1: ['j3', 'j4'], s2: ['j5', 'j6'] };
-  const centralRole = { s0: 'cut-bottom-3', s1: 'cut-middle-3', s2: 'cut-top-3' };
-  const centralMemberRole = { s0: 'role-top-3', s1: 'role-middle-3', s2: 'role-bottom-3' };
-
-  const strips = ['s0', 's1', 's2'].map((id) => {
-    const [rawStart, rawEnd] = raw[id];
-    const start = scaleFromCentroid(rawStart, G, factor);
-    const end = scaleFromCentroid(rawEnd, G, factor);
-    const orientation = Math.atan2(end.y - start.y, end.x - start.x);
-    const [jStart, jEnd] = boundaryJointIds[id];
-    return {
-      id, start, end, orientation,
-      cuts: [
-        { jointId: jStart, position: { ...start }, angle: 60, depth: 1.0, role: 'end' },
-        { jointId: 'j0', position: { ...G }, angle: 60, depth: 0.5, role: centralRole[id] },
-        { jointId: jEnd, position: { ...end }, angle: 120, depth: 1.0, role: 'end' },
-      ],
+    // s0 ∥ AB, spans edges CA and BC; s1 ∥ BC, spans AB and CA; s2 ∥ CA,
+    // spans BC and AB. Start/end order matches the original static
+    // mikado.json's convention.
+    const raw = {
+      s0: [lineIntersect(G, dir(A, B), C, dir(C, A)), lineIntersect(G, dir(A, B), B, dir(B, C))],
+      s1: [lineIntersect(G, dir(B, C), A, dir(A, B)), lineIntersect(G, dir(B, C), C, dir(C, A))],
+      s2: [lineIntersect(G, dir(C, A), B, dir(B, C)), lineIntersect(G, dir(C, A), A, dir(A, B))],
     };
-  });
+    const boundaryJointIds = { s0: ['j1', 'j2'], s1: ['j3', 'j4'], s2: ['j5', 'j6'] };
 
-  const joints = [
-    {
-      id: 'j0', position: { ...G },
-      members: strips.map(s => ({ stripId: s.id, role: centralMemberRole[s.id] })),
-      notchType: 'halfLap',
-      _note: 'FIXME: notchType placeholder — awaiting triLap/dado3 resolution',
-    },
-    ...strips.flatMap((s) => {
-      const [jStart, jEnd] = boundaryJointIds[s.id];
-      return [
-        { id: jStart, position: { ...s.start }, members: [{ stripId: s.id, role: 'end' }], notchType: 'miter' },
-        { id: jEnd, position: { ...s.end }, members: [{ stripId: s.id, role: 'end' }], notchType: 'miter' },
-      ];
-    }),
-  ];
+    const strips = ['s0', 's1', 's2'].map((id) => {
+      const [rawStart, rawEnd] = raw[id];
+      const start = cell.retract(rawStart);
+      const end = cell.retract(rawEnd);
+      const [jStart, jEnd] = boundaryJointIds[id];
+      return makeStrip(id, start, end, [
+        endCut(jStart, start, 60),
+        ...TRI_LAP_CUTS[id].map(({ role, depth }) => ({ jointId: 'j0', position: { ...G }, angle: 60, depth, role })),
+        endCut(jEnd, end, 120),
+      ]);
+    });
 
-  return {
-    id: 'builtin:mikado-sixth',
-    name: 'Mikado — sixth',
-    readOnly: true,
-    version: 3,
-    sideLength: cellWidth,
-    patternParams: {},
-    stripProperties: makeStripProperties(patternStripWidth, material, finish),
-    vertices: { A, B, C },
-    centroid: G,
-    strips,
-    joints,
-    pieceTemplates: makePieceTemplates(strips),
-    meta: {
-      difficulty: 'intermediate',
-      tags: ['six-fold', 'traditional'],
-      description: 'Three strips each parallel to one triangle edge with centerlines intersecting at the centroid. One three-strip dado joint at the centroid. All strip ends terminate at 60° miter joints against grid strip faces.',
-      thumbnail: null,
-    },
-  };
-}
+    const joints = [
+      {
+        id: 'j0', position: { ...G },
+        members: strips.map((s) => ({ stripId: s.id, role: TRI_LAP_ROLE[s.id] })),
+        notchType: 'triLap',
+      },
+      ...strips.flatMap((s) => {
+        const [jStart, jEnd] = boundaryJointIds[s.id];
+        return [endJoint(jStart, s.start, s.id, 'miter'), endJoint(jEnd, s.end, s.id, 'miter')];
+      }),
+    ];
+    return { strips, joints };
+  },
+});

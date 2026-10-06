@@ -1,6 +1,6 @@
 {
-  "id": "builtin:mikado-sixth",
-  "name": "Mikado — sixth",
+  "id": "builtin:rindo-sixth",
+  "name": "Rindo — sixth",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
@@ -35,47 +35,37 @@
     "x": 37.5,
     "y": 21.6506
   },
-  "_note": "Reference snapshot generated from the mikado factory at cellWidth 75, gridStripWidth 0, patternStripWidth 4. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "_note": "Reference snapshot generated from the rindo factory at cellWidth 75, gridStripWidth 0, patternStripWidth 4. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
   "strips": [
     {
       "id": "s0",
       "start": {
-        "x": 12.5,
-        "y": 21.6506
+        "x": 37.5,
+        "y": 0
       },
       "end": {
-        "x": 62.5,
-        "y": 21.6506
+        "x": 37.5,
+        "y": 64.9519
       },
-      "orientation": 0,
+      "orientation": 1.5708,
       "cuts": [
-        {
-          "jointId": "j1",
-          "position": {
-            "x": 12.5,
-            "y": 21.6506
-          },
-          "angle": 60,
-          "depth": 1,
-          "role": "end"
-        },
         {
           "jointId": "j0",
           "position": {
             "x": 37.5,
-            "y": 21.6506
+            "y": 0
           },
-          "angle": 60,
-          "depth": 0.6667,
-          "role": "cut-bottom-3"
+          "angle": 90,
+          "depth": 1,
+          "role": "end"
         },
         {
-          "jointId": "j2",
+          "jointId": "j1",
           "position": {
-            "x": 62.5,
-            "y": 21.6506
+            "x": 37.5,
+            "y": 64.9519
           },
-          "angle": 120,
+          "angle": 150,
           "depth": 1,
           "role": "end"
         }
@@ -84,52 +74,42 @@
     {
       "id": "s1",
       "start": {
-        "x": 50,
+        "x": 18.75,
         "y": 0
       },
       "end": {
-        "x": 25,
-        "y": 43.3013
+        "x": 35.5,
+        "y": 61.4878
       },
-      "orientation": 2.0944,
+      "orientation": 1.3048,
       "cuts": [
         {
-          "jointId": "j3",
+          "jointId": "j2",
           "position": {
-            "x": 50,
+            "x": 18.75,
             "y": 0
           },
-          "angle": 60,
+          "angle": 105.2383,
           "depth": 1,
           "role": "end"
         },
         {
-          "jointId": "j0",
+          "jointId": "j3",
           "position": {
-            "x": 37.5,
-            "y": 21.6506
+            "x": 35.5,
+            "y": 61.4878
           },
-          "angle": 60,
-          "depth": 0.3333,
-          "role": "cut-top-3"
+          "angle": 15.2383,
+          "depth": 1,
+          "role": "end"
         },
         {
-          "jointId": "j0",
+          "jointId": "j3",
           "position": {
-            "x": 37.5,
-            "y": 21.6506
+            "x": 35.5,
+            "y": 61.4878
           },
-          "angle": 60,
-          "depth": 0.3333,
-          "role": "cut-bottom-3"
-        },
-        {
-          "jointId": "j4",
-          "position": {
-            "x": 25,
-            "y": 43.3013
-          },
-          "angle": 120,
+          "angle": 165.2383,
           "depth": 1,
           "role": "end"
         }
@@ -138,42 +118,42 @@
     {
       "id": "s2",
       "start": {
-        "x": 50,
-        "y": 43.3013
-      },
-      "end": {
-        "x": 25,
+        "x": 56.25,
         "y": 0
       },
-      "orientation": -2.0944,
+      "end": {
+        "x": 39.5,
+        "y": 61.4878
+      },
+      "orientation": 1.8368,
       "cuts": [
         {
-          "jointId": "j5",
+          "jointId": "j4",
           "position": {
-            "x": 50,
-            "y": 43.3013
+            "x": 56.25,
+            "y": 0
           },
-          "angle": 60,
+          "angle": 74.7617,
           "depth": 1,
           "role": "end"
         },
         {
-          "jointId": "j0",
+          "jointId": "j5",
           "position": {
-            "x": 37.5,
-            "y": 21.6506
+            "x": 39.5,
+            "y": 61.4878
           },
-          "angle": 60,
-          "depth": 0.6667,
-          "role": "cut-top-3"
+          "angle": 164.7617,
+          "depth": 1,
+          "role": "end"
         },
         {
-          "jointId": "j6",
+          "jointId": "j5",
           "position": {
-            "x": 25,
-            "y": 0
+            "x": 39.5,
+            "y": 61.4878
           },
-          "angle": 120,
+          "angle": 14.7617,
           "depth": 1,
           "role": "end"
         }
@@ -185,29 +165,7 @@
       "id": "j0",
       "position": {
         "x": 37.5,
-        "y": 21.6506
-      },
-      "members": [
-        {
-          "stripId": "s0",
-          "role": "role-top-3"
-        },
-        {
-          "stripId": "s1",
-          "role": "role-middle-3"
-        },
-        {
-          "stripId": "s2",
-          "role": "role-bottom-3"
-        }
-      ],
-      "notchType": "triLap"
-    },
-    {
-      "id": "j1",
-      "position": {
-        "x": 12.5,
-        "y": 21.6506
+        "y": 0
       },
       "members": [
         {
@@ -215,17 +173,31 @@
           "role": "end"
         }
       ],
-      "notchType": "miter"
+      "notchType": "butt"
     },
     {
-      "id": "j2",
+      "id": "j1",
       "position": {
-        "x": 62.5,
-        "y": 21.6506
+        "x": 37.5,
+        "y": 64.9519
       },
       "members": [
         {
           "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "taper"
+    },
+    {
+      "id": "j2",
+      "position": {
+        "x": 18.75,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s1",
           "role": "end"
         }
       ],
@@ -234,8 +206,8 @@
     {
       "id": "j3",
       "position": {
-        "x": 50,
-        "y": 0
+        "x": 35.5,
+        "y": 61.4878
       },
       "members": [
         {
@@ -243,17 +215,17 @@
           "role": "end"
         }
       ],
-      "notchType": "miter"
+      "notchType": "asymMiter"
     },
     {
       "id": "j4",
       "position": {
-        "x": 25,
-        "y": 43.3013
+        "x": 56.25,
+        "y": 0
       },
       "members": [
         {
-          "stripId": "s1",
+          "stripId": "s2",
           "role": "end"
         }
       ],
@@ -262,8 +234,8 @@
     {
       "id": "j5",
       "position": {
-        "x": 50,
-        "y": 43.3013
+        "x": 39.5,
+        "y": 61.4878
       },
       "members": [
         {
@@ -271,21 +243,7 @@
           "role": "end"
         }
       ],
-      "notchType": "miter"
-    },
-    {
-      "id": "j6",
-      "position": {
-        "x": 25,
-        "y": 0
-      },
-      "members": [
-        {
-          "stripId": "s2",
-          "role": "end"
-        }
-      ],
-      "notchType": "miter"
+      "notchType": "asymMiter"
     }
   ],
   "pieceTemplates": [
@@ -299,25 +257,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 60,
+          "angle": 90,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 25,
+            "x": 64.9519,
             "y": 0
           },
-          "angle": 60,
-          "depth": 0.6667,
-          "role": "cut-bottom-3"
-        },
-        {
-          "position": {
-            "x": 50,
-            "y": 0
-          },
-          "angle": 120,
+          "angle": 150,
           "depth": 1,
           "role": "end"
         }
@@ -333,34 +282,25 @@
             "x": 0,
             "y": 0
           },
-          "angle": 60,
+          "angle": 105.2383,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 25,
+            "x": 63.7284,
             "y": 0
           },
-          "angle": 60,
-          "depth": 0.3333,
-          "role": "cut-top-3"
+          "angle": 15.2383,
+          "depth": 1,
+          "role": "end"
         },
         {
           "position": {
-            "x": 25,
+            "x": 63.7284,
             "y": 0
           },
-          "angle": 60,
-          "depth": 0.3333,
-          "role": "cut-bottom-3"
-        },
-        {
-          "position": {
-            "x": 50,
-            "y": 0
-          },
-          "angle": 120,
+          "angle": 165.2383,
           "depth": 1,
           "role": "end"
         }
@@ -376,25 +316,25 @@
             "x": 0,
             "y": 0
           },
-          "angle": 60,
+          "angle": 74.7617,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 25,
+            "x": 63.7284,
             "y": 0
           },
-          "angle": 60,
-          "depth": 0.6667,
-          "role": "cut-top-3"
+          "angle": 164.7617,
+          "depth": 1,
+          "role": "end"
         },
         {
           "position": {
-            "x": 50,
+            "x": 63.7284,
             "y": 0
           },
-          "angle": 120,
+          "angle": 14.7617,
           "depth": 1,
           "role": "end"
         }
@@ -402,12 +342,12 @@
     }
   ],
   "meta": {
-    "difficulty": "intermediate",
+    "difficulty": "beginner",
     "tags": [
       "six-fold",
       "traditional"
     ],
-    "description": "Three strips each parallel to one triangle edge with centerlines intersecting at the centroid. One three-strip lap (triLap) at the centroid. All strip ends terminate at 60° miter joints against grid strip faces.",
+    "description": "Three strips fanning from the top corner to the opposite edge, meeting it at 1/4, 1/2 and 3/4 of its length. The two outer strips stop against the middle one with asymmetric miters.",
     "thumbnail": null
   }
 }

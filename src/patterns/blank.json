@@ -6,7 +6,7 @@
   "sideLength": 75,
   "patternParams": {},
   "stripProperties": [
-    { "id": "sp0", "width": 6.0, "thickness": 6.0, "material": "hinoki", "grain": "along", "color": "#E8D5B0", "finish": "natural", "edgeProfile": null }
+    { "id": "sp0", "width": 4.0, "thickness": 6.0, "material": "hinoki", "grain": "along", "color": "#E8D5B0", "finish": "natural", "edgeProfile": null }
   ],
   "vertices": {
     "A": { "x": 0, "y": 0 },

@@ -8,7 +8,7 @@
   "stripProperties": [
     {
       "id": "sp0",
-      "width": 6.0,
+      "width": 4.0,
       "thickness": 6.0,
       "material": "hinoki",
       "grain": "along",

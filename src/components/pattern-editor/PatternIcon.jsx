@@ -33,15 +33,14 @@ export default function PatternIcon({ pattern, size = 28 }) {
 
   const dataUrl = useMemo(() => {
     const computed = getCanonicalPattern(pattern.id)
-    const stripWidth = computed.stripProperties?.[0]?.width ?? 6
-    const spacing = computed.patternParams?.spacing
+    const stripWidth = computed.stripProperties?.[0]?.width ?? 4
     // Every distinct color in use, not just stripProperties[0] — a per-strip
     // wood/finish override (usePatternStore's applyStripColorOverrides) adds
     // ADDITIONAL stripProperties entries beyond index 0, so keying on [0]
     // alone would miss a color-only change that only affects some other
     // strip and keep serving a stale cached thumbnail.
     const color = computed.stripProperties?.map(sp => sp.color).join(',')
-    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, stripWidth, spacing, true, false, color)
+    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, stripWidth, computed.patternParams, true, false, color)
     const result = getPatternImage(cacheKey, computed, size, 3, true)
     return result.canvas.toDataURL()
     // eslint-disable-next-line react-hooks/exhaustive-deps

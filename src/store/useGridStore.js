@@ -66,6 +66,20 @@ const useGridStore = create((set, get) => ({
   setMaterial: (material) => set({ material }),
   setFinish: (finish) => set({ finish }),
   setSpacePattern: (spaceId, patternId) => set((s) => ({ spacePatterns: { ...s.spacePatterns, [spaceId]: patternId } })),
+  // How many cells currently hold `patternId`.
+  countSpacesWithPattern: (patternId) => Object.values(get().spacePatterns).filter((id) => id === patternId).length,
+  // Empties every cell holding `patternId` (they go back to the blank default
+  // — an unplaced cell) and returns how many there were. Used when a custom
+  // pattern is deleted so no cell is left pointing at a pattern that's gone.
+  removePatternFromSpaces: (patternId) => {
+    const count = get().countSpacesWithPattern(patternId);
+    if (count) {
+      set((s) => ({
+        spacePatterns: Object.fromEntries(Object.entries(s.spacePatterns).filter(([, id]) => id !== patternId)),
+      }));
+    }
+    return count;
+  },
 }));
 
 export default useGridStore;

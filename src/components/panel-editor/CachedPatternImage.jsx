@@ -18,7 +18,7 @@ const CELL_CACHE_SIZE_PX = 128
 // parent Group so Konva's bubbling still reaches it if a click lands on this
 // image) — this image doesn't need its own hit-testing, which would just be
 // redundant hit-canvas cost for every cell in the grid.
-export default function CachedPatternImage({ pattern, cellWidth, gridStripWidth, patternStripWidth, spacing, selected = false }) {
+export default function CachedPatternImage({ pattern, cellWidth, gridStripWidth, patternStripWidth, patternParams, selected = false }) {
   const { canvas, worldX, worldY, worldSize } = useMemo(() => {
     // drawBoundary=false, explicitly — the grid already draws its own
     // real-width cell boundaries (GridLayer.jsx), so baking a triangle
@@ -30,9 +30,9 @@ export default function CachedPatternImage({ pattern, cellWidth, gridStripWidth,
     // PatternIcon.jsx's identical comment: a per-strip wood/finish override
     // adds stripProperties entries beyond index 0.
     const color = pattern.stripProperties?.map(sp => sp.color).join(',')
-    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, patternStripWidth, spacing, false, selected, color)
+    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, patternStripWidth, patternParams, false, selected, color)
     return getPatternImage(cacheKey, pattern, CELL_CACHE_SIZE_PX, 3, false, selected)
-  }, [pattern, cellWidth, gridStripWidth, patternStripWidth, spacing, selected])
+  }, [pattern, cellWidth, gridStripWidth, patternStripWidth, patternParams, selected])
 
   return (
     <KonvaImage

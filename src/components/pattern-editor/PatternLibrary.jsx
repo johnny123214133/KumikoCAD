@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
 import useAppStore from '../../store/useAppStore.js'
 import PatternIcon from './PatternIcon.jsx'
+import usePatternDelete from './usePatternDelete.jsx'
 import { ListViewIcon, GridViewIcon } from '../layout/icons.jsx'
 
 export default function PatternLibrary() {
@@ -14,6 +15,8 @@ export default function PatternLibrary() {
   const setViewportLocked = useAppStore(s => s.setViewportLocked)
   const all = [...builtInPatterns, ...userPatterns]
   const [view, setView] = useState('list') // 'list' | 'icon'
+  // Hover (x) + "are you sure?" dialog for custom patterns — see usePatternDelete.
+  const { deleteButton, deleteDialog } = usePatternDelete()
 
   // In the panel editor, picking a pattern here means "place copies of this
   // pattern" — so it should behave as if the Place Pattern tool button
@@ -64,16 +67,18 @@ export default function PatternLibrary() {
         {view === 'list' ? (
           <div className="list-group list-group-flush">
             {all.map(p => (
-              <button
-                key={p.id}
-                className={`list-group-item list-group-item-action py-2 px-2 d-flex align-items-center gap-2 ${activePatternId === p.id ? 'active' : ''}`}
-                style={{ fontSize: '13px' }}
-                onClick={() => selectPattern(p.id)}
-              >
-                <PatternIcon pattern={p} size={28} />
-                <div className="fw-medium text-truncate">{p.name}</div>
-                {/* Difficulty hidden for now (per request) — may bring back later. */}
-              </button>
+              <div key={p.id} className="pattern-card">
+                <button
+                  className={`list-group-item list-group-item-action py-2 px-2 d-flex align-items-center gap-2 ${activePatternId === p.id ? 'active' : ''}`}
+                  style={{ fontSize: '13px' }}
+                  onClick={() => selectPattern(p.id)}
+                >
+                  <PatternIcon pattern={p} size={28} />
+                  <div className="fw-medium text-truncate">{p.name}</div>
+                  {/* Difficulty hidden for now (per request) — may bring back later. */}
+                </button>
+                {deleteButton(p)}
+              </div>
             ))}
           </div>
         ) : (
@@ -82,20 +87,24 @@ export default function PatternLibrary() {
             style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))' }}
           >
             {all.map(p => (
-              <button
-                key={p.id}
-                title={p.name}
-                onClick={() => selectPattern(p.id)}
-                className={`btn p-1 d-flex flex-column align-items-center gap-1 ${activePatternId === p.id ? 'btn-dark' : 'btn-outline-secondary'}`}
-                style={{ fontSize: '10px', lineHeight: 1.1 }}
-              >
-                <PatternIcon pattern={p} size={40} />
-                <span className="text-truncate w-100 text-center">{p.name}</span>
-              </button>
+              <div key={p.id} className="pattern-card">
+                <button
+                  title={p.name}
+                  onClick={() => selectPattern(p.id)}
+                  className={`btn w-100 p-1 d-flex flex-column align-items-center gap-1 ${activePatternId === p.id ? 'btn-dark' : 'btn-outline-secondary'}`}
+                  style={{ fontSize: '10px', lineHeight: 1.1 }}
+                >
+                  <PatternIcon pattern={p} size={40} />
+                  <span className="text-truncate w-100 text-center">{p.name}</span>
+                </button>
+                {deleteButton(p)}
+              </div>
             ))}
           </div>
         )}
       </div>
+
+      {deleteDialog}
     </div>
   )
 }

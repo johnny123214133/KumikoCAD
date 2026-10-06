@@ -3,17 +3,30 @@ import asanoha from '../patterns/asanoha.json';
 import tsumiishiKikko from '../patterns/tsumiishi-kikko.json';
 import goma from '../patterns/goma.json';
 import mikado from '../patterns/mikado.json';
+import kurumaKikko from '../patterns/kuruma-kikko.json';
+import kurumaKikkoTriangle from '../patterns/kuruma-kikko-triangle.json';
+import sakura from '../patterns/sakura.json';
+import mitsukude from '../patterns/mitsukude.json';
+import rindo from '../patterns/rindo.json';
+import kawariYaeZakura from '../patterns/kawari-yae-zakura.json';
 import blank from '../patterns/blank.json';
 import { validatePattern } from '../geometry/schema/validate.js';
 import { buildAsanoha } from '../geometry/factories/asanoha.js';
 import { buildTsumiishiKikko } from '../geometry/factories/tsumiishiKikko.js';
 import { buildGoma } from '../geometry/factories/goma.js';
 import { buildMikado } from '../geometry/factories/mikado.js';
+import { buildKurumaKikko, buildKurumaKikkoTriangle } from '../geometry/factories/kurumaKikko.js';
+import { buildSakura } from '../geometry/factories/sakura.js';
+import { buildMitsukude } from '../geometry/factories/mitsukude.js';
+import { buildRindo } from '../geometry/factories/rindo.js';
+import { buildKawariYaeZakura } from '../geometry/factories/kawariYaeZakura.js';
 import { buildBlank } from '../geometry/factories/blank.js';
 import useGridStore from './useGridStore.js';
 import useSelectionStore from './useSelectionStore.js';
+import useAppStore from './useAppStore.js';
 import { MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM } from '../geometry/units.js';
 import { getMaterialColor } from '../geometry/woodFinishColors.js';
+import { readLengthMm, lengthParam, resolveParamState } from '../geometry/params.js';
 
 // NOTE: patterns/asanoha-one.json was previously imported here as a built-in.
 // It's a 1-strip scratch/test file (not one of the four canonical patterns from
@@ -24,7 +37,7 @@ import { getMaterialColor } from '../geometry/woodFinishColors.js';
 // 'blank' is appended at the END deliberately — BUILT_INS[0] is what seeds the
 // default activePatternId below, and an empty pattern being the default on
 // first launch is exactly the bug that got fixed by removing asanoha-one.
-const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, blank];
+const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, rindo, sakura, kawariYaeZakura, blank];
 
 BUILT_INS.forEach((p) => {
   const errs = validatePattern(p);
@@ -44,14 +57,43 @@ const FACTORY_BY_ID = {
   'builtin:tsumiishi-kikko-sixth': buildTsumiishiKikko,
   'builtin:goma-sixth': buildGoma,
   'builtin:mikado-sixth': buildMikado,
+  'builtin:kuruma-kikko-sixth': buildKurumaKikko,
+  'builtin:kuruma-kikko-triangle-sixth': buildKurumaKikkoTriangle,
+  'builtin:mitsukude-sixth': buildMitsukude,
+  'builtin:rindo-sixth': buildRindo,
+  'builtin:sakura-sixth': buildSakura,
+  'builtin:kawari-yae-zakura-sixth': buildKawariYaeZakura,
   'builtin:blank': buildBlank,
 };
 
-function loadUserPatterns() {
-  try { return JSON.parse(localStorage.getItem('kumiko_user_patterns') || '[]'); }
-  catch { return []; }
+// The parameter definitions a pattern's factory declares (see
+// geometry/params.js) — [] for patterns with none. Takes the BASE pattern id,
+// since a saved user pattern reuses its source built-in's factory.
+function paramDefsFor(basePatternId) {
+  return FACTORY_BY_ID[basePatternId]?.paramDefs ?? [];
 }
 
+function loadUserPatterns() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('kumiko_user_patterns') || '[]');
+    // Goma's `spacing` parameter was renamed `inset`. Saved user patterns
+    // written before the rename carry the old key (and possibly a bare number
+    // rather than { length, unit }); carry the value over so they keep their
+    // geometry instead of silently falling back to the default.
+    return saved.map((p) => {
+      if (p?.patternParams && 'spacing' in p.patternParams) {
+        const { spacing, ...rest } = p.patternParams;
+        return { ...p, patternParams: { ...rest, inset: rest.inset ?? spacing } };
+      }
+      return p;
+    });
+  } catch { return []; }
+}
+
+// (Reusing a stripProperties entry is keyed on WIDTH as well as wood/finish —
+// see applyStripColorOverrides — because a pattern like Sakura has strips of
+// different widths, each with its own entry.)
+//
 // Layers per-strip material/finish overrides onto a freshly-built pattern,
 // for the "connect wood/finish changes to the strip(s) selected" request —
 // wood/finish previously only ever applied to the WHOLE pattern (one shared
@@ -74,7 +116,10 @@ function loadUserPatterns() {
 // material/finish, not to some other strip's override.
 function applyStripColorOverrides(pattern, stripOverrides, defaultMaterial, defaultFinish) {
   const nextStripProperties = [...pattern.stripProperties];
-  const spByKey = new Map(nextStripProperties.map((sp) => [`${sp.material}:${sp.finish}`, sp.id]));
+  // Keyed on the BASE entry too (it carries the strip's width), so overriding
+  // a thick and a thin strip to the same wood doesn't collapse them into one
+  // entry with a single width.
+  const spByKey = new Map();
   let n = nextStripProperties.length;
 
   const nextPieceTemplates = pattern.pieceTemplates.map((pt) => {
@@ -82,7 +127,7 @@ function applyStripColorOverrides(pattern, stripOverrides, defaultMaterial, defa
     if (!override) return pt;
     const material = override.material ?? defaultMaterial;
     const finish = override.finish ?? defaultFinish;
-    const key = `${material}:${finish}`;
+    const key = `${pt.stripPropertyId}:${material}:${finish}`;
     let spId = spByKey.get(key);
     if (!spId) {
       const base = pattern.stripProperties.find((sp) => sp.id === pt.stripPropertyId) ?? pattern.stripProperties[0];
@@ -140,8 +185,13 @@ function recipeKey(recipe) {
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .map(([id, v]) => `${id}:${v.material ?? ''}:${v.finish ?? ''}`)
     .join(',');
-  const spacingKey = recipe.spacing ? `${recipe.spacing.length}${recipe.spacing.unit}` : '';
-  return [recipe.basePatternId, recipe.patternStripWidth, recipe.material, recipe.finish, spacingKey, stripEntries].join('|');
+  // Every parameter the base pattern declares, normalised to mm with its
+  // default filled in — so "unset" and "explicitly set to the default"
+  // compare equal, as do { 6, 'mm' } and a bare 6.
+  const paramEntries = paramDefsFor(recipe.basePatternId)
+    .map((def) => `${def.key}=${readLengthMm(recipe.params?.[def.key], def.default)}`)
+    .join(',');
+  return [recipe.basePatternId, recipe.patternStripWidth, recipe.material, recipe.finish, paramEntries, stripEntries].join('|');
 }
 
 // Splits a name into its non-numeric prefix and trailing integer (if any) —
@@ -168,7 +218,7 @@ const usePatternStore = create((set, get) => ({
   // "Recently used" list isn't empty on first load.
   recentPatternIds: [BUILT_INS[0].id],
   // Live per-pattern edits layered on top of each template's defaults —
-  // { [patternId]: { patternStripWidth?: number, spacing?: {length,unit} } }.
+  // { [patternId]: { patternStripWidth?: number, params?: { [key]: {length,unit} }, ... } }.
   // Needed because built-in patterns are readOnly and there's still no
   // fork/save-to-user-pattern (see forkPattern/saveUserPattern below), but
   // strip width now needs to be genuinely live-editable and persist across
@@ -181,12 +231,30 @@ const usePatternStore = create((set, get) => ({
   // (useSelectionStore) — same rule as useAppStore's setWorkspace/
   // setActiveTool: a selection made against one pattern's strips shouldn't
   // silently carry over and apply to a different pattern's strips.
+  //
+  // In the pattern editor, switching to a DIFFERENT pattern also throws away
+  // the pattern being left's pending (unsaved) edits — its live width, params,
+  // wood/finish and per-strip colour overrides (patternOverrides) — so it comes
+  // back as its saved/default self next time. Silent by design: that's just how
+  // the editor works. Re-selecting the pattern already active changes nothing,
+  // and the panel editor is exempt (there, an edited pattern's overrides are
+  // what every placed copy is drawn with).
   setActivePattern: (id) => {
     useSelectionStore.getState().clearSelection();
-    set((state) => ({
-      activePatternId: id,
-      recentPatternIds: [id, ...state.recentPatternIds.filter((pid) => pid !== id)].slice(0, 5),
-    }));
+    const discardEdits = useAppStore.getState().workspace === 'pattern-editor';
+    set((state) => {
+      const leaving = state.activePatternId;
+      let patternOverrides = state.patternOverrides;
+      if (discardEdits && leaving !== id && patternOverrides[leaving]) {
+        const { [leaving]: _discarded, ...rest } = patternOverrides;
+        patternOverrides = rest;
+      }
+      return {
+        activePatternId: id,
+        patternOverrides,
+        recentPatternIds: [id, ...state.recentPatternIds.filter((pid) => pid !== id)].slice(0, 5),
+      };
+    });
   },
   getActivePattern: () => {
     const { activePatternId } = get();
@@ -213,12 +281,10 @@ const usePatternStore = create((set, get) => ({
     if (!build) return template;
     const { cellWidth, gridStripWidth } = useGridStore.getState();
     const overrides = state.patternOverrides[id] || {};
-    const patternStripWidth = overrides.patternStripWidth ?? template.stripProperties?.[0]?.width ?? 6;
+    const patternStripWidth = overrides.patternStripWidth ?? template.stripProperties?.[0]?.width ?? 4;
     const material = overrides.material ?? template.stripProperties?.[0]?.material ?? 'hinoki';
     const finish = overrides.finish ?? template.stripProperties?.[0]?.finish ?? 'natural';
-    const patternParams = overrides.spacing
-      ? { ...template.patternParams, spacing: overrides.spacing }
-      : template.patternParams;
+    const patternParams = { ...template.patternParams, ...overrides.params };
     const computed = withTemplateIdentity(build({ cellWidth, gridStripWidth, patternStripWidth, patternParams, material, finish }), template);
     const stripMaterials = mergeStripMaterials(template.stripMaterialOverrides, overrides.stripMaterials);
     if (Object.keys(stripMaterials).length) {
@@ -244,7 +310,7 @@ const usePatternStore = create((set, get) => ({
     const build = FACTORY_BY_ID[template.basePatternId ?? id];
     if (!build) return template;
     const { cellWidth, gridStripWidth } = useGridStore.getState();
-    const patternStripWidth = template.stripProperties?.[0]?.width ?? 6;
+    const patternStripWidth = template.stripProperties?.[0]?.width ?? 4;
     const material = template.stripProperties?.[0]?.material ?? 'hinoki';
     const finish = template.stripProperties?.[0]?.finish ?? 'natural';
     const computed = withTemplateIdentity(build({ cellWidth, gridStripWidth, patternStripWidth, patternParams: template.patternParams, material, finish }), template);
@@ -257,7 +323,7 @@ const usePatternStore = create((set, get) => ({
   getEffectiveStripWidth: (id) => {
     const state = get();
     const template = [...state.builtInPatterns, ...state.userPatterns].find(p => p.id === id);
-    return state.patternOverrides[id]?.patternStripWidth ?? template?.stripProperties?.[0]?.width ?? 6;
+    return state.patternOverrides[id]?.patternStripWidth ?? template?.stripProperties?.[0]?.width ?? 4;
   },
   getEffectiveMaterial: (id) => {
     const state = get();
@@ -351,11 +417,40 @@ const usePatternStore = create((set, get) => ({
       return { patternOverrides: { ...state.patternOverrides, [id]: { ...patternOv, stripMaterials } } };
     });
   },
-  setPatternSpacing: (id, length, unit) => {
-    if (!(length > 0)) return;
-    set((state) => ({
-      patternOverrides: { ...state.patternOverrides, [id]: { ...state.patternOverrides[id], spacing: { length, unit } } },
-    }));
+  // The parameters the active pattern's factory declares (key, label, bounds
+  // — see geometry/params.js), for the Inspector to build its controls from.
+  getParamDefs: (id) => {
+    const state = get();
+    const template = [...state.builtInPatterns, ...state.userPatterns].find(p => p.id === id);
+    return template ? paramDefsFor(template.basePatternId ?? id) : [];
+  },
+  // Sets one pattern parameter (a length in mm), clamped to the range its def
+  // allows at the CURRENT cell/strip dimensions — same style as
+  // setPatternStripWidth. Non-numbers are ignored; unlike strip width a
+  // parameter may legitimately be 0 (e.g. Goma's inset flush against the
+  // grid strip), so 0 is accepted when the def's min allows it.
+  setPatternParam: (id, key, lengthMm) => {
+    if (!Number.isFinite(lengthMm)) return;
+    const state = get();
+    const def = state.getParamDefs(id).find(d => d.key === key);
+    if (!def) return;
+    const { cellWidth, gridStripWidth } = useGridStore.getState();
+    // Bounds can depend on the other params' CURRENT values (Sakura's corner
+    // spacing on its thick strip width), so resolve the whole set the way the
+    // factory will, then clamp against this key's range.
+    const template = [...state.builtInPatterns, ...state.userPatterns].find(p => p.id === id);
+    const stored = { ...template?.patternParams, ...state.patternOverrides[id]?.params };
+    const { bounds } = resolveParamState(state.getParamDefs(id), stored, {
+      cellWidth, gridStripWidth, patternStripWidth: state.getEffectiveStripWidth(id),
+    });
+    const { min, max } = bounds[key];
+    const clamped = Math.min(Math.max(lengthMm, min), max);
+    set((s) => {
+      const ov = s.patternOverrides[id] || {};
+      return {
+        patternOverrides: { ...s.patternOverrides, [id]: { ...ov, params: { ...ov.params, [key]: lengthParam(clamped) } } },
+      };
+    });
   },
   // Sweeps every pattern currently "in use" (the active one, plus every
   // distinct pattern id placed anywhere in the grid) and clamps its strip
@@ -390,10 +485,10 @@ const usePatternStore = create((set, get) => ({
   // compares an about-to-be-saved recipe against for every OTHER pattern.
   getTemplateRecipe: (template) => ({
     basePatternId: template.basePatternId ?? template.id,
-    patternStripWidth: template.stripProperties?.[0]?.width ?? 6,
+    patternStripWidth: template.stripProperties?.[0]?.width ?? 4,
     material: template.stripProperties?.[0]?.material ?? 'hinoki',
     finish: template.stripProperties?.[0]?.finish ?? 'natural',
-    spacing: template.patternParams?.spacing ?? null,
+    params: template.patternParams ?? {},
     stripMaterials: template.stripMaterialOverrides ?? {},
   }),
   // The CURRENTLY EFFECTIVE recipe for a pattern id — its own canonical
@@ -410,7 +505,7 @@ const usePatternStore = create((set, get) => ({
       patternStripWidth: ov.patternStripWidth ?? base.patternStripWidth,
       material: ov.material ?? base.material,
       finish: ov.finish ?? base.finish,
-      spacing: ov.spacing ?? base.spacing,
+      params: { ...base.params, ...ov.params },
       stripMaterials: mergeStripMaterials(base.stripMaterials, ov.stripMaterials),
     };
   },
@@ -438,7 +533,7 @@ const usePatternStore = create((set, get) => ({
     return candidate;
   },
   // Saves the active pattern's CURRENT effective recipe (whole-pattern strip
-  // width/material/finish/spacing, plus any per-strip material/finish
+  // width/material/finish/pattern parameters, plus any per-strip material/finish
   // overrides) as a brand new named pattern in the library. Returns
   // { ok: true, id, name } on success, or { ok: false, reason: 'duplicate',
   // existingName } if an existing pattern (built-in or user) already has
@@ -473,7 +568,10 @@ const usePatternStore = create((set, get) => ({
       name,
       readOnly: false,
       basePatternId: recipe.basePatternId,
-      patternParams: recipe.spacing ? { spacing: recipe.spacing } : {},
+      // Every parameter the base pattern declares, with defaults filled in.
+      patternParams: Object.fromEntries(
+        paramDefsFor(recipe.basePatternId).map((def) => [def.key, lengthParam(readLengthMm(recipe.params?.[def.key], def.default))])
+      ),
       stripProperties: [{
         id: 'sp0',
         width: recipe.patternStripWidth,
@@ -497,7 +595,38 @@ const usePatternStore = create((set, get) => ({
     return { ok: true, id: newId, name };
   },
   forkPattern: (id) => { /* TODO */ },
-  deleteUserPattern: (id) => { /* TODO */ },
+  // Removes a custom (saved) pattern. Built-ins can't be deleted. Everything
+  // that points at the pattern is cleaned up with it: it leaves the saved list
+  // (and localStorage), the Recently Used list and the live overrides; any
+  // panel cells holding it go back to blank (rather than silently turning into
+  // some other pattern — getComputedPattern falls back to the first built-in
+  // for an unknown id); and if it was the active pattern the editor moves to
+  // the next most recent one (or the first built-in).
+  deleteUserPattern: (id) => {
+    const state = get();
+    if (!state.userPatterns.some((p) => p.id === id)) return { ok: false, reason: 'not-a-custom-pattern' };
+
+    const nextUserPatterns = state.userPatterns.filter((p) => p.id !== id);
+    try { localStorage.setItem('kumiko_user_patterns', JSON.stringify(nextUserPatterns)); }
+    catch { /* localStorage unavailable — the pattern is still gone for this session */ }
+
+    const clearedCells = useGridStore.getState().removePatternFromSpaces(id);
+    const wasActive = state.activePatternId === id;
+    if (wasActive) useSelectionStore.getState().clearSelection();
+
+    set((s) => {
+      const { [id]: _removed, ...patternOverrides } = s.patternOverrides;
+      const remaining = s.recentPatternIds.filter((pid) => pid !== id);
+      const activePatternId = wasActive ? (remaining[0] ?? s.builtInPatterns[0].id) : s.activePatternId;
+      return {
+        userPatterns: nextUserPatterns,
+        patternOverrides,
+        activePatternId,
+        recentPatternIds: remaining.length ? remaining : [activePatternId],
+      };
+    });
+    return { ok: true, clearedCells };
+  },
 }));
 
 export default usePatternStore;

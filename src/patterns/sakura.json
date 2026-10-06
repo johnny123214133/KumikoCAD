@@ -1,12 +1,16 @@
 {
-  "id": "builtin:goma-sixth",
-  "name": "Goma — sixth",
+  "id": "builtin:sakura-sixth",
+  "name": "Sakura — sixth",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
   "patternParams": {
-    "inset": {
-      "length": 6,
+    "thickStripWidth": {
+      "length": 8,
+      "unit": "mm"
+    },
+    "cornerSpacing": {
+      "length": 8,
       "unit": "mm"
     }
   },
@@ -14,6 +18,16 @@
     {
       "id": "sp0",
       "width": 4,
+      "thickness": 6,
+      "material": "hinoki",
+      "grain": "along",
+      "color": "#e8d5b0",
+      "finish": "natural",
+      "edgeProfile": null
+    },
+    {
+      "id": "sp1",
+      "width": 8,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",
@@ -40,55 +54,35 @@
     "x": 37.5,
     "y": 21.6506
   },
-  "_note": "Reference snapshot generated from the goma factory at cellWidth 75, gridStripWidth 0, patternStripWidth 4. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "_note": "Reference snapshot generated from the sakura factory at cellWidth 75, gridStripWidth 0, patternStripWidth 4. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
   "strips": [
     {
       "id": "s0",
       "start": {
-        "x": 4.6188,
-        "y": 8
+        "x": 37.5,
+        "y": 48.9519
       },
       "end": {
-        "x": 70.3812,
-        "y": 8
+        "x": 37.5,
+        "y": 21.6506
       },
-      "orientation": 0,
+      "orientation": -1.5708,
       "cuts": [
         {
-          "jointId": "j3",
+          "jointId": "j1",
           "position": {
-            "x": 4.6188,
-            "y": 8
+            "x": 37.5,
+            "y": 48.9519
           },
-          "angle": 60,
+          "angle": 90,
           "depth": 1,
           "role": "end"
         },
         {
-          "jointId": "j1",
-          "position": {
-            "x": 13.8564,
-            "y": 8
-          },
-          "angle": 120,
-          "depth": 0.5,
-          "role": "cut-bottom-2"
-        },
-        {
           "jointId": "j0",
           "position": {
-            "x": 61.1436,
-            "y": 8
-          },
-          "angle": 60,
-          "depth": 0.5,
-          "role": "cut-top-2"
-        },
-        {
-          "jointId": "j4",
-          "position": {
-            "x": 70.3812,
-            "y": 8
+            "x": 37.5,
+            "y": 21.6506
           },
           "angle": 120,
           "depth": 1,
@@ -99,50 +93,30 @@
     {
       "id": "s1",
       "start": {
-        "x": 65.7624,
-        "y": 0
+        "x": 13.8564,
+        "y": 8
       },
       "end": {
-        "x": 32.8812,
-        "y": 56.9519
+        "x": 37.5,
+        "y": 21.6506
       },
-      "orientation": 2.0944,
+      "orientation": 0.5236,
       "cuts": [
         {
-          "jointId": "j5",
+          "jointId": "j2",
           "position": {
-            "x": 65.7624,
-            "y": 0
+            "x": 13.8564,
+            "y": 8
           },
-          "angle": 60,
+          "angle": 90,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j0",
           "position": {
-            "x": 61.1436,
-            "y": 8
-          },
-          "angle": 120,
-          "depth": 0.5,
-          "role": "cut-bottom-2"
-        },
-        {
-          "jointId": "j2",
-          "position": {
             "x": 37.5,
-            "y": 48.9519
-          },
-          "angle": 60,
-          "depth": 0.5,
-          "role": "cut-bottom-2"
-        },
-        {
-          "jointId": "j6",
-          "position": {
-            "x": 32.8812,
-            "y": 56.9519
+            "y": 21.6506
           },
           "angle": 120,
           "depth": 1,
@@ -153,49 +127,131 @@
     {
       "id": "s2",
       "start": {
-        "x": 42.1188,
-        "y": 56.9519
+        "x": 61.1436,
+        "y": 8
       },
       "end": {
-        "x": 9.2376,
-        "y": 0
+        "x": 37.5,
+        "y": 21.6506
       },
-      "orientation": -2.0944,
+      "orientation": 2.618,
       "cuts": [
         {
-          "jointId": "j7",
+          "jointId": "j3",
           "position": {
-            "x": 42.1188,
-            "y": 56.9519
+            "x": 61.1436,
+            "y": 8
+          },
+          "angle": 90,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 37.5,
+            "y": 21.6506
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "start": {
+        "x": 30.5718,
+        "y": 52.9519
+      },
+      "end": {
+        "x": 44.4282,
+        "y": 52.9519
+      },
+      "orientation": 0,
+      "cuts": [
+        {
+          "jointId": "j4",
+          "position": {
+            "x": 30.5718,
+            "y": 52.9519
           },
           "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
-          "jointId": "j2",
+          "jointId": "j5",
           "position": {
-            "x": 37.5,
-            "y": 48.9519
+            "x": 44.4282,
+            "y": 52.9519
           },
           "angle": 120,
-          "depth": 0.5,
-          "role": "cut-top-2"
-        },
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "start": {
+        "x": 13.8564,
+        "y": 0
+      },
+      "end": {
+        "x": 6.9282,
+        "y": 12
+      },
+      "orientation": 2.0944,
+      "cuts": [
         {
-          "jointId": "j1",
+          "jointId": "j6",
           "position": {
             "x": 13.8564,
-            "y": 8
+            "y": 0
           },
           "angle": 60,
-          "depth": 0.5,
-          "role": "cut-top-2"
+          "depth": 1,
+          "role": "end"
         },
+        {
+          "jointId": "j7",
+          "position": {
+            "x": 6.9282,
+            "y": 12
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "start": {
+        "x": 68.0718,
+        "y": 12
+      },
+      "end": {
+        "x": 61.1436,
+        "y": 0
+      },
+      "orientation": -2.0944,
+      "cuts": [
         {
           "jointId": "j8",
           "position": {
-            "x": 9.2376,
+            "x": 68.0718,
+            "y": 12
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j9",
+          "position": {
+            "x": 61.1436,
             "y": 0
           },
           "angle": 120,
@@ -209,62 +265,30 @@
     {
       "id": "j0",
       "position": {
-        "x": 61.1436,
-        "y": 8
+        "x": 37.5,
+        "y": 21.6506
       },
       "members": [
         {
           "stripId": "s0",
-          "role": "role-bottom-2"
+          "role": "end"
         },
         {
           "stripId": "s1",
-          "role": "role-top-2"
+          "role": "end"
+        },
+        {
+          "stripId": "s2",
+          "role": "end"
         }
       ],
-      "notchType": "halfLap"
+      "notchType": "taper"
     },
     {
       "id": "j1",
       "position": {
-        "x": 13.8564,
-        "y": 8
-      },
-      "members": [
-        {
-          "stripId": "s0",
-          "role": "role-top-2"
-        },
-        {
-          "stripId": "s2",
-          "role": "role-bottom-2"
-        }
-      ],
-      "notchType": "halfLap"
-    },
-    {
-      "id": "j2",
-      "position": {
         "x": 37.5,
         "y": 48.9519
-      },
-      "members": [
-        {
-          "stripId": "s1",
-          "role": "role-top-2"
-        },
-        {
-          "stripId": "s2",
-          "role": "role-bottom-2"
-        }
-      ],
-      "notchType": "halfLap"
-    },
-    {
-      "id": "j3",
-      "position": {
-        "x": 4.6188,
-        "y": 8
       },
       "members": [
         {
@@ -272,17 +296,45 @@
           "role": "end"
         }
       ],
-      "notchType": "miter"
+      "notchType": "butt"
     },
     {
-      "id": "j4",
+      "id": "j2",
       "position": {
-        "x": 70.3812,
+        "x": 13.8564,
         "y": 8
       },
       "members": [
         {
-          "stripId": "s0",
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "butt"
+    },
+    {
+      "id": "j3",
+      "position": {
+        "x": 61.1436,
+        "y": 8
+      },
+      "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        }
+      ],
+      "notchType": "butt"
+    },
+    {
+      "id": "j4",
+      "position": {
+        "x": 30.5718,
+        "y": 52.9519
+      },
+      "members": [
+        {
+          "stripId": "s3",
           "role": "end"
         }
       ],
@@ -291,12 +343,12 @@
     {
       "id": "j5",
       "position": {
-        "x": 65.7624,
-        "y": 0
+        "x": 44.4282,
+        "y": 52.9519
       },
       "members": [
         {
-          "stripId": "s1",
+          "stripId": "s3",
           "role": "end"
         }
       ],
@@ -305,12 +357,12 @@
     {
       "id": "j6",
       "position": {
-        "x": 32.8812,
-        "y": 56.9519
+        "x": 13.8564,
+        "y": 0
       },
       "members": [
         {
-          "stripId": "s1",
+          "stripId": "s4",
           "role": "end"
         }
       ],
@@ -319,12 +371,12 @@
     {
       "id": "j7",
       "position": {
-        "x": 42.1188,
-        "y": 56.9519
+        "x": 6.9282,
+        "y": 12
       },
       "members": [
         {
-          "stripId": "s2",
+          "stripId": "s4",
           "role": "end"
         }
       ],
@@ -333,12 +385,26 @@
     {
       "id": "j8",
       "position": {
-        "x": 9.2376,
+        "x": 68.0718,
+        "y": 12
+      },
+      "members": [
+        {
+          "stripId": "s5",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j9",
+      "position": {
+        "x": 61.1436,
         "y": 0
       },
       "members": [
         {
-          "stripId": "s2",
+          "stripId": "s5",
           "role": "end"
         }
       ],
@@ -356,31 +422,13 @@
             "x": 0,
             "y": 0
           },
-          "angle": 60,
+          "angle": 90,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 9.2376,
-            "y": 0
-          },
-          "angle": 120,
-          "depth": 0.5,
-          "role": "cut-bottom-2"
-        },
-        {
-          "position": {
-            "x": 56.5248,
-            "y": 0
-          },
-          "angle": 60,
-          "depth": 0.5,
-          "role": "cut-top-2"
-        },
-        {
-          "position": {
-            "x": 65.7624,
+            "x": 27.3013,
             "y": 0
           },
           "angle": 120,
@@ -399,31 +447,13 @@
             "x": 0,
             "y": 0
           },
-          "angle": 60,
+          "angle": 90,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 9.2376,
-            "y": 0
-          },
-          "angle": 120,
-          "depth": 0.5,
-          "role": "cut-bottom-2"
-        },
-        {
-          "position": {
-            "x": 56.5248,
-            "y": 0
-          },
-          "angle": 60,
-          "depth": 0.5,
-          "role": "cut-bottom-2"
-        },
-        {
-          "position": {
-            "x": 65.7624,
+            "x": 27.3013,
             "y": 0
           },
           "angle": 120,
@@ -442,31 +472,88 @@
             "x": 0,
             "y": 0
           },
+          "angle": 90,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 27.3013,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt3",
+      "stripPropertyId": "sp1",
+      "stripId": "s3",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
           "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 9.2376,
+            "x": 13.8564,
             "y": 0
           },
           "angle": 120,
-          "depth": 0.5,
-          "role": "cut-top-2"
-        },
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt4",
+      "stripPropertyId": "sp1",
+      "stripId": "s4",
+      "cuts": [
         {
           "position": {
-            "x": 56.5248,
+            "x": 0,
             "y": 0
           },
           "angle": 60,
-          "depth": 0.5,
-          "role": "cut-top-2"
+          "depth": 1,
+          "role": "end"
         },
         {
           "position": {
-            "x": 65.7624,
+            "x": 13.8564,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt5",
+      "stripPropertyId": "sp1",
+      "stripId": "s5",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 13.8564,
             "y": 0
           },
           "angle": 120,
@@ -477,12 +564,12 @@
     }
   ],
   "meta": {
-    "difficulty": "intermediate",
+    "difficulty": "advanced",
     "tags": [
       "six-fold",
       "traditional"
     ],
-    "description": "Three strips each parallel to one triangle edge, inset from it by the inset parameter. Each strip crosses the other two at half-lap joints; the strips stack in a fixed order (s1 over s0 over s2), not a cyclic weave. All strip ends terminate at 60° miter joints against the grid strip faces.",
+    "description": "Three thick strips, each parallel to a cell edge and set near the opposite corner, plus three thin spokes from the centre that butt against the middle of each thick strip.",
     "thumbnail": null
   }
 }

@@ -121,3 +121,47 @@ html, body, #root {
 .side-panel.collapsed:not(.right) .panel-toggle-btn { right: -20px; }
 .side-panel.right:not(.collapsed) .panel-toggle-btn { left: -14px; right: auto; }
 .side-panel.right.collapsed .panel-toggle-btn { left: -20px; right: auto; }
+
+
+/* --- Pattern cards: delete (x) button on custom patterns ----------------- */
+/* Hidden until the card is hovered (or keyboard-focused), then shown in the
+   card's top-right corner. */
+.pattern-card { position: relative; }
+.pattern-card .pattern-delete {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(33, 37, 41, 0.72);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease-in-out, background-color 0.12s ease-in-out;
+}
+.pattern-card:hover .pattern-delete,
+.pattern-card:focus-within .pattern-delete {
+  opacity: 1;
+  pointer-events: auto;
+}
+.pattern-card .pattern-delete:hover,
+.pattern-card .pattern-delete:focus-visible { background: #dc3545; }
+
+/* The list view wraps each row in .pattern-card (so the delete button can sit
+   in its corner), which takes the rows out from under Bootstrap's
+   `.list-group-flush > .list-group-item` rule — restate it for the wrapped rows. */
+.list-group-flush > .pattern-card > .list-group-item {
+  border-width: 0 0 1px;
+  border-radius: 0;
+}
+.list-group-flush > .pattern-card:last-child > .list-group-item { border-bottom-width: 0; }

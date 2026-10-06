@@ -8,11 +8,14 @@ import { computeStripRenderData } from '../../geometry/renderPattern.js'
 
 const NOTCH_COLORS = {
   halfLap: '#4a9eff',
+  triLap:  '#6366f1',
   dado:    '#ff6b4a',
   star:    '#ffd700',
   miter:   '#7bc67e',
   taper:   '#a78bfa',
   butt:    '#fb923c',
+  vNotch:  '#f472b6',
+  asymMiter: '#22d3ee',
   custom:  '#aaaaaa',
 }
 

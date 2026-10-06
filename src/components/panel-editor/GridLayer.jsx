@@ -12,7 +12,7 @@ import { getGridStripColor } from '../../scene/gridStripColor.js'
 const flip = (p) => ({ x: p.x, y: -p.y })
 const BLANK_PATTERN_ID = 'builtin:blank'
 
-function Cell({ space, pattern, cellWidth, gridStripWidth, patternStripWidth, spacing, onClick, interactive, selected }) {
+function Cell({ space, pattern, cellWidth, gridStripWidth, patternStripWidth, patternParams, onClick, interactive, selected }) {
   const flippedVertices = useMemo(
     () => space.vertices.flatMap(v => { const f = flip(v); return [f.x, f.y] }),
     [space]
@@ -55,7 +55,7 @@ function Cell({ space, pattern, cellWidth, gridStripWidth, patternStripWidth, sp
             cellWidth={cellWidth}
             gridStripWidth={gridStripWidth}
             patternStripWidth={patternStripWidth}
-            spacing={spacing}
+            patternParams={patternParams}
             selected={selected}
           />
         </Group>
@@ -73,7 +73,10 @@ export default function GridLayer() {
   const getComputedPattern = usePatternStore(s => s.getComputedPattern)
   const getEffectiveStripWidth = usePatternStore(s => s.getEffectiveStripWidth)
   const activePatternId = usePatternStore(s => s.activePatternId)
-  const patternOverrides = usePatternStore(s => s.patternOverrides)
+  // Not read directly — subscribed so every cell re-renders when any pattern's
+  // live overrides (strip width, wood/finish, parameters) change, since
+  // getComputedPattern is a stable function that won't trigger it itself.
+  usePatternStore(s => s.patternOverrides)
   const activeTool = useAppStore(s => s.activeTool)
   const visibleRect = useAppStore(s => s.viewportVisibleRect)
   const selectedSpaceIds = useSelectionStore(s => s.selectedSpaceIds)
@@ -217,7 +220,7 @@ export default function GridLayer() {
             cellWidth={cellWidth}
             gridStripWidth={gridStripWidth}
             patternStripWidth={getEffectiveStripWidth(patternId)}
-            spacing={patternOverrides[patternId]?.spacing ?? pattern.patternParams?.spacing}
+            patternParams={pattern.patternParams}
             interactive={cellsInteractive}
             selected={selectedSpaceIds.includes(space.id)}
             onClick={() => handleCellClick(space.id)}

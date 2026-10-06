@@ -13,7 +13,7 @@ export function computeStripRenderData(pattern) {
   return pattern.strips.map((strip) => {
     const pt = pattern.pieceTemplates.find(p => p.stripId === strip.id);
     const sp = pt ? spMap[pt.stripPropertyId] : pattern.stripProperties[0];
-    const width = sp?.width ?? 6;
+    const width = sp?.width ?? 4;
     const color = sp?.color ?? '#e8d5b0';
     // Darkened per-strip rather than one fixed color, so this keeps making
     // sense once strip colors vary by wood/finish choice — see the request
@@ -36,20 +36,37 @@ export function computeStripRenderData(pattern) {
     const unitDx = Math.cos(strip.orientation);
     const unitDy = Math.sin(strip.orientation);
 
+    const notchOf = (jointId) => pattern.joints.find(j => j.id === jointId)?.notchType;
     const localised = endCuts
       .map(c => ({
         angle: c.angle,
         jointId: c.jointId,
+        notchType: notchOf(c.jointId),
         localX: (c.position.x - strip.start.x) * unitDx + (c.position.y - strip.start.y) * unitDy,
       }))
       .sort((a, b) => a.localX - b.localX);
 
-    const startAngle = localised[0]?.angle ?? 90;
-    const endAngle = localised[localised.length - 1]?.angle ?? 90;
-    const startNotchType = pattern.joints.find(j => j.id === localised[0]?.jointId)?.notchType;
-    const endNotchType = pattern.joints.find(j => j.id === localised[localised.length - 1]?.jointId)?.notchType;
+    // A strip end can be two cuts at once ('asymMiter' joints — see
+    // stripShape.js): those cuts are pulled out as a pair for whichever end
+    // they sit nearer, and every other end cut works as before (first = start
+    // end, last = end end).
+    const pairCuts = localised.filter(c => c.notchType === 'asymMiter');
+    const single = localised.filter(c => c.notchType !== 'asymMiter');
+    const pairAtStart = pairCuts.length > 0 && pairCuts.every(c => c.localX < length / 2);
+    const pairAtEnd = pairCuts.length > 0 && !pairAtStart;
+    const pair = pairCuts.map(c => ({ x: c.localX, angle: c.angle }));
 
-    const points = buildStripLocalPoints(length, width / 2, startAngle, endAngle, startNotchType, endNotchType);
+    const startCut = pairAtStart ? null : single[0];
+    const endCut = pairAtEnd ? null : single[single.length - 1];
+    const startAngle = startCut?.angle ?? 90;
+    const endAngle = endCut?.angle ?? 90;
+    const startNotchType = pairAtStart ? 'asymMiter' : startCut?.notchType;
+    const endNotchType = pairAtEnd ? 'asymMiter' : endCut?.notchType;
+
+    const points = buildStripLocalPoints(
+      length, width / 2, startAngle, endAngle, startNotchType, endNotchType,
+      pairAtStart ? pair : undefined, pairAtEnd ? pair : undefined,
+    );
     // See PatternStrips.jsx's StripBody comment — flipping y here AND
     // negating rotation/position below are both required together.
     const flippedPoints = points.map((v, i) => (i % 2 === 1 ? -v : v));

@@ -9,6 +9,7 @@ import {
   roundUpToStripInStep, roundDownToMmStep, roundToMmStep, roundToStripInStep,
 } from '../../geometry/units.js'
 import OverlayControls from '../pattern-editor/OverlayControls.jsx'
+import PatternParams from './PatternParams.jsx'
 
 const sectionLabelStyle = { letterSpacing: '0.05em', fontSize: '11px' }
 
@@ -16,17 +17,18 @@ function dist(a, b) { return Math.hypot(b.x - a.x, b.y - a.y) }
 function midpoint(a, b) { return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } }
 function fmtPt(p) { return `(${p.x.toFixed(2)}, ${p.y.toFixed(2)})` }
 
-// Cut role strings look like 'end', 'cut-top-2', 'role-middle-3', etc. — see
-// patterns/*.json. Parses out a human label and, for cuts shared by multiple
-// strips, which of those strips this specific cut plays which role in
-// (top/middle/bottom), per the "n-way" suffix.
+// Cut role strings look like 'end', 'cut-top-2', 'cut-bottom-3' — see the
+// factories. 'cut-top' / 'cut-bottom' name the FACE the notch is cut into, so
+// a strip with a 'cut-bottom' sits on top of its crossing strip (and a strip
+// that needs notches on both faces, like the middle strip of a three-way
+// lap, simply has one cut of each). The "n-way" suffix is how many strips
+// share the joint.
 function describeCutRole(role) {
   if (role === 'end') return 'End (miter to grid boundary)'
-  const m = /^(?:cut|role)-(top|middle|bottom)-(\d+)$/.exec(role || '')
+  const m = /^cut-(top|bottom)-(\d+)$/.exec(role || '')
   if (m) {
-    const [, position, n] = m
-    const cap = position[0].toUpperCase() + position.slice(1)
-    return `${cap} strip of ${n}-way joint`
+    const [, face, n] = m
+    return `Notch cut into ${face} face (${n}-way joint)`
   }
   return role || '—'
 }
@@ -51,7 +53,7 @@ function StripCard({ strip, pattern }) {
           const joint = pattern.joints.find(j => j.id === cut.jointId)
           return (
             <li key={i} className="ps-2 border-start">
-              <div>{fmtPt(cut.position)} — {joint?.notchType ?? 'unknown'}, {cut.angle}°, depth {cut.depth}</div>
+              <div>{fmtPt(cut.position)} — {joint?.notchType ?? 'unknown'}, {cut.angle}°, depth {Number(cut.depth.toFixed(3))}</div>
               <div className="text-muted">{describeCutRole(cut.role)}</div>
             </li>
           )
@@ -306,6 +308,11 @@ export default function Inspector() {
         </div>
       </div>
 
+      {/* Per-pattern parameters (e.g. Goma's inset) — built from whatever the
+          active pattern's factory declares; renders nothing (including its
+          own divider) for patterns with none. */}
+      <PatternParams pattern={pattern} patternStripWidth={effectiveWidthMm} />
+
       <hr className="my-3" />
 
       {/* Overlay toggles — this used to live in the left panel, before that
@@ -337,7 +344,7 @@ export default function Inspector() {
           type="button"
           className="btn btn-sm btn-primary w-100"
           disabled={!canSave}
-          title={canSave ? undefined : 'Change the strip width, wood, or finish first'}
+          title={canSave ? undefined : 'Change the strip width, a pattern parameter, wood, or finish first'}
           onClick={handleSavePattern}
         >
           Save Pattern
