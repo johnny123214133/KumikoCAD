@@ -39,7 +39,7 @@ export const SECONDARY_STRIP_WIDTH = {
   key: 'secondaryStripWidth',
   label: 'Secondary strip width',
   kind: 'length',
-  default: 3.0,
+  default: 2.0,
   min: MIN_STRIP_WIDTH_MM,
   // Wider than ~15% of the cell and neighbouring secondaries start overlapping
   // at their corners without their centrelines crossing, which no lap can join.
@@ -246,7 +246,7 @@ function defineYaeZakura({ id, name, meta, kikko }) {
 
 export const buildKawariYaeZakura = defineYaeZakura({
   id: 'builtin:kawari-yae-zakura-sixth',
-  name: 'Kawari yae-zakura — sixth',
+  name: 'Kawari yae-zakura',
   kikko: false,
   meta: {
     difficulty: 'advanced',
@@ -262,7 +262,7 @@ export const buildKawariYaeZakura = defineYaeZakura({
 // on its centerline instead, mitred into an arrowhead that sits in the notch.
 export const buildYaeZakuraKikko = defineYaeZakura({
   id: 'builtin:yae-zakura-kikko-sixth',
-  name: 'Yae-zakura kikko — sixth',
+  name: 'Yae-zakura kikko',
   kikko: true,
   meta: {
     difficulty: 'advanced',

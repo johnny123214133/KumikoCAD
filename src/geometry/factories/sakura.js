@@ -28,7 +28,7 @@ const SQRT3 = Math.sqrt(3);
 
 export const buildSakura = definePattern({
   id: 'builtin:sakura-sixth',
-  name: 'Sakura — sixth',
+  name: 'Sakura',
   // Order matters: cornerSpacing's range depends on thickStripWidth, which
   // must therefore be declared (and resolved) first.
   paramDefs: [
@@ -36,7 +36,7 @@ export const buildSakura = definePattern({
       key: 'thickStripWidth',
       label: 'Thick strip width',
       kind: 'length',
-      default: 8.0,
+      default: 6.0,
       min: MIN_STRIP_WIDTH_MM,
       max: ({ cellWidth, gridStripWidth }) => Math.max(
         MIN_STRIP_WIDTH_MM,

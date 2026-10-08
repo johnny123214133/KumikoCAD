@@ -12,7 +12,7 @@ import { buildMitredTriangle, triangleRadii } from './kurumaKikko.js';
 // shrinking at a closed-up hole and its tips no longer reach the grid strips.
 export const buildMitsukude = definePattern({
   id: 'builtin:mitsukude-sixth',
-  name: 'Mitsukude — sixth',
+  name: 'Mitsukude B',
   meta: {
     difficulty: 'beginner',
     tags: ['six-fold', 'traditional'],

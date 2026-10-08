@@ -1,6 +1,6 @@
 {
   "id": "builtin:tsuno-asanoha-sixth",
-  "name": "Tsuno-asanoha — sixth",
+  "name": "Tsuno-asanoha",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
@@ -13,7 +13,7 @@
   "stripProperties": [
     {
       "id": "sp0",
-      "width": 4,
+      "width": 3,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",
@@ -40,7 +40,7 @@
     "x": 37.5,
     "y": 21.6506
   },
-  "_note": "Reference snapshot generated from the tsuno-asanoha factory at cellWidth 75, gridStripWidth 0, patternStripWidth 4. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "_note": "Reference snapshot generated from the tsuno-asanoha factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
   "strips": [
     {
       "id": "s0",

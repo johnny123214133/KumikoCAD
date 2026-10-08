@@ -337,7 +337,7 @@ export function buildLapTriangle(cell, { height, stackOrder = ['s1', 's0', 's2']
 // without a separate registry.
 export function definePattern({ id, name, meta, paramDefs = [], build }) {
   function factory({
-    cellWidth, gridStripWidth = 0, patternStripWidth = 4, patternParams = {},
+    cellWidth, gridStripWidth = 0, patternStripWidth = 3, patternParams = {},
     material = 'hinoki', finish = 'natural',
   }) {
     const cell = cellContext(cellWidth, gridStripWidth);

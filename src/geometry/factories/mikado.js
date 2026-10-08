@@ -28,7 +28,7 @@ import { definePattern, makeStrip, endCut, endJoint, lineIntersect, triLapCuts, 
 // accounted for.
 export const buildMikado = definePattern({
   id: 'builtin:mikado-sixth',
-  name: 'Mikado — sixth',
+  name: 'Mikado',
   meta: {
     difficulty: 'intermediate',
     tags: ['six-fold', 'traditional'],

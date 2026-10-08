@@ -1,12 +1,12 @@
 {
   "id": "builtin:komachi-kikko-b-sixth",
-  "name": "Komachi-kikko B — sixth",
+  "name": "Komachi-kikko B",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
   "patternParams": {
     "secondaryStripWidth": {
-      "length": 3,
+      "length": 2,
       "unit": "mm"
     },
     "inset": {
@@ -17,7 +17,7 @@
   "stripProperties": [
     {
       "id": "sp0",
-      "width": 4,
+      "width": 3,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",
@@ -27,7 +27,7 @@
     },
     {
       "id": "sp1",
-      "width": 3,
+      "width": 2,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",
@@ -54,25 +54,25 @@
     "x": 37.5,
     "y": 21.6506
   },
-  "_note": "Reference snapshot generated from the komachi-kikko-b factory at cellWidth 75, gridStripWidth 0, patternStripWidth 4. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "_note": "Reference snapshot generated from the komachi-kikko-b factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
   "strips": [
     {
       "id": "s0",
       "start": {
-        "x": 57.6795,
-        "y": 10
+        "x": 58.5455,
+        "y": 9.5
       },
       "end": {
-        "x": 17.3205,
-        "y": 10
+        "x": 16.4545,
+        "y": 9.5
       },
       "orientation": 3.1416,
       "cuts": [
         {
           "jointId": "j1",
           "position": {
-            "x": 57.6795,
-            "y": 10
+            "x": 58.5455,
+            "y": 9.5
           },
           "angle": 150,
           "depth": 1,
@@ -82,7 +82,7 @@
           "jointId": "j7",
           "position": {
             "x": 37.5,
-            "y": 10
+            "y": 9.5
           },
           "angle": 90,
           "depth": 0.5,
@@ -91,8 +91,8 @@
         {
           "jointId": "j0",
           "position": {
-            "x": 17.3205,
-            "y": 10
+            "x": 16.4545,
+            "y": 9.5
           },
           "angle": 30,
           "depth": 1,
@@ -104,11 +104,11 @@
       "id": "s1",
       "start": {
         "x": 37.5,
-        "y": 44.9519
+        "y": 45.9519
       },
       "end": {
-        "x": 57.6795,
-        "y": 10
+        "x": 58.5455,
+        "y": 9.5
       },
       "orientation": -1.0472,
       "cuts": [
@@ -116,7 +116,7 @@
           "jointId": "j2",
           "position": {
             "x": 37.5,
-            "y": 44.9519
+            "y": 45.9519
           },
           "angle": 150,
           "depth": 1,
@@ -125,8 +125,8 @@
         {
           "jointId": "j8",
           "position": {
-            "x": 47.5897,
-            "y": 27.476
+            "x": 48.0228,
+            "y": 27.726
           },
           "angle": 90,
           "depth": 0.5,
@@ -135,8 +135,8 @@
         {
           "jointId": "j1",
           "position": {
-            "x": 57.6795,
-            "y": 10
+            "x": 58.5455,
+            "y": 9.5
           },
           "angle": 30,
           "depth": 1,
@@ -147,20 +147,20 @@
     {
       "id": "s2",
       "start": {
-        "x": 17.3205,
-        "y": 10
+        "x": 16.4545,
+        "y": 9.5
       },
       "end": {
         "x": 37.5,
-        "y": 44.9519
+        "y": 45.9519
       },
       "orientation": 1.0472,
       "cuts": [
         {
           "jointId": "j0",
           "position": {
-            "x": 17.3205,
-            "y": 10
+            "x": 16.4545,
+            "y": 9.5
           },
           "angle": 150,
           "depth": 1,
@@ -169,8 +169,8 @@
         {
           "jointId": "j9",
           "position": {
-            "x": 27.4103,
-            "y": 27.476
+            "x": 26.9772,
+            "y": 27.726
           },
           "angle": 90,
           "depth": 0.5,
@@ -180,7 +180,7 @@
           "jointId": "j2",
           "position": {
             "x": 37.5,
-            "y": 44.9519
+            "y": 45.9519
           },
           "angle": 30,
           "depth": 1,
@@ -214,7 +214,7 @@
           "jointId": "j7",
           "position": {
             "x": 37.5,
-            "y": 10
+            "y": 9.5
           },
           "angle": 90,
           "depth": 0.5,
@@ -257,8 +257,8 @@
         {
           "jointId": "j8",
           "position": {
-            "x": 47.5897,
-            "y": 27.476
+            "x": 48.0228,
+            "y": 27.726
           },
           "angle": 90,
           "depth": 0.5,
@@ -301,8 +301,8 @@
         {
           "jointId": "j9",
           "position": {
-            "x": 27.4103,
-            "y": 27.476
+            "x": 26.9772,
+            "y": 27.726
           },
           "angle": 90,
           "depth": 0.5,
@@ -325,8 +325,8 @@
     {
       "id": "j0",
       "position": {
-        "x": 17.3205,
-        "y": 10
+        "x": 16.4545,
+        "y": 9.5
       },
       "members": [
         {
@@ -343,8 +343,8 @@
     {
       "id": "j1",
       "position": {
-        "x": 57.6795,
-        "y": 10
+        "x": 58.5455,
+        "y": 9.5
       },
       "members": [
         {
@@ -362,7 +362,7 @@
       "id": "j2",
       "position": {
         "x": 37.5,
-        "y": 44.9519
+        "y": 45.9519
       },
       "members": [
         {
@@ -444,7 +444,7 @@
       "id": "j7",
       "position": {
         "x": 37.5,
-        "y": 10
+        "y": 9.5
       },
       "members": [
         {
@@ -461,8 +461,8 @@
     {
       "id": "j8",
       "position": {
-        "x": 47.5897,
-        "y": 27.476
+        "x": 48.0228,
+        "y": 27.726
       },
       "members": [
         {
@@ -479,8 +479,8 @@
     {
       "id": "j9",
       "position": {
-        "x": 27.4103,
-        "y": 27.476
+        "x": 26.9772,
+        "y": 27.726
       },
       "members": [
         {
@@ -512,7 +512,7 @@
         },
         {
           "position": {
-            "x": 20.1795,
+            "x": 21.0455,
             "y": 0
           },
           "angle": 90,
@@ -521,7 +521,7 @@
         },
         {
           "position": {
-            "x": 40.359,
+            "x": 42.091,
             "y": 0
           },
           "angle": 30,
@@ -546,7 +546,7 @@
         },
         {
           "position": {
-            "x": 20.1795,
+            "x": 21.0455,
             "y": 0
           },
           "angle": 90,
@@ -555,7 +555,7 @@
         },
         {
           "position": {
-            "x": 40.359,
+            "x": 42.091,
             "y": 0
           },
           "angle": 30,
@@ -580,7 +580,7 @@
         },
         {
           "position": {
-            "x": 20.1795,
+            "x": 21.0455,
             "y": 0
           },
           "angle": 90,
@@ -589,7 +589,7 @@
         },
         {
           "position": {
-            "x": 40.359,
+            "x": 42.091,
             "y": 0
           },
           "angle": 30,
@@ -614,7 +614,7 @@
         },
         {
           "position": {
-            "x": 10,
+            "x": 9.5,
             "y": 0
           },
           "angle": 90,
@@ -648,7 +648,7 @@
         },
         {
           "position": {
-            "x": 10,
+            "x": 9.5,
             "y": 0
           },
           "angle": 90,
@@ -682,7 +682,7 @@
         },
         {
           "position": {
-            "x": 10,
+            "x": 9.5,
             "y": 0
           },
           "angle": 90,

@@ -1,15 +1,10 @@
 {
-  "id": "builtin:kuruma-kikko-sixth",
-  "name": "Kuruma-kikko",
+  "id": "builtin:oume-kikko-sixth",
+  "name": "Oume-kikko",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
-  "patternParams": {
-    "inset": {
-      "length": 4,
-      "unit": "mm"
-    }
-  },
+  "patternParams": {},
   "stripProperties": [
     {
       "id": "sp0",
@@ -40,37 +35,37 @@
     "x": 37.5,
     "y": 21.6506
   },
-  "_note": "Reference snapshot generated from the kuruma-kikko factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "_note": "Reference snapshot generated from the oume-kikko factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
   "strips": [
     {
       "id": "s0",
       "start": {
-        "x": 24.8122,
-        "y": 28.976
+        "x": 60.7679,
+        "y": 21.6506
       },
       "end": {
-        "x": 50.1878,
-        "y": 28.976
+        "x": 49.134,
+        "y": 41.8013
       },
-      "orientation": 0,
+      "orientation": 2.0944,
       "cuts": [
         {
-          "jointId": "j1",
+          "jointId": "j0",
           "position": {
-            "x": 24.8122,
-            "y": 28.976
+            "x": 60.7679,
+            "y": 21.6506
           },
-          "angle": 150,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
-          "jointId": "j0",
+          "jointId": "j1",
           "position": {
-            "x": 50.1878,
-            "y": 28.976
+            "x": 49.134,
+            "y": 41.8013
           },
-          "angle": 30,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -79,32 +74,32 @@
     {
       "id": "s1",
       "start": {
-        "x": 37.5,
-        "y": 7
+        "x": 49.134,
+        "y": 41.8013
       },
       "end": {
-        "x": 24.8122,
-        "y": 28.976
+        "x": 25.866,
+        "y": 41.8013
       },
-      "orientation": 2.0944,
+      "orientation": 3.1416,
       "cuts": [
         {
-          "jointId": "j2",
+          "jointId": "j1",
           "position": {
-            "x": 37.5,
-            "y": 7
+            "x": 49.134,
+            "y": 41.8013
           },
-          "angle": 150,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
-          "jointId": "j1",
+          "jointId": "j2",
           "position": {
-            "x": 24.8122,
-            "y": 28.976
+            "x": 25.866,
+            "y": 41.8013
           },
-          "angle": 30,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -113,32 +108,32 @@
     {
       "id": "s2",
       "start": {
-        "x": 50.1878,
-        "y": 28.976
+        "x": 25.866,
+        "y": 41.8013
       },
       "end": {
-        "x": 37.5,
-        "y": 7
+        "x": 14.2321,
+        "y": 21.6506
       },
       "orientation": -2.0944,
       "cuts": [
         {
-          "jointId": "j0",
+          "jointId": "j2",
           "position": {
-            "x": 50.1878,
-            "y": 28.976
+            "x": 25.866,
+            "y": 41.8013
           },
-          "angle": 150,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
-          "jointId": "j2",
+          "jointId": "j3",
           "position": {
-            "x": 37.5,
-            "y": 7
+            "x": 14.2321,
+            "y": 21.6506
           },
-          "angle": 30,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -147,32 +142,32 @@
     {
       "id": "s3",
       "start": {
-        "x": 52.7859,
-        "y": 30.476
+        "x": 14.2321,
+        "y": 21.6506
       },
       "end": {
-        "x": 56.25,
-        "y": 32.476
+        "x": 25.866,
+        "y": 1.5
       },
-      "orientation": 0.5236,
+      "orientation": -1.0472,
       "cuts": [
         {
           "jointId": "j3",
           "position": {
-            "x": 52.7859,
-            "y": 30.476
+            "x": 14.2321,
+            "y": 21.6506
           },
-          "angle": 30,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j4",
           "position": {
-            "x": 56.25,
-            "y": 32.476
+            "x": 25.866,
+            "y": 1.5
           },
-          "angle": 90,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -181,32 +176,32 @@
     {
       "id": "s4",
       "start": {
-        "x": 22.2141,
-        "y": 30.476
+        "x": 25.866,
+        "y": 1.5
       },
       "end": {
-        "x": 18.75,
-        "y": 32.476
+        "x": 49.134,
+        "y": 1.5
       },
-      "orientation": 2.618,
+      "orientation": 0,
       "cuts": [
         {
-          "jointId": "j5",
+          "jointId": "j4",
           "position": {
-            "x": 22.2141,
-            "y": 30.476
+            "x": 25.866,
+            "y": 1.5
           },
-          "angle": 30,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
-          "jointId": "j6",
+          "jointId": "j5",
           "position": {
-            "x": 18.75,
-            "y": 32.476
+            "x": 49.134,
+            "y": 1.5
           },
-          "angle": 90,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -215,32 +210,32 @@
     {
       "id": "s5",
       "start": {
-        "x": 37.5,
-        "y": 4
+        "x": 49.134,
+        "y": 1.5
       },
       "end": {
-        "x": 37.5,
-        "y": 0
+        "x": 60.7679,
+        "y": 21.6506
       },
-      "orientation": -1.5708,
+      "orientation": 1.0472,
       "cuts": [
         {
-          "jointId": "j7",
+          "jointId": "j5",
           "position": {
-            "x": 37.5,
-            "y": 4
+            "x": 49.134,
+            "y": 1.5
           },
-          "angle": 30,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
-          "jointId": "j8",
+          "jointId": "j0",
           "position": {
-            "x": 37.5,
-            "y": 0
+            "x": 60.7679,
+            "y": 21.6506
           },
-          "angle": 90,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -251,16 +246,16 @@
     {
       "id": "j0",
       "position": {
-        "x": 50.1878,
-        "y": 28.976
+        "x": 60.7679,
+        "y": 21.6506
       },
       "members": [
         {
-          "stripId": "s0",
+          "stripId": "s5",
           "role": "end"
         },
         {
-          "stripId": "s2",
+          "stripId": "s0",
           "role": "end"
         }
       ],
@@ -269,16 +264,16 @@
     {
       "id": "j1",
       "position": {
-        "x": 24.8122,
-        "y": 28.976
+        "x": 49.134,
+        "y": 41.8013
       },
       "members": [
         {
-          "stripId": "s1",
+          "stripId": "s0",
           "role": "end"
         },
         {
-          "stripId": "s0",
+          "stripId": "s1",
           "role": "end"
         }
       ],
@@ -287,16 +282,16 @@
     {
       "id": "j2",
       "position": {
-        "x": 37.5,
-        "y": 7
+        "x": 25.866,
+        "y": 41.8013
       },
       "members": [
         {
-          "stripId": "s2",
+          "stripId": "s1",
           "role": "end"
         },
         {
-          "stripId": "s1",
+          "stripId": "s2",
           "role": "end"
         }
       ],
@@ -305,86 +300,56 @@
     {
       "id": "j3",
       "position": {
-        "x": 52.7859,
-        "y": 30.476
+        "x": 14.2321,
+        "y": 21.6506
       },
       "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        },
         {
           "stripId": "s3",
           "role": "end"
         }
       ],
-      "notchType": "vNotch"
+      "notchType": "miter"
     },
     {
       "id": "j4",
       "position": {
-        "x": 56.25,
-        "y": 32.476
+        "x": 25.866,
+        "y": 1.5
       },
       "members": [
         {
           "stripId": "s3",
           "role": "end"
+        },
+        {
+          "stripId": "s4",
+          "role": "end"
         }
       ],
-      "notchType": "butt"
+      "notchType": "miter"
     },
     {
       "id": "j5",
       "position": {
-        "x": 22.2141,
-        "y": 30.476
+        "x": 49.134,
+        "y": 1.5
       },
       "members": [
         {
           "stripId": "s4",
           "role": "end"
-        }
-      ],
-      "notchType": "vNotch"
-    },
-    {
-      "id": "j6",
-      "position": {
-        "x": 18.75,
-        "y": 32.476
-      },
-      "members": [
-        {
-          "stripId": "s4",
-          "role": "end"
-        }
-      ],
-      "notchType": "butt"
-    },
-    {
-      "id": "j7",
-      "position": {
-        "x": 37.5,
-        "y": 4
-      },
-      "members": [
+        },
         {
           "stripId": "s5",
           "role": "end"
         }
       ],
-      "notchType": "vNotch"
-    },
-    {
-      "id": "j8",
-      "position": {
-        "x": 37.5,
-        "y": 0
-      },
-      "members": [
-        {
-          "stripId": "s5",
-          "role": "end"
-        }
-      ],
-      "notchType": "butt"
+      "notchType": "miter"
     }
   ],
   "pieceTemplates": [
@@ -398,16 +363,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 150,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 25.3756,
+            "x": 23.2679,
             "y": 0
           },
-          "angle": 30,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -423,16 +388,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 150,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 25.3756,
+            "x": 23.2679,
             "y": 0
           },
-          "angle": 30,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -448,16 +413,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 150,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 25.3756,
+            "x": 23.2679,
             "y": 0
           },
-          "angle": 30,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -473,16 +438,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 30,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 4,
+            "x": 23.2679,
             "y": 0
           },
-          "angle": 90,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -498,16 +463,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 30,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 4,
+            "x": 23.2679,
             "y": 0
           },
-          "angle": 90,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -523,16 +488,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 30,
+          "angle": 60,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 4,
+            "x": 23.2679,
             "y": 0
           },
-          "angle": 90,
+          "angle": 120,
           "depth": 1,
           "role": "end"
         }
@@ -545,7 +510,7 @@
       "six-fold",
       "traditional"
     ],
-    "description": "A triangle of three mitered strips in the middle of the cell, its corners pointing at the edge midpoints, with a spoke from each corner butting the grid strip at the edge midpoint. Each spoke is cut with a V-notch that the triangle corner rests in.",
+    "description": "Six identical strips forming a regular hexagon, mitred at the corners, with every other side flush against a grid strip.",
     "thumbnail": null
   }
 }

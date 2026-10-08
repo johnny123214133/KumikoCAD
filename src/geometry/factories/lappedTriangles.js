@@ -96,19 +96,19 @@ function defineLapped({ id, name, description, kind, triangleOnTop }) {
 
 const komachiDesc = (top) => `Kikyo-asanoha's triangle (strip width) combined with Tsumiishi-kikko's three strips (secondary width), joined by half-laps where they cross — ${top} over the other.`;
 export const buildKomachiKikkoA = defineLapped({
-  id: 'builtin:komachi-kikko-a-sixth', name: 'Komachi-kikko A — sixth', kind: 'komachi', triangleOnTop: true,
+  id: 'builtin:komachi-kikko-a-sixth', name: 'Komachi-kikko A', kind: 'komachi', triangleOnTop: true,
   description: komachiDesc('the triangle'),
 });
 export const buildKomachiKikkoB = defineLapped({
-  id: 'builtin:komachi-kikko-b-sixth', name: 'Komachi-kikko B — sixth', kind: 'komachi', triangleOnTop: false,
+  id: 'builtin:komachi-kikko-b-sixth', name: 'Komachi-kikko B', kind: 'komachi', triangleOnTop: false,
   description: komachiDesc('the tsumiishi-kikko strips'),
 });
 const ryusoDesc = (top) => `Mitsukude's triangle (strip width) combined with Asanoha's three strips (secondary width), joined by half-laps where they cross — ${top} over the other.`;
 export const buildRyusoAsanohaA = defineLapped({
-  id: 'builtin:ryuso-asanoha-a-sixth', name: 'Ryuso-asanoha A — sixth', kind: 'ryuso', triangleOnTop: true,
+  id: 'builtin:ryuso-asanoha-a-sixth', name: 'Ryuso-asanoha A', kind: 'ryuso', triangleOnTop: true,
   description: ryusoDesc('the triangle'),
 });
 export const buildRyusoAsanohaB = defineLapped({
-  id: 'builtin:ryuso-asanoha-b-sixth', name: 'Ryuso-asanoha B — sixth', kind: 'ryuso', triangleOnTop: false,
+  id: 'builtin:ryuso-asanoha-b-sixth', name: 'Ryuso-asanoha B', kind: 'ryuso', triangleOnTop: false,
   description: ryusoDesc('the asanoha strips'),
 });

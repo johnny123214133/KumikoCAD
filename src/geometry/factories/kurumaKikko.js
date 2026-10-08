@@ -119,7 +119,7 @@ function buildKurumaLapped({ cell, params, patternStripWidth: w }) {
 
 export const buildKurumaKikko = definePattern({
   id: 'builtin:kuruma-kikko-sixth',
-  name: 'Kuruma-kikko — sixth',
+  name: 'Kuruma-kikko',
   paramDefs: [insetDef(1, 'Length of the spokes from each triangle corner to the grid strip (the gap between the corner and the grid strip). Larger = smaller triangle.')],
   meta: {
     difficulty: 'intermediate',
@@ -132,7 +132,7 @@ export const buildKurumaKikko = definePattern({
 
 export const buildKurumaKikkoTriangle = definePattern({
   id: 'builtin:kuruma-kikko-triangle-sixth',
-  name: 'Kuruma-kikko triangle — sixth',
+  name: 'Kuruma-kikko triangle',
   paramDefs: [insetDef(0, 'Gap between each triangle corner and the grid strip at the edge midpoint. Larger = smaller triangle.')],
   meta: {
     difficulty: 'beginner',

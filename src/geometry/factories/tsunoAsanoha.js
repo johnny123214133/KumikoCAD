@@ -54,7 +54,7 @@ function defineTsuno({ id, name, pointed, description }) {
 
 export const buildTsunoAsanoha = defineTsuno({
   id: 'builtin:tsuno-asanoha-sixth',
-  name: 'Tsuno-asanoha — sixth',
+  name: 'Tsuno-asanoha',
   pointed: false,
   description: 'Asanoha with each strip carried past the centre of the cell. The three strips cross in a three-strip lap (triLap) at the centroid; the ends beyond it are square.',
 });
@@ -64,7 +64,7 @@ export const buildTsunoAsanoha = defineTsuno({
 // pointed at both ends.
 export const buildTsunoAsanohaPointed = defineTsuno({
   id: 'builtin:tsuno-asanoha-pointed-sixth',
-  name: 'Tsuno-asanoha pointed — sixth',
+  name: 'Tsuno-asanoha pointed',
   pointed: true,
   description: 'Tsuno-asanoha with the stubs past the centre cut to the same 30° point as the strips have at the cell corners. The three strips cross in a three-strip lap (triLap) at the centroid.',
 });

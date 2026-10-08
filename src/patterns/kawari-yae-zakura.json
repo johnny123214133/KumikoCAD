@@ -1,12 +1,12 @@
 {
   "id": "builtin:kawari-yae-zakura-sixth",
-  "name": "Kawari yae-zakura — sixth",
+  "name": "Kawari yae-zakura",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
   "patternParams": {
     "secondaryStripWidth": {
-      "length": 3,
+      "length": 2,
       "unit": "mm"
     },
     "secondarySpacing": {
@@ -17,7 +17,7 @@
   "stripProperties": [
     {
       "id": "sp0",
-      "width": 4,
+      "width": 3,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",
@@ -27,7 +27,7 @@
     },
     {
       "id": "sp1",
-      "width": 3,
+      "width": 2,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",
@@ -54,7 +54,7 @@
     "x": 37.5,
     "y": 21.6506
   },
-  "_note": "Reference snapshot generated from the kawari-yae-zakura factory at cellWidth 75, gridStripWidth 0, patternStripWidth 4. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "_note": "Reference snapshot generated from the kawari-yae-zakura factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
   "strips": [
     {
       "id": "s0",
@@ -161,20 +161,20 @@
     {
       "id": "s3",
       "start": {
-        "x": 7.5,
-        "y": 12.9904
+        "x": 6.5,
+        "y": 11.2583
       },
       "end": {
-        "x": 35.5,
-        "y": 29.1562
+        "x": 36,
+        "y": 28.2902
       },
       "orientation": 0.5236,
       "cuts": [
         {
           "jointId": "j7",
           "position": {
-            "x": 7.5,
-            "y": 12.9904
+            "x": 6.5,
+            "y": 11.2583
           },
           "angle": 30,
           "depth": 1,
@@ -183,8 +183,8 @@
         {
           "jointId": "j4",
           "position": {
-            "x": 30,
-            "y": 25.9808
+            "x": 31,
+            "y": 25.4034
           },
           "angle": 120,
           "depth": 0.5,
@@ -193,8 +193,8 @@
         {
           "jointId": "j8",
           "position": {
-            "x": 35.5,
-            "y": 29.1562
+            "x": 36,
+            "y": 28.2902
           },
           "angle": 60,
           "depth": 1,
@@ -205,19 +205,19 @@
     {
       "id": "s4",
       "start": {
-        "x": 15,
+        "x": 13,
         "y": 0
       },
       "end": {
-        "x": 43,
-        "y": 16.1658
+        "x": 42.5,
+        "y": 17.0318
       },
       "orientation": 0.5236,
       "cuts": [
         {
           "jointId": "j9",
           "position": {
-            "x": 15,
+            "x": 13,
             "y": 0
           },
           "angle": 150,
@@ -228,7 +228,7 @@
           "jointId": "j5",
           "position": {
             "x": 37.5,
-            "y": 12.9904
+            "y": 14.1451
           },
           "angle": 60,
           "depth": 0.5,
@@ -237,8 +237,8 @@
         {
           "jointId": "j10",
           "position": {
-            "x": 43,
-            "y": 16.1658
+            "x": 42.5,
+            "y": 17.0318
           },
           "angle": 120,
           "depth": 1,
@@ -249,19 +249,19 @@
     {
       "id": "s5",
       "start": {
-        "x": 60,
+        "x": 62,
         "y": 0
       },
       "end": {
-        "x": 32,
-        "y": 16.1658
+        "x": 32.5,
+        "y": 17.0318
       },
       "orientation": 2.618,
       "cuts": [
         {
           "jointId": "j11",
           "position": {
-            "x": 60,
+            "x": 62,
             "y": 0
           },
           "angle": 30,
@@ -272,7 +272,7 @@
           "jointId": "j5",
           "position": {
             "x": 37.5,
-            "y": 12.9904
+            "y": 14.1451
           },
           "angle": 120,
           "depth": 0.5,
@@ -281,8 +281,8 @@
         {
           "jointId": "j12",
           "position": {
-            "x": 32,
-            "y": 16.1658
+            "x": 32.5,
+            "y": 17.0318
           },
           "angle": 60,
           "depth": 1,
@@ -293,20 +293,20 @@
     {
       "id": "s6",
       "start": {
-        "x": 67.5,
-        "y": 12.9904
+        "x": 68.5,
+        "y": 11.2583
       },
       "end": {
-        "x": 39.5,
-        "y": 29.1562
+        "x": 39,
+        "y": 28.2902
       },
       "orientation": 2.618,
       "cuts": [
         {
           "jointId": "j13",
           "position": {
-            "x": 67.5,
-            "y": 12.9904
+            "x": 68.5,
+            "y": 11.2583
           },
           "angle": 150,
           "depth": 1,
@@ -315,8 +315,8 @@
         {
           "jointId": "j6",
           "position": {
-            "x": 45,
-            "y": 25.9808
+            "x": 44,
+            "y": 25.4034
           },
           "angle": 60,
           "depth": 0.5,
@@ -325,8 +325,8 @@
         {
           "jointId": "j14",
           "position": {
-            "x": 39.5,
-            "y": 29.1562
+            "x": 39,
+            "y": 28.2902
           },
           "angle": 120,
           "depth": 1,
@@ -337,11 +337,11 @@
     {
       "id": "s7",
       "start": {
-        "x": 45,
-        "y": 51.9615
+        "x": 44,
+        "y": 53.6936
       },
       "end": {
-        "x": 45,
+        "x": 44,
         "y": 19.6299
       },
       "orientation": -1.5708,
@@ -349,8 +349,8 @@
         {
           "jointId": "j15",
           "position": {
-            "x": 45,
-            "y": 51.9615
+            "x": 44,
+            "y": 53.6936
           },
           "angle": 30,
           "depth": 1,
@@ -359,8 +359,8 @@
         {
           "jointId": "j6",
           "position": {
-            "x": 45,
-            "y": 25.9808
+            "x": 44,
+            "y": 25.4034
           },
           "angle": 120,
           "depth": 0.5,
@@ -369,7 +369,7 @@
         {
           "jointId": "j16",
           "position": {
-            "x": 45,
+            "x": 44,
             "y": 19.6299
           },
           "angle": 60,
@@ -381,11 +381,11 @@
     {
       "id": "s8",
       "start": {
-        "x": 30,
-        "y": 51.9615
+        "x": 31,
+        "y": 53.6936
       },
       "end": {
-        "x": 30,
+        "x": 31,
         "y": 19.6299
       },
       "orientation": -1.5708,
@@ -393,8 +393,8 @@
         {
           "jointId": "j17",
           "position": {
-            "x": 30,
-            "y": 51.9615
+            "x": 31,
+            "y": 53.6936
           },
           "angle": 150,
           "depth": 1,
@@ -403,8 +403,8 @@
         {
           "jointId": "j4",
           "position": {
-            "x": 30,
-            "y": 25.9808
+            "x": 31,
+            "y": 25.4034
           },
           "angle": 60,
           "depth": 0.5,
@@ -413,7 +413,7 @@
         {
           "jointId": "j18",
           "position": {
-            "x": 30,
+            "x": 31,
             "y": 19.6299
           },
           "angle": 120,
@@ -491,8 +491,8 @@
     {
       "id": "j7",
       "position": {
-        "x": 7.5,
-        "y": 12.9904
+        "x": 6.5,
+        "y": 11.2583
       },
       "members": [
         {
@@ -505,8 +505,8 @@
     {
       "id": "j8",
       "position": {
-        "x": 35.5,
-        "y": 29.1562
+        "x": 36,
+        "y": 28.2902
       },
       "members": [
         {
@@ -519,7 +519,7 @@
     {
       "id": "j9",
       "position": {
-        "x": 15,
+        "x": 13,
         "y": 0
       },
       "members": [
@@ -533,8 +533,8 @@
     {
       "id": "j10",
       "position": {
-        "x": 43,
-        "y": 16.1658
+        "x": 42.5,
+        "y": 17.0318
       },
       "members": [
         {
@@ -547,7 +547,7 @@
     {
       "id": "j11",
       "position": {
-        "x": 60,
+        "x": 62,
         "y": 0
       },
       "members": [
@@ -561,8 +561,8 @@
     {
       "id": "j12",
       "position": {
-        "x": 32,
-        "y": 16.1658
+        "x": 32.5,
+        "y": 17.0318
       },
       "members": [
         {
@@ -575,8 +575,8 @@
     {
       "id": "j13",
       "position": {
-        "x": 67.5,
-        "y": 12.9904
+        "x": 68.5,
+        "y": 11.2583
       },
       "members": [
         {
@@ -589,8 +589,8 @@
     {
       "id": "j14",
       "position": {
-        "x": 39.5,
-        "y": 29.1562
+        "x": 39,
+        "y": 28.2902
       },
       "members": [
         {
@@ -603,8 +603,8 @@
     {
       "id": "j15",
       "position": {
-        "x": 45,
-        "y": 51.9615
+        "x": 44,
+        "y": 53.6936
       },
       "members": [
         {
@@ -617,7 +617,7 @@
     {
       "id": "j16",
       "position": {
-        "x": 45,
+        "x": 44,
         "y": 19.6299
       },
       "members": [
@@ -631,8 +631,8 @@
     {
       "id": "j17",
       "position": {
-        "x": 30,
-        "y": 51.9615
+        "x": 31,
+        "y": 53.6936
       },
       "members": [
         {
@@ -645,7 +645,7 @@
     {
       "id": "j18",
       "position": {
-        "x": 30,
+        "x": 31,
         "y": 19.6299
       },
       "members": [
@@ -659,8 +659,8 @@
     {
       "id": "j4",
       "position": {
-        "x": 30,
-        "y": 25.9808
+        "x": 31,
+        "y": 25.4034
       },
       "members": [
         {
@@ -678,7 +678,7 @@
       "id": "j5",
       "position": {
         "x": 37.5,
-        "y": 12.9904
+        "y": 14.1451
       },
       "members": [
         {
@@ -695,8 +695,8 @@
     {
       "id": "j6",
       "position": {
-        "x": 45,
-        "y": 25.9808
+        "x": 44,
+        "y": 25.4034
       },
       "members": [
         {
@@ -803,7 +803,7 @@
         },
         {
           "position": {
-            "x": 25.9808,
+            "x": 28.2902,
             "y": 0
           },
           "angle": 120,
@@ -812,7 +812,7 @@
         },
         {
           "position": {
-            "x": 32.3316,
+            "x": 34.0637,
             "y": 0
           },
           "angle": 60,
@@ -837,7 +837,7 @@
         },
         {
           "position": {
-            "x": 25.9808,
+            "x": 28.2902,
             "y": 0
           },
           "angle": 60,
@@ -846,7 +846,7 @@
         },
         {
           "position": {
-            "x": 32.3316,
+            "x": 34.0637,
             "y": 0
           },
           "angle": 120,
@@ -871,7 +871,7 @@
         },
         {
           "position": {
-            "x": 25.9808,
+            "x": 28.2902,
             "y": 0
           },
           "angle": 120,
@@ -880,7 +880,7 @@
         },
         {
           "position": {
-            "x": 32.3316,
+            "x": 34.0637,
             "y": 0
           },
           "angle": 60,
@@ -905,7 +905,7 @@
         },
         {
           "position": {
-            "x": 25.9808,
+            "x": 28.2902,
             "y": 0
           },
           "angle": 60,
@@ -914,7 +914,7 @@
         },
         {
           "position": {
-            "x": 32.3316,
+            "x": 34.0637,
             "y": 0
           },
           "angle": 120,
@@ -939,7 +939,7 @@
         },
         {
           "position": {
-            "x": 25.9808,
+            "x": 28.2902,
             "y": 0
           },
           "angle": 120,
@@ -948,7 +948,7 @@
         },
         {
           "position": {
-            "x": 32.3316,
+            "x": 34.0637,
             "y": 0
           },
           "angle": 60,
@@ -973,7 +973,7 @@
         },
         {
           "position": {
-            "x": 25.9808,
+            "x": 28.2902,
             "y": 0
           },
           "angle": 60,
@@ -982,7 +982,7 @@
         },
         {
           "position": {
-            "x": 32.3316,
+            "x": 34.0637,
             "y": 0
           },
           "angle": 120,

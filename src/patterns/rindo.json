@@ -1,6 +1,6 @@
 {
-  "id": "builtin:rindo-sixth",
-  "name": "Rindo — sixth",
+  "id": "builtin:rindo-cross-sixth",
+  "name": "Rindo",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
@@ -8,7 +8,7 @@
   "stripProperties": [
     {
       "id": "sp0",
-      "width": 4,
+      "width": 3,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",
@@ -35,37 +35,47 @@
     "x": 37.5,
     "y": 21.6506
   },
-  "_note": "Reference snapshot generated from the rindo factory at cellWidth 75, gridStripWidth 0, patternStripWidth 4. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "_note": "Reference snapshot generated from the rindo factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
   "strips": [
     {
       "id": "s0",
       "start": {
-        "x": 37.5,
-        "y": 0
+        "x": 2.8978,
+        "y": 5.0191
       },
       "end": {
-        "x": 37.5,
-        "y": 64.9519
+        "x": 46.7716,
+        "y": 48.893
       },
-      "orientation": 1.5708,
+      "orientation": 0.7854,
       "cuts": [
         {
           "jointId": "j0",
           "position": {
-            "x": 37.5,
-            "y": 0
+            "x": 2.8978,
+            "y": 5.0191
           },
-          "angle": 90,
+          "angle": 15,
           "depth": 1,
           "role": "end"
         },
         {
-          "jointId": "j1",
+          "jointId": "j4",
           "position": {
             "x": 37.5,
-            "y": 64.9519
+            "y": 39.6213
           },
-          "angle": 150,
+          "angle": 90,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 46.7716,
+            "y": 48.893
+          },
+          "angle": 75,
           "depth": 1,
           "role": "end"
         }
@@ -74,86 +84,42 @@
     {
       "id": "s1",
       "start": {
-        "x": 18.75,
-        "y": 0
+        "x": 72.1022,
+        "y": 5.0191
       },
       "end": {
-        "x": 35.5,
-        "y": 61.4878
+        "x": 28.2284,
+        "y": 48.893
       },
-      "orientation": 1.3048,
+      "orientation": 2.3562,
       "cuts": [
         {
           "jointId": "j2",
           "position": {
-            "x": 18.75,
-            "y": 0
+            "x": 72.1022,
+            "y": 5.0191
           },
-          "angle": 105.2383,
+          "angle": 165,
           "depth": 1,
           "role": "end"
         },
-        {
-          "jointId": "j3",
-          "position": {
-            "x": 35.5,
-            "y": 61.4878
-          },
-          "angle": 15.2383,
-          "depth": 1,
-          "role": "end"
-        },
-        {
-          "jointId": "j3",
-          "position": {
-            "x": 35.5,
-            "y": 61.4878
-          },
-          "angle": 165.2383,
-          "depth": 1,
-          "role": "end"
-        }
-      ]
-    },
-    {
-      "id": "s2",
-      "start": {
-        "x": 56.25,
-        "y": 0
-      },
-      "end": {
-        "x": 39.5,
-        "y": 61.4878
-      },
-      "orientation": 1.8368,
-      "cuts": [
         {
           "jointId": "j4",
           "position": {
-            "x": 56.25,
-            "y": 0
+            "x": 37.5,
+            "y": 39.6213
           },
-          "angle": 74.7617,
-          "depth": 1,
-          "role": "end"
+          "angle": 90,
+          "depth": 0.5,
+          "role": "cut-top-2"
         },
         {
-          "jointId": "j5",
+          "jointId": "j3",
           "position": {
-            "x": 39.5,
-            "y": 61.4878
+            "x": 28.2284,
+            "y": 48.893
           },
-          "angle": 164.7617,
-          "depth": 1,
-          "role": "end"
-        },
-        {
-          "jointId": "j5",
-          "position": {
-            "x": 39.5,
-            "y": 61.4878
-          },
-          "angle": 14.7617,
+          "angle": 105,
           "depth": 1,
           "role": "end"
         }
@@ -164,8 +130,8 @@
     {
       "id": "j0",
       "position": {
-        "x": 37.5,
-        "y": 0
+        "x": 2.8978,
+        "y": 5.0191
       },
       "members": [
         {
@@ -173,13 +139,13 @@
           "role": "end"
         }
       ],
-      "notchType": "butt"
+      "notchType": "miter"
     },
     {
       "id": "j1",
       "position": {
-        "x": 37.5,
-        "y": 64.9519
+        "x": 46.7716,
+        "y": 48.893
       },
       "members": [
         {
@@ -187,13 +153,13 @@
           "role": "end"
         }
       ],
-      "notchType": "taper"
+      "notchType": "miter"
     },
     {
       "id": "j2",
       "position": {
-        "x": 18.75,
-        "y": 0
+        "x": 72.1022,
+        "y": 5.0191
       },
       "members": [
         {
@@ -206,8 +172,8 @@
     {
       "id": "j3",
       "position": {
-        "x": 35.5,
-        "y": 61.4878
+        "x": 28.2284,
+        "y": 48.893
       },
       "members": [
         {
@@ -215,35 +181,25 @@
           "role": "end"
         }
       ],
-      "notchType": "asymMiter"
+      "notchType": "miter"
     },
     {
       "id": "j4",
       "position": {
-        "x": 56.25,
-        "y": 0
+        "x": 37.5,
+        "y": 39.6213
       },
       "members": [
         {
-          "stripId": "s2",
-          "role": "end"
-        }
-      ],
-      "notchType": "miter"
-    },
-    {
-      "id": "j5",
-      "position": {
-        "x": 39.5,
-        "y": 61.4878
-      },
-      "members": [
+          "stripId": "s0",
+          "role": "role-top-2"
+        },
         {
-          "stripId": "s2",
-          "role": "end"
+          "stripId": "s1",
+          "role": "role-bottom-2"
         }
       ],
-      "notchType": "asymMiter"
+      "notchType": "halfLap"
     }
   ],
   "pieceTemplates": [
@@ -257,16 +213,25 @@
             "x": 0,
             "y": 0
           },
-          "angle": 90,
+          "angle": 15,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 64.9519,
+            "x": 48.9349,
             "y": 0
           },
-          "angle": 150,
+          "angle": 90,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "position": {
+            "x": 62.047,
+            "y": 0
+          },
+          "angle": 75,
           "depth": 1,
           "role": "end"
         }
@@ -282,59 +247,25 @@
             "x": 0,
             "y": 0
           },
-          "angle": 105.2383,
+          "angle": 165,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 63.7284,
+            "x": 48.9349,
             "y": 0
           },
-          "angle": 15.2383,
-          "depth": 1,
-          "role": "end"
+          "angle": 90,
+          "depth": 0.5,
+          "role": "cut-top-2"
         },
         {
           "position": {
-            "x": 63.7284,
+            "x": 62.047,
             "y": 0
           },
-          "angle": 165.2383,
-          "depth": 1,
-          "role": "end"
-        }
-      ]
-    },
-    {
-      "id": "pt2",
-      "stripPropertyId": "sp0",
-      "stripId": "s2",
-      "cuts": [
-        {
-          "position": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 74.7617,
-          "depth": 1,
-          "role": "end"
-        },
-        {
-          "position": {
-            "x": 63.7284,
-            "y": 0
-          },
-          "angle": 164.7617,
-          "depth": 1,
-          "role": "end"
-        },
-        {
-          "position": {
-            "x": 63.7284,
-            "y": 0
-          },
-          "angle": 14.7617,
+          "angle": 105,
           "depth": 1,
           "role": "end"
         }
@@ -347,7 +278,7 @@
       "six-fold",
       "traditional"
     ],
-    "description": "Three strips fanning from the top corner to the opposite edge, meeting it at 1/4, 1/2 and 3/4 of its length. The two outer strips stop against the middle one with asymmetric miters.",
+    "description": "Two strips crossing at 90° in a half-lap, each at 45° to the bottom edge with its lower edge through a bottom grid corner. All four ends are single miters against the grid strips.",
     "thumbnail": null
   }
 }

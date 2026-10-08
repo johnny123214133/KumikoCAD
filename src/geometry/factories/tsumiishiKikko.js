@@ -5,7 +5,7 @@ import { definePattern, buildSpokes } from './_shared.js';
 // rather than asanoha's 'taper'.
 export const buildTsumiishiKikko = definePattern({
   id: 'builtin:tsumiishi-kikko-sixth',
-  name: 'Tsumiishi-kikko — sixth',
+  name: 'Tsumiishi-kikko',
   meta: {
     difficulty: 'beginner',
     tags: ['six-fold', 'hexagonal', 'traditional'],

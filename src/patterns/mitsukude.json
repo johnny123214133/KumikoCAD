@@ -1,6 +1,6 @@
 {
   "id": "builtin:mitsukude-sixth",
-  "name": "Mitsukude — sixth",
+  "name": "Mitsukude B",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
@@ -8,7 +8,7 @@
   "stripProperties": [
     {
       "id": "sp0",
-      "width": 4,
+      "width": 3,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",
@@ -35,25 +35,25 @@
     "x": 37.5,
     "y": 21.6506
   },
-  "_note": "Reference snapshot generated from the mitsukude factory at cellWidth 75, gridStripWidth 0, patternStripWidth 4. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "_note": "Reference snapshot generated from the mitsukude factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
   "strips": [
     {
       "id": "s0",
       "start": {
-        "x": 22.2141,
-        "y": 30.476
+        "x": 21.3481,
+        "y": 30.976
       },
       "end": {
-        "x": 52.7859,
-        "y": 30.476
+        "x": 53.6519,
+        "y": 30.976
       },
       "orientation": 0,
       "cuts": [
         {
           "jointId": "j1",
           "position": {
-            "x": 22.2141,
-            "y": 30.476
+            "x": 21.3481,
+            "y": 30.976
           },
           "angle": 150,
           "depth": 1,
@@ -62,8 +62,8 @@
         {
           "jointId": "j0",
           "position": {
-            "x": 52.7859,
-            "y": 30.476
+            "x": 53.6519,
+            "y": 30.976
           },
           "angle": 30,
           "depth": 1,
@@ -75,11 +75,11 @@
       "id": "s1",
       "start": {
         "x": 37.5,
-        "y": 4
+        "y": 3
       },
       "end": {
-        "x": 22.2141,
-        "y": 30.476
+        "x": 21.3481,
+        "y": 30.976
       },
       "orientation": 2.0944,
       "cuts": [
@@ -87,7 +87,7 @@
           "jointId": "j2",
           "position": {
             "x": 37.5,
-            "y": 4
+            "y": 3
           },
           "angle": 150,
           "depth": 1,
@@ -96,8 +96,8 @@
         {
           "jointId": "j1",
           "position": {
-            "x": 22.2141,
-            "y": 30.476
+            "x": 21.3481,
+            "y": 30.976
           },
           "angle": 30,
           "depth": 1,
@@ -108,20 +108,20 @@
     {
       "id": "s2",
       "start": {
-        "x": 52.7859,
-        "y": 30.476
+        "x": 53.6519,
+        "y": 30.976
       },
       "end": {
         "x": 37.5,
-        "y": 4
+        "y": 3
       },
       "orientation": -2.0944,
       "cuts": [
         {
           "jointId": "j0",
           "position": {
-            "x": 52.7859,
-            "y": 30.476
+            "x": 53.6519,
+            "y": 30.976
           },
           "angle": 150,
           "depth": 1,
@@ -131,7 +131,7 @@
           "jointId": "j2",
           "position": {
             "x": 37.5,
-            "y": 4
+            "y": 3
           },
           "angle": 30,
           "depth": 1,
@@ -144,8 +144,8 @@
     {
       "id": "j0",
       "position": {
-        "x": 52.7859,
-        "y": 30.476
+        "x": 53.6519,
+        "y": 30.976
       },
       "members": [
         {
@@ -162,8 +162,8 @@
     {
       "id": "j1",
       "position": {
-        "x": 22.2141,
-        "y": 30.476
+        "x": 21.3481,
+        "y": 30.976
       },
       "members": [
         {
@@ -181,7 +181,7 @@
       "id": "j2",
       "position": {
         "x": 37.5,
-        "y": 4
+        "y": 3
       },
       "members": [
         {
@@ -213,7 +213,7 @@
         },
         {
           "position": {
-            "x": 30.5718,
+            "x": 32.3038,
             "y": 0
           },
           "angle": 30,
@@ -238,7 +238,7 @@
         },
         {
           "position": {
-            "x": 30.5718,
+            "x": 32.3038,
             "y": 0
           },
           "angle": 30,
@@ -263,7 +263,7 @@
         },
         {
           "position": {
-            "x": 30.5718,
+            "x": 32.3038,
             "y": 0
           },
           "angle": 30,

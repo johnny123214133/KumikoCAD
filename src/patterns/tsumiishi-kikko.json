@@ -1,6 +1,6 @@
 {
   "id": "builtin:tsumiishi-kikko-sixth",
-  "name": "Tsumiishi-kikko — sixth",
+  "name": "Tsumiishi-kikko",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
@@ -8,7 +8,7 @@
   "stripProperties": [
     {
       "id": "sp0",
-      "width": 4.0,
+      "width": 3.0,
       "thickness": 6.0,
       "material": "hinoki",
       "grain": "along",

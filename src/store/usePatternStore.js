@@ -7,6 +7,10 @@ import kurumaKikko from '../patterns/kuruma-kikko.json';
 import kurumaKikkoTriangle from '../patterns/kuruma-kikko-triangle.json';
 import sakura from '../patterns/sakura.json';
 import mitsukude from '../patterns/mitsukude.json';
+import matsuba from '../patterns/matsuba.json';
+import bishamonKikkoA from '../patterns/bishamon-kikko-a.json';
+import bishamonKikkoB from '../patterns/bishamon-kikko-b.json';
+import matsunoha from '../patterns/matsunoha.json';
 import rindo from '../patterns/rindo.json';
 import kawariYaeZakura from '../patterns/kawari-yae-zakura.json';
 import yaeZakuraKikko from '../patterns/yae-zakura-kikko.json';
@@ -18,6 +22,11 @@ import komachiKikkoA from '../patterns/komachi-kikko-a.json';
 import komachiKikkoB from '../patterns/komachi-kikko-b.json';
 import ryusoAsanohaA from '../patterns/ryuso-asanoha-a.json';
 import ryusoAsanohaB from '../patterns/ryuso-asanoha-b.json';
+import futaeAsanoha from '../patterns/futae-asanoha.json';
+import kawariAsanoha from '../patterns/kawari-asanoha.json';
+import warigikuKikko from '../patterns/warigiku-kikko.json';
+import oumeKikko from '../patterns/oume-kikko.json';
+import seiunKikko from '../patterns/seiun-kikko.json';
 import blank from '../patterns/blank.json';
 import { validatePattern } from '../geometry/schema/validate.js';
 import { buildAsanoha } from '../geometry/factories/asanoha.js';
@@ -27,12 +36,20 @@ import { buildMikado } from '../geometry/factories/mikado.js';
 import { buildKurumaKikko, buildKurumaKikkoTriangle } from '../geometry/factories/kurumaKikko.js';
 import { buildSakura } from '../geometry/factories/sakura.js';
 import { buildMitsukude } from '../geometry/factories/mitsukude.js';
+import { buildMatsuba } from '../geometry/factories/matsuba.js';
+import { buildBishamonKikkoA, buildBishamonKikkoB } from '../geometry/factories/bishamonKikko.js';
+import { buildMatsunoha } from '../geometry/factories/matsunoha.js';
 import { buildRindo } from '../geometry/factories/rindo.js';
 import { buildKawariYaeZakura, buildYaeZakuraKikko } from '../geometry/factories/kawariYaeZakura.js';
 import { buildTsunoAsanoha, buildTsunoAsanohaPointed } from '../geometry/factories/tsunoAsanoha.js';
 import { buildKikyoAsanoha } from '../geometry/factories/kikyoAsanoha.js';
 import { buildKomachiKikkoA, buildKomachiKikkoB, buildRyusoAsanohaA, buildRyusoAsanohaB } from '../geometry/factories/lappedTriangles.js';
 import { buildYaeAsanoha } from '../geometry/factories/yaeAsanoha.js';
+import { buildFutaeAsanoha } from '../geometry/factories/futaeAsanoha.js';
+import { buildKawariAsanoha } from '../geometry/factories/kawariAsanoha.js';
+import { buildWarigikuKikko } from '../geometry/factories/warigikuKikko.js';
+import { buildOumeKikko } from '../geometry/factories/oumeKikko.js';
+import { buildSeiunKikko } from '../geometry/factories/seiunKikko.js';
 import { buildBlank } from '../geometry/factories/blank.js';
 import useGridStore from './useGridStore.js';
 import useSelectionStore from './useSelectionStore.js';
@@ -50,7 +67,7 @@ import { readLengthMm, lengthParam, resolveParamState } from '../geometry/params
 // 'blank' is appended at the END deliberately — BUILT_INS[0] is what seeds the
 // default activePatternId below, and an empty pattern being the default on
 // first launch is exactly the bug that got fixed by removing asanoha-one.
-const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, rindo, sakura, kawariYaeZakura, yaeZakuraKikko, tsunoAsanoha, tsunoAsanohaPointed, yaeAsanoha, kikyoAsanoha, komachiKikkoA, komachiKikkoB, ryusoAsanohaA, ryusoAsanohaB, blank];
+const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, matsuba, bishamonKikkoA, bishamonKikkoB, matsunoha, rindo, sakura, kawariYaeZakura, yaeZakuraKikko, tsunoAsanoha, tsunoAsanohaPointed, yaeAsanoha, kikyoAsanoha, komachiKikkoA, komachiKikkoB, ryusoAsanohaA, ryusoAsanohaB, futaeAsanoha, kawariAsanoha, warigikuKikko, oumeKikko, seiunKikko, blank];
 
 BUILT_INS.forEach((p) => {
   const errs = validatePattern(p);
@@ -73,7 +90,11 @@ const FACTORY_BY_ID = {
   'builtin:kuruma-kikko-sixth': buildKurumaKikko,
   'builtin:kuruma-kikko-triangle-sixth': buildKurumaKikkoTriangle,
   'builtin:mitsukude-sixth': buildMitsukude,
-  'builtin:rindo-sixth': buildRindo,
+  'builtin:matsuba-sixth': buildMatsuba,
+  'builtin:bishamon-kikko-a-sixth': buildBishamonKikkoA,
+  'builtin:bishamon-kikko-b-sixth': buildBishamonKikkoB,
+  'builtin:matsunoha-sixth': buildMatsunoha,
+  'builtin:rindo-cross-sixth': buildRindo,
   'builtin:sakura-sixth': buildSakura,
   'builtin:kawari-yae-zakura-sixth': buildKawariYaeZakura,
   'builtin:yae-zakura-kikko-sixth': buildYaeZakuraKikko,
@@ -85,6 +106,11 @@ const FACTORY_BY_ID = {
   'builtin:ryuso-asanoha-a-sixth': buildRyusoAsanohaA,
   'builtin:ryuso-asanoha-b-sixth': buildRyusoAsanohaB,
   'builtin:yae-asanoha-sixth': buildYaeAsanoha,
+  'builtin:futae-asanoha-sixth': buildFutaeAsanoha,
+  'builtin:kawari-asanoha-sixth': buildKawariAsanoha,
+  'builtin:warigiku-kikko-sixth': buildWarigikuKikko,
+  'builtin:oume-kikko-sixth': buildOumeKikko,
+  'builtin:seiun-kikko-sixth': buildSeiunKikko,
   'builtin:blank': buildBlank,
 };
 
@@ -103,6 +129,8 @@ function loadUserPatterns() {
     // rather than { length, unit }); carry the value over so they keep their
     // geometry instead of silently falling back to the default.
     return saved.map((p) => {
+      // Rindo was renamed Matsuba: saved patterns built on it keep working.
+      if (p?.basePatternId === 'builtin:rindo-sixth') p = { ...p, basePatternId: 'builtin:matsuba-sixth' };
       if (p?.patternParams && 'spacing' in p.patternParams) {
         const { spacing, ...rest } = p.patternParams;
         return { ...p, patternParams: { ...rest, inset: rest.inset ?? spacing } };
@@ -303,7 +331,7 @@ const usePatternStore = create((set, get) => ({
     if (!build) return template;
     const { cellWidth, gridStripWidth } = useGridStore.getState();
     const overrides = state.patternOverrides[id] || {};
-    const patternStripWidth = overrides.patternStripWidth ?? template.stripProperties?.[0]?.width ?? 4;
+    const patternStripWidth = overrides.patternStripWidth ?? template.stripProperties?.[0]?.width ?? 3;
     const material = overrides.material ?? template.stripProperties?.[0]?.material ?? 'hinoki';
     const finish = overrides.finish ?? template.stripProperties?.[0]?.finish ?? 'natural';
     const patternParams = { ...template.patternParams, ...overrides.params };
@@ -332,7 +360,7 @@ const usePatternStore = create((set, get) => ({
     const build = FACTORY_BY_ID[template.basePatternId ?? id];
     if (!build) return template;
     const { cellWidth, gridStripWidth } = useGridStore.getState();
-    const patternStripWidth = template.stripProperties?.[0]?.width ?? 4;
+    const patternStripWidth = template.stripProperties?.[0]?.width ?? 3;
     const material = template.stripProperties?.[0]?.material ?? 'hinoki';
     const finish = template.stripProperties?.[0]?.finish ?? 'natural';
     const computed = withTemplateIdentity(build({ cellWidth, gridStripWidth, patternStripWidth, patternParams: template.patternParams, material, finish }), template);
@@ -345,7 +373,7 @@ const usePatternStore = create((set, get) => ({
   getEffectiveStripWidth: (id) => {
     const state = get();
     const template = [...state.builtInPatterns, ...state.userPatterns].find(p => p.id === id);
-    return state.patternOverrides[id]?.patternStripWidth ?? template?.stripProperties?.[0]?.width ?? 4;
+    return state.patternOverrides[id]?.patternStripWidth ?? template?.stripProperties?.[0]?.width ?? 3;
   },
   getEffectiveMaterial: (id) => {
     const state = get();
@@ -507,7 +535,7 @@ const usePatternStore = create((set, get) => ({
   // compares an about-to-be-saved recipe against for every OTHER pattern.
   getTemplateRecipe: (template) => ({
     basePatternId: template.basePatternId ?? template.id,
-    patternStripWidth: template.stripProperties?.[0]?.width ?? 4,
+    patternStripWidth: template.stripProperties?.[0]?.width ?? 3,
     material: template.stripProperties?.[0]?.material ?? 'hinoki',
     finish: template.stripProperties?.[0]?.finish ?? 'natural',
     params: template.patternParams ?? {},

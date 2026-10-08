@@ -1,5 +1,5 @@
-import React, { useMemo, useEffect } from 'react'
-import { Line, Circle } from 'react-konva'
+import React, { useMemo, useEffect, useState } from 'react'
+import { Line, Circle, Label, Tag, Text } from 'react-konva'
 import PatternStrips from './PatternStrips.jsx'
 import GridBorderStrip from './GridBorderStrip.jsx'
 import useGridStore from '../../store/useGridStore.js'
@@ -18,6 +18,25 @@ const NOTCH_COLORS = {
   asymMiter: '#22d3ee',
   custom:  '#aaaaaa',
 }
+
+// Names shown in the joint-dot tooltip.
+const NOTCH_LABELS = {
+  halfLap: 'Half lap',
+  triLap: 'Tri lap',
+  dado: 'Dado',
+  star: 'Star',
+  miter: 'Miter',
+  taper: 'Taper',
+  butt: 'Butt',
+  vNotch: 'V-notch',
+  asymMiter: 'Asymmetric miter',
+  custom: 'Custom',
+}
+const notchLabel = (t) => NOTCH_LABELS[t] ?? t
+
+// Joints whose dots sit on top of each other (several strip ends meeting at
+// one point) are reported together, so the tooltip never hides one of them.
+const COINCIDENT_MM = 0.05
 
 // See scene/viewportMath.js for why world points get their y negated here.
 const flip = (p) => ({ x: p.x, y: -p.y })
@@ -46,6 +65,10 @@ export function getPatternBoundingBox(pattern, margin = 0) {
 }
 
 export default function PatternLayer({ pattern, activeLayers }) {
+  // Joint-dot tooltip: the dot under the cursor (Konva-flipped position) and
+  // the stage's scale when it was hovered, so the label can be drawn at a
+  // constant on-screen size whatever the zoom.
+  const [hoveredDot, setHoveredDot] = useState(null) // { x, y, scale, text } | null
   const gridStripWidth = useGridStore(s => s.gridStripWidth)
   const boundaryPoints = useMemo(() => {
     const { A, B, C } = pattern.vertices
@@ -78,6 +101,33 @@ export default function PatternLayer({ pattern, activeLayers }) {
     })
     useSelectionStore.getState().setSelectableStrips(items)
   }, [pattern])
+
+  // The label is sized for the zoom it appeared at, so drop it the moment the
+  // view moves (wheel zoom or a pan drag) rather than let it go stale.
+  useEffect(() => {
+    if (!hoveredDot) return undefined
+    const stage = hoveredDot.stage
+    const clear = () => setHoveredDot(null)
+    stage.on('wheel.jointTip dragstart.jointTip', clear)
+    return () => stage.off('wheel.jointTip dragstart.jointTip')
+  }, [hoveredDot])
+  // Nothing to show once the dots are switched off or the pattern changes.
+  useEffect(() => { setHoveredDot(null) }, [activeLayers.jointDots, pattern])
+
+  const showTip = (e, joint) => {
+    const stage = e.target.getStage()
+    const here = joint.position
+    const text = [...new Set(pattern.joints
+      .filter((o) => Math.hypot(o.position.x - here.x, o.position.y - here.y) < COINCIDENT_MM)
+      .map((o) => notchLabel(o.notchType)))].join(' / ')
+    const p = flip(here)
+    stage.container().style.cursor = 'help'
+    setHoveredDot({ x: p.x, y: p.y, scale: stage.scaleX(), text, stage })
+  }
+  const hideTip = (e) => {
+    e.target.getStage().container().style.cursor = ''
+    setHoveredDot(null)
+  }
 
   return (
     <>
@@ -117,10 +167,34 @@ export default function PatternLayer({ pattern, activeLayers }) {
             y={p.y}
             radius={0.75}
             fill={NOTCH_COLORS[j.notchType] ?? '#aaaaaa'}
-            listening={false}
+            // A fat invisible ring (14 screen px, whatever the zoom) so the
+            // tiny dot is easy to hover.
+            stroke="transparent"
+            strokeWidth={1}
+            strokeScaleEnabled={false}
+            hitStrokeWidth={14}
+            onMouseEnter={(e) => showTip(e, j)}
+            onMouseLeave={hideTip}
           />
         )
       })}
+
+      {activeLayers.jointDots && hoveredDot && (
+        // Counter-scaled so the label is a constant size on screen; offset up
+        // and to the right of the dot (offsets are in screen px).
+        <Label
+          x={hoveredDot.x}
+          y={hoveredDot.y}
+          scaleX={1 / hoveredDot.scale}
+          scaleY={1 / hoveredDot.scale}
+          offsetX={-10}
+          offsetY={30}
+          listening={false}
+        >
+          <Tag fill="#1f2937" cornerRadius={4} opacity={0.94} />
+          <Text text={hoveredDot.text} fontSize={12} fontFamily="sans-serif" fill="#ffffff" padding={6} />
+        </Label>
+      )}
     </>
   )
 }

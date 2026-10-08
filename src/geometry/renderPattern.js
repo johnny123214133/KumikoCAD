@@ -45,7 +45,7 @@ function computeUnorderedStripRenderData(pattern) {
   return pattern.strips.map((strip) => {
     const pt = pattern.pieceTemplates.find(p => p.stripId === strip.id);
     const sp = pt ? spMap[pt.stripPropertyId] : pattern.stripProperties[0];
-    const width = sp?.width ?? 4;
+    const width = sp?.width ?? 3;
     const color = sp?.color ?? '#e8d5b0';
     // Darkened per-strip rather than one fixed color, so this keeps making
     // sense once strip colors vary by wood/finish choice — see the request
@@ -84,9 +84,12 @@ function computeUnorderedStripRenderData(pattern) {
     // end, last = end end).
     const pairCuts = localised.filter(c => c.notchType === 'asymMiter');
     const single = localised.filter(c => c.notchType !== 'asymMiter');
-    const pairAtStart = pairCuts.length > 0 && pairCuts.every(c => c.localX < length / 2);
-    const pairAtEnd = pairCuts.length > 0 && !pairAtStart;
-    const pair = pairCuts.map(c => ({ x: c.localX, angle: c.angle }));
+    const asPair = (cs) => cs.map(c => ({ x: c.localX, angle: c.angle }));
+    // Either end — or both — may be a pair.
+    const startPair = pairCuts.filter(c => c.localX < length / 2);
+    const endPair = pairCuts.filter(c => c.localX >= length / 2);
+    const pairAtStart = startPair.length > 0;
+    const pairAtEnd = endPair.length > 0;
 
     const startCut = pairAtStart ? null : single[0];
     const endCut = pairAtEnd ? null : single[single.length - 1];
@@ -97,7 +100,7 @@ function computeUnorderedStripRenderData(pattern) {
 
     const points = buildStripLocalPoints(
       length, width / 2, startAngle, endAngle, startNotchType, endNotchType,
-      pairAtStart ? pair : undefined, pairAtEnd ? pair : undefined,
+      pairAtStart ? asPair(startPair) : undefined, pairAtEnd ? asPair(endPair) : undefined,
     );
     // See PatternStrips.jsx's StripBody comment — flipping y here AND
     // negating rotation/position below are both required together.

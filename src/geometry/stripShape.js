@@ -29,7 +29,7 @@ export function buildStripLocalPoints(length, halfWidth, startAngleDeg, endAngle
   const pts = [];
 
   // An end made of TWO cuts ('asymMiter'): the strip stops against two
-  // different faces at once — e.g. Rindo's leaning strips, one cut flush with
+  // different faces at once — e.g. Matsuba's leaning strips, one cut flush with
   // the centre strip's face, the other with the grid strip's face. Each cut is
   // a line through its own point on the centreline; the end is whatever lies
   // inside both, so its edge points come from whichever line binds at each

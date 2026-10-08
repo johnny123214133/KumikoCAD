@@ -165,3 +165,27 @@ html, body, #root {
   border-radius: 0;
 }
 .list-group-flush > .pattern-card:last-child > .list-group-item { border-bottom-width: 0; }
+
+
+/* Draggable divider between the Patterns and Recently Used sections (left panel). */
+.split-handle {
+  flex: 0 0 auto;
+  height: 13px;
+  margin: 2px 0;
+  cursor: row-resize;
+  position: relative;
+  touch-action: none;
+}
+.split-handle::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 6px;
+  height: 1px;
+  background: var(--bs-border-color, #dee2e6);
+}
+.split-handle:hover::before, .split-handle.dragging::before {
+  height: 3px; top: 5px;
+  border-radius: 2px;
+  background: var(--kumiko-accent, #0d6efd);
+  opacity: 0.6;
+}

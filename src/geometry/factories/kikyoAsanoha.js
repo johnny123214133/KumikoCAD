@@ -21,7 +21,7 @@ import { SECONDARY_STRIP_WIDTH } from './kawariYaeZakura.js';
 //     inradius less half the grid strip width).
 export const buildKikyoAsanoha = definePattern({
   id: 'builtin:kikyo-asanoha-sixth',
-  name: 'Kikyo-asanoha — sixth',
+  name: 'Kikyo-asanoha',
   paramDefs: [
     SECONDARY_STRIP_WIDTH,
     {

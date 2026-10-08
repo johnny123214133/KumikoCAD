@@ -4,7 +4,7 @@ import { SECONDARY_STRIP_WIDTH } from './kawariYaeZakura.js';
 
 // Yae-asanoha: Tsuno-asanoha (Asanoha's strips carried past the centroid,
 // crossing there in a three-strip lap) plus six secondary strips, two from
-// each cell corner, in the manner of Rindo's leaning strips.
+// each cell corner, in the manner of Matsuba's leaning strips.
 //
 // A secondary strip starts beside the corner's main strip, where that strip's
 // taper corner meets the grid strip, and runs across to the stub of one of the
@@ -22,7 +22,7 @@ import { SECONDARY_STRIP_WIDTH } from './kawariYaeZakura.js';
 //     between the secondary and the stub's axis (the notch's half-angle). X
 //     depends on θ and θ on X, so X is found by iteration.
 //   * at T the secondary is cut twice, flush with the corner's main strip's side
-//     face and with the grid strip's face — Rindo's asymmetric miter.
+//     face and with the grid strip's face — Matsuba's asymmetric miter.
 // Both secondaries of a pair see the same geometry mirrored, so they share X.
 //
 // Parameters: secondaryStripWidth (as the yae-zakura patterns), then stubLength
@@ -39,7 +39,7 @@ const cross = (p, q) => p.x * q.y - p.y * q.x;
 // Arrowhead geometry for stub length `s`: T is where a secondary starts (any
 // one of the six — they're all alike up to symmetry), u the stub's direction,
 // G the centroid. Returns null when the secondary would have to double back.
-function arrowhead(G, u, T, hw, w2, s) {
+export function arrowhead(G, u, T, hw, w2, s) {
   const rel = sub(T, G);
   const a = dot(rel, u), h = Math.abs(cross(u, rel));
   let tau = s;
@@ -81,7 +81,7 @@ const feasible = (cell, hw, w2, s, inr) => {
 
 export const buildYaeAsanoha = definePattern({
   id: 'builtin:yae-asanoha-sixth',
-  name: 'Yae-asanoha — sixth',
+  name: 'Yae-asanoha',
   paramDefs: [
     SECONDARY_STRIP_WIDTH,
     {

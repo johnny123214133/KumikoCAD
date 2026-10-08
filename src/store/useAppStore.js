@@ -16,7 +16,27 @@ function loadPanelWidth(key) {
 }
 function clampPanelWidth(w) { return Math.min(PANEL_WIDTH_MAX, Math.max(PANEL_WIDTH_MIN, w)); }
 
+// Left-panel library layout: how the pattern list is sorted, whether the Recently
+// Used accordion is open, and how tall that section is (set by dragging the divider
+// above it). Persisted so they survive reloads like the panel widths do.
+const SORT_MODES = ['default', 'alpha', 'complexity'];
+function loadSetting(key, fallback, ok) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw == null) return fallback;
+    const v = JSON.parse(raw);
+    return ok(v) ? v : fallback;
+  } catch { return fallback; }
+}
+function saveSetting(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* ignore */ } }
+
 const useAppStore = create((set) => ({
+  patternSort: loadSetting('kumiko_patternSort', 'default', (v) => SORT_MODES.includes(v)),
+  recentOpen: loadSetting('kumiko_recentOpen', true, (v) => typeof v === 'boolean'),
+  recentHeight: loadSetting('kumiko_recentHeight', 180, (v) => Number.isFinite(v) && v >= 0),
+  setPatternSort: (mode) => { if (SORT_MODES.includes(mode)) { saveSetting('kumiko_patternSort', mode); set({ patternSort: mode }); } },
+  setRecentOpen: (open) => { saveSetting('kumiko_recentOpen', !!open); set({ recentOpen: !!open }); },
+  setRecentHeight: (h) => { const v = Math.max(0, Math.round(h)); saveSetting('kumiko_recentHeight', v); set({ recentHeight: v }); },
   workspace: 'pattern-editor',
   leftPanelOpen: true,
   rightPanelOpen: true,

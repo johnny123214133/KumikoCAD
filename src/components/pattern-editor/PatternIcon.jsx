@@ -33,7 +33,7 @@ export default function PatternIcon({ pattern, size = 28 }) {
 
   const dataUrl = useMemo(() => {
     const computed = getCanonicalPattern(pattern.id)
-    const stripWidth = computed.stripProperties?.[0]?.width ?? 4
+    const stripWidth = computed.stripProperties?.[0]?.width ?? 3
     // Every distinct color in use, not just stripProperties[0] — a per-strip
     // wood/finish override (usePatternStore's applyStripColorOverrides) adds
     // ADDITIONAL stripProperties entries beyond index 0, so keying on [0]

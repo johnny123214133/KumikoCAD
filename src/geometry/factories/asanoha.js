@@ -4,7 +4,7 @@ import { definePattern, buildSpokes } from './_shared.js';
 // taper joints at both the vertex (boundary) end and the shared centroid end.
 export const buildAsanoha = definePattern({
   id: 'builtin:asanoha-sixth',
-  name: 'Asanoha — sixth',
+  name: 'Asanoha',
   meta: {
     difficulty: 'advanced',
     tags: ['six-fold', 'traditional'],

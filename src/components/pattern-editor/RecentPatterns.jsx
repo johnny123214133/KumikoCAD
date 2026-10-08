@@ -32,10 +32,26 @@ export default function RecentPatterns() {
     }
   }
 
+  const recentOpen = useAppStore(s => s.recentOpen)
+  const setRecentOpen = useAppStore(s => s.setRecentOpen)
+
+  // Accordion: the header toggles the list. When open, the section fills the height
+  // LeftPanel gives it (set by dragging the divider above it) and scrolls inside it.
   return (
-    <div>
-      <div className="fw-semibold small text-uppercase text-muted mb-2" style={{ letterSpacing: '0.05em', fontSize: '11px' }}>Recently Used</div>
-      <div className="list-group list-group-flush">
+    <div className="d-flex flex-column" style={{ minHeight: 0, height: '100%' }}>
+      <button
+        type="button"
+        className="btn btn-link p-0 d-flex align-items-center gap-1 text-start text-decoration-none flex-shrink-0"
+        style={{ color: 'inherit' }}
+        aria-expanded={recentOpen}
+        aria-controls="recent-patterns-list"
+        onClick={() => setRecentOpen(!recentOpen)}
+      >
+        <span className="text-muted" style={{ fontSize: '10px', width: '10px', display: 'inline-block' }} aria-hidden="true">{recentOpen ? '▾' : '▸'}</span>
+        <span className="fw-semibold small text-uppercase text-muted" style={{ letterSpacing: '0.05em', fontSize: '11px' }}>Recently Used</span>
+      </button>
+      {recentOpen && (
+      <div id="recent-patterns-list" className="list-group list-group-flush mt-2 overflow-auto" style={{ minHeight: 0, flex: '1 1 auto' }}>
         {recent.map(p => (
           <div key={p.id} className="pattern-card">
             <button
@@ -50,6 +66,7 @@ export default function RecentPatterns() {
           </div>
         ))}
       </div>
+      )}
       {deleteDialog}
     </div>
   )

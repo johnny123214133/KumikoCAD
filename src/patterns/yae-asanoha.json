@@ -1,12 +1,12 @@
 {
   "id": "builtin:yae-asanoha-sixth",
-  "name": "Yae-asanoha — sixth",
+  "name": "Yae-asanoha",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
   "patternParams": {
     "secondaryStripWidth": {
-      "length": 3,
+      "length": 2,
       "unit": "mm"
     },
     "stubLength": {
@@ -17,7 +17,7 @@
   "stripProperties": [
     {
       "id": "sp0",
-      "width": 4,
+      "width": 3,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",
@@ -27,7 +27,7 @@
     },
     {
       "id": "sp1",
-      "width": 3,
+      "width": 2,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",
@@ -54,7 +54,7 @@
     "x": 37.5,
     "y": 21.6506
   },
-  "_note": "Reference snapshot generated from the yae-asanoha factory at cellWidth 75, gridStripWidth 0, patternStripWidth 4. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "_note": "Reference snapshot generated from the yae-asanoha factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
   "strips": [
     {
       "id": "s0",
@@ -104,7 +104,7 @@
             "x": 44.4282,
             "y": 25.6506
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -148,7 +148,7 @@
             "x": 30.5718,
             "y": 25.6506
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -192,7 +192,7 @@
             "x": 37.5,
             "y": 13.6506
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -201,42 +201,42 @@
     {
       "id": "s3",
       "start": {
-        "x": 73,
-        "y": 3.4641
+        "x": 73.5,
+        "y": 2.5981
       },
       "end": {
-        "x": 45.8088,
-        "y": 26.4477
+        "x": 45.3501,
+        "y": 26.1829
       },
-      "orientation": 2.4399,
+      "orientation": 2.4442,
       "cuts": [
         {
           "jointId": "j8",
           "position": {
-            "x": 73,
-            "y": 3.4641
+            "x": 73.5,
+            "y": 2.5981
           },
-          "angle": 10.2065,
+          "angle": 9.9572,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j8",
           "position": {
-            "x": 73,
-            "y": 3.4641
+            "x": 73.5,
+            "y": 2.5981
           },
-          "angle": 160.2065,
+          "angle": 159.9572,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j7",
           "position": {
-            "x": 45.8088,
-            "y": 26.4477
+            "x": 45.3501,
+            "y": 26.1829
           },
-          "angle": 70.2065,
+          "angle": 69.9572,
           "depth": 1,
           "role": "end"
         }
@@ -245,42 +245,42 @@
     {
       "id": "s4",
       "start": {
-        "x": 39.5,
-        "y": 61.4878
+        "x": 39,
+        "y": 62.3538
       },
       "end": {
-        "x": 45.8088,
-        "y": 26.4477
+        "x": 45.3501,
+        "y": 26.1829
       },
-      "orientation": -1.3927,
+      "orientation": -1.397,
       "cuts": [
         {
           "jointId": "j9",
           "position": {
-            "x": 39.5,
-            "y": 61.4878
+            "x": 39,
+            "y": 62.3538
           },
-          "angle": 169.7935,
+          "angle": 170.0428,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j9",
           "position": {
-            "x": 39.5,
-            "y": 61.4878
+            "x": 39,
+            "y": 62.3538
           },
-          "angle": 19.7935,
+          "angle": 20.0428,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j7",
           "position": {
-            "x": 45.8088,
-            "y": 26.4477
+            "x": 45.3501,
+            "y": 26.1829
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -289,42 +289,42 @@
     {
       "id": "s5",
       "start": {
-        "x": 35.5,
-        "y": 61.4878
+        "x": 36,
+        "y": 62.3538
       },
       "end": {
-        "x": 29.1912,
-        "y": 26.4477
+        "x": 29.6499,
+        "y": 26.1829
       },
-      "orientation": -1.7489,
+      "orientation": -1.7446,
       "cuts": [
         {
           "jointId": "j11",
           "position": {
-            "x": 35.5,
-            "y": 61.4878
+            "x": 36,
+            "y": 62.3538
           },
-          "angle": 10.2065,
+          "angle": 9.9572,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j11",
           "position": {
-            "x": 35.5,
-            "y": 61.4878
+            "x": 36,
+            "y": 62.3538
           },
-          "angle": 160.2065,
+          "angle": 159.9572,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j10",
           "position": {
-            "x": 29.1912,
-            "y": 26.4477
+            "x": 29.6499,
+            "y": 26.1829
           },
-          "angle": 70.2065,
+          "angle": 69.9572,
           "depth": 1,
           "role": "end"
         }
@@ -333,42 +333,42 @@
     {
       "id": "s6",
       "start": {
-        "x": 2,
-        "y": 3.4641
+        "x": 1.5,
+        "y": 2.5981
       },
       "end": {
-        "x": 29.1912,
-        "y": 26.4477
+        "x": 29.6499,
+        "y": 26.1829
       },
-      "orientation": 0.7017,
+      "orientation": 0.6974,
       "cuts": [
         {
           "jointId": "j12",
           "position": {
-            "x": 2,
-            "y": 3.4641
+            "x": 1.5,
+            "y": 2.5981
           },
-          "angle": 169.7935,
+          "angle": 170.0428,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j12",
           "position": {
-            "x": 2,
-            "y": 3.4641
+            "x": 1.5,
+            "y": 2.5981
           },
-          "angle": 19.7935,
+          "angle": 20.0428,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j10",
           "position": {
-            "x": 29.1912,
-            "y": 26.4477
+            "x": 29.6499,
+            "y": 26.1829
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -377,32 +377,32 @@
     {
       "id": "s7",
       "start": {
-        "x": 4,
+        "x": 3,
         "y": 0
       },
       "end": {
         "x": 37.5,
-        "y": 12.0564
+        "y": 12.5862
       },
-      "orientation": 0.3455,
+      "orientation": 0.3498,
       "cuts": [
         {
           "jointId": "j14",
           "position": {
-            "x": 4,
+            "x": 3,
             "y": 0
           },
-          "angle": 10.2065,
+          "angle": 9.9572,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j14",
           "position": {
-            "x": 4,
+            "x": 3,
             "y": 0
           },
-          "angle": 160.2065,
+          "angle": 159.9572,
           "depth": 1,
           "role": "end"
         },
@@ -410,9 +410,9 @@
           "jointId": "j13",
           "position": {
             "x": 37.5,
-            "y": 12.0564
+            "y": 12.5862
           },
-          "angle": 70.2065,
+          "angle": 69.9572,
           "depth": 1,
           "role": "end"
         }
@@ -421,32 +421,32 @@
     {
       "id": "s8",
       "start": {
-        "x": 71,
+        "x": 72,
         "y": 0
       },
       "end": {
         "x": 37.5,
-        "y": 12.0564
+        "y": 12.5862
       },
-      "orientation": 2.7961,
+      "orientation": 2.7918,
       "cuts": [
         {
           "jointId": "j15",
           "position": {
-            "x": 71,
+            "x": 72,
             "y": 0
           },
-          "angle": 169.7935,
+          "angle": 170.0428,
           "depth": 1,
           "role": "end"
         },
         {
           "jointId": "j15",
           "position": {
-            "x": 71,
+            "x": 72,
             "y": 0
           },
-          "angle": 19.7935,
+          "angle": 20.0428,
           "depth": 1,
           "role": "end"
         },
@@ -454,9 +454,9 @@
           "jointId": "j13",
           "position": {
             "x": 37.5,
-            "y": 12.0564
+            "y": 12.5862
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -517,8 +517,8 @@
     {
       "id": "j8",
       "position": {
-        "x": 73,
-        "y": 3.4641
+        "x": 73.5,
+        "y": 2.5981
       },
       "members": [
         {
@@ -531,8 +531,8 @@
     {
       "id": "j9",
       "position": {
-        "x": 39.5,
-        "y": 61.4878
+        "x": 39,
+        "y": 62.3538
       },
       "members": [
         {
@@ -545,8 +545,8 @@
     {
       "id": "j7",
       "position": {
-        "x": 45.8088,
-        "y": 26.4477
+        "x": 45.3501,
+        "y": 26.1829
       },
       "members": [
         {
@@ -591,8 +591,8 @@
     {
       "id": "j11",
       "position": {
-        "x": 35.5,
-        "y": 61.4878
+        "x": 36,
+        "y": 62.3538
       },
       "members": [
         {
@@ -605,8 +605,8 @@
     {
       "id": "j12",
       "position": {
-        "x": 2,
-        "y": 3.4641
+        "x": 1.5,
+        "y": 2.5981
       },
       "members": [
         {
@@ -619,8 +619,8 @@
     {
       "id": "j10",
       "position": {
-        "x": 29.1912,
-        "y": 26.4477
+        "x": 29.6499,
+        "y": 26.1829
       },
       "members": [
         {
@@ -665,7 +665,7 @@
     {
       "id": "j14",
       "position": {
-        "x": 4,
+        "x": 3,
         "y": 0
       },
       "members": [
@@ -679,7 +679,7 @@
     {
       "id": "j15",
       "position": {
-        "x": 71,
+        "x": 72,
         "y": 0
       },
       "members": [
@@ -694,7 +694,7 @@
       "id": "j13",
       "position": {
         "x": 37.5,
-        "y": 12.0564
+        "y": 12.5862
       },
       "members": [
         {
@@ -747,7 +747,7 @@
             "x": 51.3013,
             "y": 0
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -781,7 +781,7 @@
             "x": 51.3013,
             "y": 0
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -815,7 +815,7 @@
             "x": 51.3013,
             "y": 0
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -831,7 +831,7 @@
             "x": 0,
             "y": 0
           },
-          "angle": 10.2065,
+          "angle": 9.9572,
           "depth": 1,
           "role": "end"
         },
@@ -840,16 +840,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 160.2065,
+          "angle": 159.9572,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 35.6035,
+            "x": 36.7241,
             "y": 0
           },
-          "angle": 70.2065,
+          "angle": 69.9572,
           "depth": 1,
           "role": "end"
         }
@@ -865,7 +865,7 @@
             "x": 0,
             "y": 0
           },
-          "angle": 169.7935,
+          "angle": 170.0428,
           "depth": 1,
           "role": "end"
         },
@@ -874,16 +874,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 19.7935,
+          "angle": 20.0428,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 35.6035,
+            "x": 36.7241,
             "y": 0
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -899,7 +899,7 @@
             "x": 0,
             "y": 0
           },
-          "angle": 10.2065,
+          "angle": 9.9572,
           "depth": 1,
           "role": "end"
         },
@@ -908,16 +908,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 160.2065,
+          "angle": 159.9572,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 35.6035,
+            "x": 36.7241,
             "y": 0
           },
-          "angle": 70.2065,
+          "angle": 69.9572,
           "depth": 1,
           "role": "end"
         }
@@ -933,7 +933,7 @@
             "x": 0,
             "y": 0
           },
-          "angle": 169.7935,
+          "angle": 170.0428,
           "depth": 1,
           "role": "end"
         },
@@ -942,16 +942,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 19.7935,
+          "angle": 20.0428,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 35.6035,
+            "x": 36.7241,
             "y": 0
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
@@ -967,7 +967,7 @@
             "x": 0,
             "y": 0
           },
-          "angle": 10.2065,
+          "angle": 9.9572,
           "depth": 1,
           "role": "end"
         },
@@ -976,16 +976,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 160.2065,
+          "angle": 159.9572,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 35.6035,
+            "x": 36.7241,
             "y": 0
           },
-          "angle": 70.2065,
+          "angle": 69.9572,
           "depth": 1,
           "role": "end"
         }
@@ -1001,7 +1001,7 @@
             "x": 0,
             "y": 0
           },
-          "angle": 169.7935,
+          "angle": 170.0428,
           "depth": 1,
           "role": "end"
         },
@@ -1010,16 +1010,16 @@
             "x": 0,
             "y": 0
           },
-          "angle": 19.7935,
+          "angle": 20.0428,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 35.6035,
+            "x": 36.7241,
             "y": 0
           },
-          "angle": 109.7935,
+          "angle": 110.0428,
           "depth": 1,
           "role": "end"
         }
