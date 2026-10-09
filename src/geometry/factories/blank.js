@@ -5,7 +5,7 @@ import { definePattern } from './_shared.js';
 // preview, which draws pattern.vertices directly, stays correctly sized.
 export const buildBlank = definePattern({
   id: 'builtin:blank',
-  name: 'Mitsukude A',
+  name: 'Mitsukude A (Blank)',
   meta: {
     difficulty: 'n/a',
     tags: ['utility'],

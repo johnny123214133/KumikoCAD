@@ -329,13 +329,15 @@ export function buildLapTriangle(cell, { height, stackOrder = ['s1', 's0', 's2']
 // sp0 with that width — same wood/finish), and those strips' pieceTemplates
 // point at it; the renderer already resolves width per strip that way.
 //
+// `maxStripWidth` / `defaultStripWidth` (mm, optional) cap and seed the regular strip width.
+//
 // `paramDefs` declares the pattern's user-adjustable parameters (see
 // geometry/params.js). `params` passed to build() holds each one resolved to
 // mm and clamped to its current valid range; the returned pattern's
 // `patternParams` reports those same effective values. The factory function
 // carries `.paramDefs` so the store/UI can discover a pattern's parameters
 // without a separate registry.
-export function definePattern({ id, name, meta, paramDefs = [], build }) {
+export function definePattern({ id, name, meta, paramDefs = [], build, maxStripWidth, defaultStripWidth }) {
   function factory({
     cellWidth, gridStripWidth = 0, patternStripWidth = 3, patternParams = {},
     material = 'hinoki', finish = 'natural',
@@ -376,6 +378,11 @@ export function definePattern({ id, name, meta, paramDefs = [], build }) {
   }
   factory.patternId = id;
   factory.paramDefs = paramDefs;
+  // Optional per-pattern limits on the regular strip width (the curved patterns' strips must
+  // stay thin enough to bend): the largest width the Inspector/store allow, and the width the
+  // pattern's saved JSON starts at.
+  if (maxStripWidth != null) factory.maxStripWidth = maxStripWidth;
+  if (defaultStripWidth != null) factory.defaultStripWidth = defaultStripWidth;
   return factory;
 }
 

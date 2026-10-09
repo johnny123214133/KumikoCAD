@@ -5,7 +5,7 @@
 // One source of truth for "how a strip's cut shape becomes a placed
 // polygon" — see PatternStrips.jsx's StripBody for the Y-flip/rotation-sign
 // reasoning this carries over unchanged.
-import { buildStripLocalPoints } from './stripShape.js';
+import { buildStripLocalPoints, buildCurvedStripLocalPoints } from './stripShape.js';
 import { darkenHex } from './color.js';
 
 // Paint order for the strips, bottom first. Strips are normally painted in
@@ -98,9 +98,26 @@ function computeUnorderedStripRenderData(pattern) {
     const startNotchType = pairAtStart ? 'asymMiter' : startCut?.notchType;
     const endNotchType = pairAtEnd ? 'asymMiter' : endCut?.notchType;
 
-    const points = buildStripLocalPoints(
+    // Interior V-notches ('notch' cuts, e.g. Sakura A): the cut's position is the notch apex,
+    // `notchSide` which face of the strip ('left' / 'right' of its direction) it is cut into.
+    const notches = strip.cuts.filter(c => c.role === 'notch').map((c) => {
+      const px = c.position.x - strip.start.x, py = c.position.y - strip.start.y
+      const x = px * unitDx + py * unitDy
+      const yLeft = -px * unitDy + py * unitDx // signed offset to the strip's left (y-up world)
+      const side = c.notchSide === 'right' ? -1 : 1
+      const depth = width / 2 - side * yLeft
+      return { x, side, depth, halfOpen: depth * Math.tan(((c.angle / 2) * Math.PI) / 180) }
+    });
+    // A curved strip (strip.curve = { sagitta }, see curve.js): the outline is the bent band
+    // trimmed by all of its end cuts, whatever their joint types.
+    const curvedCuts = strip.curve ? endCuts.map((c) => {
+      const px = c.position.x - strip.start.x, py = c.position.y - strip.start.y
+      const x = px * unitDx + py * unitDy
+      return { x, y: -px * unitDy + py * unitDx, angle: c.angle, atStart: x < length / 2 }
+    }) : null;
+    const points = strip.curve ? buildCurvedStripLocalPoints(length, width / 2, strip.curve, curvedCuts) : buildStripLocalPoints(
       length, width / 2, startAngle, endAngle, startNotchType, endNotchType,
-      pairAtStart ? asPair(startPair) : undefined, pairAtEnd ? asPair(endPair) : undefined,
+      pairAtStart ? asPair(startPair) : undefined, pairAtEnd ? asPair(endPair) : undefined, notches,
     );
     // See PatternStrips.jsx's StripBody comment — flipping y here AND
     // negating rotation/position below are both required together.

@@ -1,6 +1,6 @@
 {
-  "id": "builtin:sakura-sixth",
-  "name": "Sakura B",
+  "id": "builtin:sakura-a-sixth",
+  "name": "Sakura A",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
@@ -54,13 +54,13 @@
     "x": 37.5,
     "y": 21.6506
   },
-  "_note": "Reference snapshot generated from the sakura factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "_note": "Reference snapshot generated from the sakura-a factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
   "strips": [
     {
       "id": "s0",
       "start": {
         "x": 37.5,
-        "y": 50.9519
+        "y": 53.55
       },
       "end": {
         "x": 37.5,
@@ -72,9 +72,9 @@
           "jointId": "j1",
           "position": {
             "x": 37.5,
-            "y": 50.9519
+            "y": 53.55
           },
-          "angle": 90,
+          "angle": 30,
           "depth": 1,
           "role": "end"
         },
@@ -93,8 +93,8 @@
     {
       "id": "s1",
       "start": {
-        "x": 12.1244,
-        "y": 7
+        "x": 9.8744,
+        "y": 5.701
       },
       "end": {
         "x": 37.5,
@@ -105,10 +105,10 @@
         {
           "jointId": "j2",
           "position": {
-            "x": 12.1244,
-            "y": 7
+            "x": 9.8744,
+            "y": 5.701
           },
-          "angle": 90,
+          "angle": 30,
           "depth": 1,
           "role": "end"
         },
@@ -127,8 +127,8 @@
     {
       "id": "s2",
       "start": {
-        "x": 62.8756,
-        "y": 7
+        "x": 65.1256,
+        "y": 5.701
       },
       "end": {
         "x": 37.5,
@@ -139,10 +139,10 @@
         {
           "jointId": "j3",
           "position": {
-            "x": 62.8756,
-            "y": 7
+            "x": 65.1256,
+            "y": 5.701
           },
-          "angle": 90,
+          "angle": 30,
           "depth": 1,
           "role": "end"
         },
@@ -189,6 +189,17 @@
           "angle": 120,
           "depth": 1,
           "role": "end"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 37.5,
+            "y": 53.55
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "notch",
+          "notchSide": "right"
         }
       ]
     },
@@ -223,6 +234,17 @@
           "angle": 120,
           "depth": 1,
           "role": "end"
+        },
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 9.8744,
+            "y": 5.701
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "notch",
+          "notchSide": "right"
         }
       ]
     },
@@ -257,6 +279,17 @@
           "angle": 120,
           "depth": 1,
           "role": "end"
+        },
+        {
+          "jointId": "j3",
+          "position": {
+            "x": 65.1256,
+            "y": 5.701
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "notch",
+          "notchSide": "right"
         }
       ]
     }
@@ -288,43 +321,55 @@
       "id": "j1",
       "position": {
         "x": 37.5,
-        "y": 50.9519
+        "y": 53.55
       },
       "members": [
         {
           "stripId": "s0",
           "role": "end"
+        },
+        {
+          "stripId": "s3",
+          "role": "notch"
         }
       ],
-      "notchType": "butt"
+      "notchType": "taper"
     },
     {
       "id": "j2",
       "position": {
-        "x": 12.1244,
-        "y": 7
+        "x": 9.8744,
+        "y": 5.701
       },
       "members": [
         {
           "stripId": "s1",
           "role": "end"
+        },
+        {
+          "stripId": "s4",
+          "role": "notch"
         }
       ],
-      "notchType": "butt"
+      "notchType": "taper"
     },
     {
       "id": "j3",
       "position": {
-        "x": 62.8756,
-        "y": 7
+        "x": 65.1256,
+        "y": 5.701
       },
       "members": [
         {
           "stripId": "s2",
           "role": "end"
+        },
+        {
+          "stripId": "s5",
+          "role": "notch"
         }
       ],
-      "notchType": "butt"
+      "notchType": "taper"
     },
     {
       "id": "j4",
@@ -422,13 +467,13 @@
             "x": 0,
             "y": 0
           },
-          "angle": 90,
+          "angle": 30,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 29.3013,
+            "x": 31.8993,
             "y": 0
           },
           "angle": 120,
@@ -447,13 +492,13 @@
             "x": 0,
             "y": 0
           },
-          "angle": 90,
+          "angle": 30,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 29.3013,
+            "x": 31.8993,
             "y": 0
           },
           "angle": 120,
@@ -472,13 +517,13 @@
             "x": 0,
             "y": 0
           },
-          "angle": 90,
+          "angle": 30,
           "depth": 1,
           "role": "end"
         },
         {
           "position": {
-            "x": 29.3013,
+            "x": 31.8993,
             "y": 0
           },
           "angle": 120,
@@ -509,6 +554,15 @@
           "angle": 120,
           "depth": 1,
           "role": "end"
+        },
+        {
+          "position": {
+            "x": 6.3509,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "notch"
         }
       ]
     },
@@ -534,6 +588,15 @@
           "angle": 120,
           "depth": 1,
           "role": "end"
+        },
+        {
+          "position": {
+            "x": 6.3509,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "notch"
         }
       ]
     },
@@ -559,6 +622,15 @@
           "angle": 120,
           "depth": 1,
           "role": "end"
+        },
+        {
+          "position": {
+            "x": 6.3509,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "notch"
         }
       ]
     }
@@ -569,7 +641,7 @@
       "six-fold",
       "traditional"
     ],
-    "description": "Three thick strips, each parallel to a cell edge and set near the opposite corner, plus three thin spokes from the centre that butt against the middle of each thick strip.",
+    "description": "Three thick strips, each parallel to a cell edge and set near the opposite corner, plus three thin spokes from the centre that end in a 60° point fitted into a V-notch in the middle of each thick strip.",
     "thumbnail": null
   }
 }

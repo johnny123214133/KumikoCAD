@@ -1,3 +1,4 @@
+import { curveLength } from '../../geometry/curve.js'
 import React, { useState, useEffect } from 'react'
 import { toast } from 'react-toastify'
 import usePatternStore from '../../store/usePatternStore.js'
@@ -34,7 +35,9 @@ function describeCutRole(role) {
 }
 
 function StripCard({ strip, pattern }) {
-  const length = dist(strip.start, strip.end)
+  const chord = dist(strip.start, strip.end)
+  // A bent strip's length is its arc length (the number to cut it to); the chord is how far apart its ends are.
+  const length = strip.curve ? curveLength(chord, strip.curve) : chord
   const mid = midpoint(strip.start, strip.end)
   return (
     <div className="border rounded p-2 mb-2" style={{ fontSize: '12px' }}>
@@ -42,6 +45,9 @@ function StripCard({ strip, pattern }) {
       <table className="table table-sm table-borderless mb-2" style={{ fontSize: '11px' }}>
         <tbody>
           <tr><td className="text-muted py-0 pe-2">Length</td><td className="py-0">{length.toFixed(2)} mm</td></tr>
+          {strip.curve?.lead > 0 && <tr><td className="text-muted py-0 pe-2">Straight ends</td><td className="py-0">{strip.curve.lead.toFixed(2)} mm each</td></tr>}
+          {strip.curve?.startLead > 0 && <tr><td className="text-muted py-0 pe-2">Straight end</td><td className="py-0">{strip.curve.startLead.toFixed(2)} mm</td></tr>}
+          {strip.curve && <tr><td className="text-muted py-0 pe-2">Chord / bow</td><td className="py-0">{chord.toFixed(2)} mm / {Math.abs(strip.curve.sagitta).toFixed(2)} mm</td></tr>}
           <tr><td className="text-muted py-0 pe-2">Start</td><td className="py-0">{fmtPt(strip.start)}</td></tr>
           <tr><td className="text-muted py-0 pe-2">End</td><td className="py-0">{fmtPt(strip.end)}</td></tr>
           <tr><td className="text-muted py-0 pe-2">Midpoint</td><td className="py-0">{fmtPt(mid)}</td></tr>
@@ -68,6 +74,7 @@ export default function Inspector() {
   const activePatternId = usePatternStore(s => s.activePatternId)
   const getEffectiveStripWidth = usePatternStore(s => s.getEffectiveStripWidth)
   const setPatternStripWidth = usePatternStore(s => s.setPatternStripWidth)
+  const stripWidthMaxMm = usePatternStore(s => s.getStripWidthMax(activePatternId))
   const getEffectiveMaterial = usePatternStore(s => s.getEffectiveMaterial)
   const getEffectiveFinish = usePatternStore(s => s.getEffectiveFinish)
   const setPatternMaterial = usePatternStore(s => s.setPatternMaterial)
@@ -277,6 +284,7 @@ export default function Inspector() {
             <input
               type="number"
               min={minWidthDisplay}
+              max={Number((widthUnit === 'mm' ? stripWidthMaxMm : mmToIn(stripWidthMaxMm)).toFixed(4))}
               step={widthUnit === 'mm' ? MM_STEP : STRIP_IN_STEP}
               className="form-control"
               value={draftWidth}

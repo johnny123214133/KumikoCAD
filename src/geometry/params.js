@@ -55,9 +55,26 @@ export function resolveParamState(paramDefs, patternParams, ctx) {
   const bounds = {};
   for (const def of paramDefs) {
     const b = paramBounds(def, { ...ctx, params: values });
-    const raw = readLengthMm(patternParams?.[def.key], def.default);
+    // A def may give its default as a position within its own current range (`defaultFraction`,
+    // 0 = min, 1 = max) — for params whose range moves with the dimensions, where one literal
+    // can't be a sensible starting point everywhere. `default` still serves as the literal fallback.
+    const computed = typeof def.defaultValue === 'function' ? def.defaultValue({ ...ctx, params: values }) : null; // a default worked out from the dimensions
+    const fallback = computed != null && Number.isFinite(computed) ? computed
+      : def.defaultFraction != null && Number.isFinite(b.max) ? b.min + def.defaultFraction * (b.max - b.min) : def.default;
+    const raw = readLengthMm(patternParams?.[def.key], fallback);
     bounds[def.key] = b;
-    values[def.key] = Math.min(Math.max(raw, b.min), b.max);
+    let v = Math.min(Math.max(raw, b.min), b.max);
+    // A default (nothing stored for this param) sits on the param's own step grid — a whole or
+    // half millimetre — rather than at whatever a fraction of the range or a clamp gave. The
+    // snapped value stays inside the range (a range narrower than a step is left as it is).
+    if (patternParams?.[def.key] == null) {
+      const step = def.step ?? 0.5;
+      let r = Math.round(v / step) * step;
+      if (r < b.min - 1e-9) r += step;
+      if (r > b.max + 1e-9) r -= step;
+      if (r >= b.min - 1e-9 && r <= b.max + 1e-9) v = Number(r.toFixed(6));
+    }
+    values[def.key] = v;
   }
   return { values, bounds };
 }

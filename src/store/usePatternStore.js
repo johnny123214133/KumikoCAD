@@ -6,6 +6,7 @@ import mikado from '../patterns/mikado.json';
 import kurumaKikko from '../patterns/kuruma-kikko.json';
 import kurumaKikkoTriangle from '../patterns/kuruma-kikko-triangle.json';
 import sakura from '../patterns/sakura.json';
+import sakuraA from '../patterns/sakura-a.json';
 import mitsukude from '../patterns/mitsukude.json';
 import matsuba from '../patterns/matsuba.json';
 import bishamonKikkoA from '../patterns/bishamon-kikko-a.json';
@@ -27,6 +28,11 @@ import kawariAsanoha from '../patterns/kawari-asanoha.json';
 import warigikuKikko from '../patterns/warigiku-kikko.json';
 import oumeKikko from '../patterns/oume-kikko.json';
 import seiunKikko from '../patterns/seiun-kikko.json';
+import mitsuBishi from '../patterns/mitsu-bishi.json';
+import urahanaKikko from '../patterns/urahana-kikko.json';
+import yaeUrahanaKikko from '../patterns/yae-urahana-kikko.json';
+import shippo from '../patterns/shippo.json';
+import ume from '../patterns/ume.json';
 import blank from '../patterns/blank.json';
 import { validatePattern } from '../geometry/schema/validate.js';
 import { buildAsanoha } from '../geometry/factories/asanoha.js';
@@ -34,7 +40,7 @@ import { buildTsumiishiKikko } from '../geometry/factories/tsumiishiKikko.js';
 import { buildGoma } from '../geometry/factories/goma.js';
 import { buildMikado } from '../geometry/factories/mikado.js';
 import { buildKurumaKikko, buildKurumaKikkoTriangle } from '../geometry/factories/kurumaKikko.js';
-import { buildSakura } from '../geometry/factories/sakura.js';
+import { buildSakuraA, buildSakuraB } from '../geometry/factories/sakura.js';
 import { buildMitsukude } from '../geometry/factories/mitsukude.js';
 import { buildMatsuba } from '../geometry/factories/matsuba.js';
 import { buildBishamonKikkoA, buildBishamonKikkoB } from '../geometry/factories/bishamonKikko.js';
@@ -50,6 +56,11 @@ import { buildKawariAsanoha } from '../geometry/factories/kawariAsanoha.js';
 import { buildWarigikuKikko } from '../geometry/factories/warigikuKikko.js';
 import { buildOumeKikko } from '../geometry/factories/oumeKikko.js';
 import { buildSeiunKikko } from '../geometry/factories/seiunKikko.js';
+import { buildMitsuBishi } from '../geometry/factories/mitsuBishi.js';
+import { buildUrahanaKikko } from '../geometry/factories/urahanaKikko.js';
+import { buildYaeUrahanaKikko } from '../geometry/factories/yaeUrahanaKikko.js';
+import { buildShippo } from '../geometry/factories/shippo.js';
+import { buildUme } from '../geometry/factories/ume.js';
 import { buildBlank } from '../geometry/factories/blank.js';
 import useGridStore from './useGridStore.js';
 import useSelectionStore from './useSelectionStore.js';
@@ -67,7 +78,7 @@ import { readLengthMm, lengthParam, resolveParamState } from '../geometry/params
 // 'blank' is appended at the END deliberately — BUILT_INS[0] is what seeds the
 // default activePatternId below, and an empty pattern being the default on
 // first launch is exactly the bug that got fixed by removing asanoha-one.
-const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, matsuba, bishamonKikkoA, bishamonKikkoB, matsunoha, rindo, sakura, kawariYaeZakura, yaeZakuraKikko, tsunoAsanoha, tsunoAsanohaPointed, yaeAsanoha, kikyoAsanoha, komachiKikkoA, komachiKikkoB, ryusoAsanohaA, ryusoAsanohaB, futaeAsanoha, kawariAsanoha, warigikuKikko, oumeKikko, seiunKikko, blank];
+const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, matsuba, bishamonKikkoA, bishamonKikkoB, matsunoha, rindo, sakuraA, sakura, kawariYaeZakura, yaeZakuraKikko, tsunoAsanoha, tsunoAsanohaPointed, yaeAsanoha, kikyoAsanoha, komachiKikkoA, komachiKikkoB, ryusoAsanohaA, ryusoAsanohaB, futaeAsanoha, kawariAsanoha, warigikuKikko, oumeKikko, seiunKikko, mitsuBishi, urahanaKikko, yaeUrahanaKikko, shippo, ume, blank];
 
 BUILT_INS.forEach((p) => {
   const errs = validatePattern(p);
@@ -95,7 +106,8 @@ const FACTORY_BY_ID = {
   'builtin:bishamon-kikko-b-sixth': buildBishamonKikkoB,
   'builtin:matsunoha-sixth': buildMatsunoha,
   'builtin:rindo-cross-sixth': buildRindo,
-  'builtin:sakura-sixth': buildSakura,
+  'builtin:sakura-a-sixth': buildSakuraA,
+  'builtin:sakura-sixth': buildSakuraB,
   'builtin:kawari-yae-zakura-sixth': buildKawariYaeZakura,
   'builtin:yae-zakura-kikko-sixth': buildYaeZakuraKikko,
   'builtin:tsuno-asanoha-sixth': buildTsunoAsanoha,
@@ -111,6 +123,11 @@ const FACTORY_BY_ID = {
   'builtin:warigiku-kikko-sixth': buildWarigikuKikko,
   'builtin:oume-kikko-sixth': buildOumeKikko,
   'builtin:seiun-kikko-sixth': buildSeiunKikko,
+  'builtin:mitsu-bishi-sixth': buildMitsuBishi,
+  'builtin:urahana-kikko-sixth': buildUrahanaKikko,
+  'builtin:yae-urahana-kikko-sixth': buildYaeUrahanaKikko,
+  'builtin:shippo-sixth': buildShippo,
+  'builtin:ume-sixth': buildUme,
   'builtin:blank': buildBlank,
 };
 
@@ -406,10 +423,19 @@ const usePatternStore = create((set, get) => ({
   // Ignores 0/negative — "don't update the render when set to 0" — and
   // clamps to the current cellWidth/3 limit, with a hard 1mm floor
   // ("always ensure the lower bound is 1 millimeter").
-  setPatternStripWidth: (id, width) => {
-    if (!(width > 0)) return;
+  // The widest regular strip this pattern allows: a third of the cell, or less for patterns
+  // that declare their own cap (the curved patterns, whose thin strips have to bend).
+  getStripWidthMax: (id) => {
+    const state = get();
+    const template = [...state.builtInPatterns, ...state.userPatterns].find(p => p.id === id);
+    const cap = FACTORY_BY_ID[template?.basePatternId ?? id]?.maxStripWidth;
     const { cellWidth } = useGridStore.getState();
     const max = cellWidth * MAX_STRIP_WIDTH_FRACTION;
+    return cap != null ? Math.min(max, cap) : max;
+  },
+  setPatternStripWidth: (id, width) => {
+    if (!(width > 0)) return;
+    const max = get().getStripWidthMax(id);
     const clamped = Math.max(Math.min(width, max), MIN_STRIP_WIDTH_MM);
     set((state) => ({
       patternOverrides: { ...state.patternOverrides, [id]: { ...state.patternOverrides[id], patternStripWidth: clamped } },
@@ -513,8 +539,7 @@ const usePatternStore = create((set, get) => ({
   // reclamping means regenerating cached images, not just numbers.
   clampAllStripWidths: () => {
     const state = get();
-    const { cellWidth, spacePatterns } = useGridStore.getState();
-    const max = cellWidth * MAX_STRIP_WIDTH_FRACTION;
+    const { spacePatterns } = useGridStore.getState();
     const idsToCheck = [state.activePatternId, ...new Set(Object.values(spacePatterns))];
     const allPatterns = [...state.builtInPatterns, ...state.userPatterns];
     let changed = false;
@@ -522,6 +547,7 @@ const usePatternStore = create((set, get) => ({
     for (const id of idsToCheck) {
       const template = allPatterns.find(p => p.id === id);
       const current = nextOverrides[id]?.patternStripWidth ?? template?.stripProperties?.[0]?.width;
+      const max = state.getStripWidthMax(id);
       if (current != null && current > max) {
         nextOverrides[id] = { ...nextOverrides[id], patternStripWidth: max };
         changed = true;

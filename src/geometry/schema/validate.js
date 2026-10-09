@@ -64,7 +64,16 @@ export function validatePattern(pattern) {
     for (const m of j.members) {
       const s = stripMap[m.stripId];
       if (!s) continue;
-      if (!pointOnSegment(j.position, s.start, s.end))
+      // A 'notch' member (a V-notch cut into the strip's side) has its apex inside the strip's
+      // width rather than on its centerline.
+      const widthOf = () => {
+        const sp = pattern.stripProperties?.find((q) => q.id === pattern.pieceTemplates?.find((t) => t.stripId === s.id)?.stripPropertyId);
+        return sp?.width ?? 0;
+      };
+      const ok = m.role === 'notch'
+        ? Math.abs((j.position.x - s.start.x) * -Math.sin(s.orientation) + (j.position.y - s.start.y) * Math.cos(s.orientation)) <= widthOf() / 2 + EPSILON
+        : pointOnSegment(j.position, s.start, s.end);
+      if (!ok)
         errors.push(`Rule 5: joint ${j.id} not on strip ${m.stripId}`);
     }
   }

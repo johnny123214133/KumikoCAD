@@ -15,6 +15,13 @@ import { MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM } from '../units.js';
 // there, rather than against the grid strip. (So they point at the corners,
 // not at the edge midpoints.)
 //
+// Two variants differ only in how a spoke meets its thick strip:
+//   Sakura B — a butt joint against the middle of the thick strip's inner face (above).
+//   Sakura A — the spoke ends in a 60° point (30° half-angle) resting in a V-notch of
+//     the same angle cut into the thick strip's inner face. The notch is exactly the
+//     spoke's width across at the face, and (√3/2)·w deep, so the thick strip must be
+//     thicker than that (its minimum width rises accordingly).
+//
 // cornerSpacing: the clear gap, measured along the altitude, from the
 // corner's inner apex (where the two grid strips' inner faces meet) to the
 // thick strip's outer face. 0 puts the thick strip hard against the corner.
@@ -26,9 +33,10 @@ import { MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM } from '../units.js';
 // — the upper bound, so the thick strips never overlap each other.
 const SQRT3 = Math.sqrt(3);
 
-export const buildSakura = definePattern({
-  id: 'builtin:sakura-sixth',
-  name: 'Sakura',
+function defineSakura({ id, name, notch, description }) {
+  return definePattern({
+  id,
+  name,
   // Order matters: cornerSpacing's range depends on thickStripWidth, which
   // must therefore be declared (and resolved) first.
   paramDefs: [
@@ -37,8 +45,9 @@ export const buildSakura = definePattern({
       label: 'Thick strip width',
       kind: 'length',
       default: 6.0,
-      min: MIN_STRIP_WIDTH_MM,
-      max: ({ cellWidth, gridStripWidth }) => Math.max(
+      // Sakura A: the thick strip must be deeper than the spoke's V-notch, (√3/2)·w.
+      min: ({ patternStripWidth }) => (notch ? Math.max(MIN_STRIP_WIDTH_MM, (SQRT3 / 2) * patternStripWidth + 0.5) : MIN_STRIP_WIDTH_MM),
+      max: ({ cellWidth, gridStripWidth, patternStripWidth }) => Math.max(notch ? (SQRT3 / 2) * patternStripWidth + 0.5 : 0,
         MIN_STRIP_WIDTH_MM,
         Math.min(cellWidth * MAX_STRIP_WIDTH_FRACTION, (SQRT3 * cellWidth - 3 * gridStripWidth) / 4),
       ),
@@ -64,10 +73,10 @@ export const buildSakura = definePattern({
   meta: {
     difficulty: 'advanced',
     tags: ['six-fold', 'traditional'],
-    description: 'Three thick strips, each parallel to a cell edge and set near the opposite corner, plus three thin spokes from the centre that butt against the middle of each thick strip.',
+    description,
     thumbnail: null,
   },
-  build: ({ cell, params }) => {
+  build: ({ cell, params, patternStripWidth: w }) => {
     const { G } = cell;
     const wThick = params.thickStripWidth;
 
@@ -79,10 +88,13 @@ export const buildSakura = definePattern({
 
     // Thin spokes: s0..s2, from the middle of each thick strip's inner face
     // to the centre (spoke 0 toward corner C, 1 toward A, 2 toward B).
+    // Sakura A: each spoke ends (at its outer end) in a 60° point whose tip sits (√3/2)·w
+    // inside the thick strip, at the apex of the notch cut for it.
+    const depth = (SQRT3 / 2) * w;
     const spokes = buildSpokes(cell, {
-      outerPoints: [0, 120, 240].map((deg) => cell.rotate({ x: G.x, y: G.y + innerFace }, deg)),
-      boundaryAngle: 90,
-      boundaryNotch: 'butt',
+      outerPoints: [0, 120, 240].map((deg) => cell.rotate({ x: G.x, y: G.y + innerFace + (notch ? depth : 0) }, deg)),
+      boundaryAngle: notch ? 30 : 90,
+      boundaryNotch: notch ? 'taper' : 'butt',
     });
 
     // Thick strips: s3..s5. s3 is the one nearest C (parallel to AB); s4/s5
@@ -98,10 +110,42 @@ export const buildSakura = definePattern({
       endJoint(`j${5 + 2 * i}`, s.end, s.id, 'miter'),
     ]);
 
+    if (notch) {
+      // The spoke tip and the thick strip's notch are one joint at the apex; the bar gets a
+      // 'notch' cut (angle = the V's included angle) on the face toward the centre.
+      barStrips.forEach((bar, i) => {
+        const spoke = spokes.strips[i], jid = `j${i + 1}`;
+        const apex = spoke.start;
+        const dir = { x: bar.end.x - bar.start.x, y: bar.end.y - bar.start.y };
+        const toG = { x: G.x - apex.x, y: G.y - apex.y };
+        bar.cuts.push({
+          jointId: jid, position: { ...apex }, angle: 60, depth: 1.0, role: 'notch',
+          notchSide: dir.x * toG.y - dir.y * toG.x > 0 ? 'left' : 'right',
+        });
+        spokes.joints.find((j) => j.id === jid).members.push({ stripId: bar.id, role: 'notch' });
+      });
+    }
+
     return {
       strips: [...spokes.strips, ...barStrips],
       joints: [...spokes.joints, ...barJoints],
       stripWidths: Object.fromEntries(barStrips.map((s) => [s.id, wThick])),
     };
   },
+  });
+}
+
+export const buildSakuraB = defineSakura({
+  id: 'builtin:sakura-sixth',
+  name: 'Sakura B',
+  notch: false,
+  description: 'Three thick strips, each parallel to a cell edge and set near the opposite corner, plus three thin spokes from the centre that butt against the middle of each thick strip.',
 });
+
+export const buildSakuraA = defineSakura({
+  id: 'builtin:sakura-a-sixth',
+  name: 'Sakura A',
+  notch: true,
+  description: 'Three thick strips, each parallel to a cell edge and set near the opposite corner, plus three thin spokes from the centre that end in a 60° point fitted into a V-notch in the middle of each thick strip.',
+});
+export const buildSakura = buildSakuraB;

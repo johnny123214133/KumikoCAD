@@ -1,3 +1,4 @@
+import { curveSampler } from './curve.js';
 /**
  * Pure, framework-agnostic strip-body shape builder — ported unchanged in logic
  * from the old scene/PatternRenderer.js#_buildStripShape (Three.js version).
@@ -17,7 +18,7 @@
  * no coordinate flip when porting from Three.js's Y-up convention to a
  * canvas/Konva Y-down one.
  */
-export function buildStripLocalPoints(length, halfWidth, startAngleDeg, endAngleDeg, startNotchType, endNotchType, startPair, endPair) {
+export function buildStripLocalPoints(length, halfWidth, startAngleDeg, endAngleDeg, startNotchType, endNotchType, startPair, endPair, notches = []) {
   const startRad = (180 + startAngleDeg) * (Math.PI / 180);
   const endRad = endAngleDeg * (Math.PI / 180);
 
@@ -80,6 +81,17 @@ export function buildStripLocalPoints(length, halfWidth, startAngleDeg, endAngle
     pts.push(xAtY(0, startRad, -halfWidth), -halfWidth);
   }
 
+  // V-notches cut into a long side mid-strip (Sakura A: the thick strip's notch for a spoke's
+  // pointed end). Each is { x, depth, halfOpen, side: +1 | -1 } — local x of the apex, depth
+  // from the face, half the opening at the face, and which face (+1 = local +y).
+  // The outline runs along the -y face left→right (between the start and end sections) and
+  // back along the +y face right→left (after the end section).
+  const notchPts = (n) => {
+    const y = n.side * halfWidth;
+    return [[n.x - n.halfOpen, y], [n.x, y - n.side * n.depth], [n.x + n.halfOpen, y]];
+  };
+  [...notches].filter((n) => n.side < 0).sort((a, b) => a.x - b.x).forEach((n) => notchPts(n).forEach((p) => pts.push(...p)));
+
   // strip end
   if (endNotchType === 'asymMiter' && endPair) {
     const { top, apex, bottom } = asymEnd(endPair, false);
@@ -100,5 +112,94 @@ export function buildStripLocalPoints(length, halfWidth, startAngleDeg, endAngle
     pts.push(xAtY(length, endRad, halfWidth), halfWidth);
   }
 
+  [...notches].filter((n) => n.side > 0).sort((a, b) => b.x - a.x).forEach((n) => notchPts(n).reverse().forEach((p) => pts.push(...p)));
+
   return pts; // caller passes {closed: true} to Konva.Line — same as the old closePath()
+}
+
+
+/**
+ * Outline of a CURVED strip (see curve.js), in the same local frame as above: chord along
+ * +x from 0 to `length`, the centerline bowing to local +y by `sagitta` at mid-length —
+ * y(x) = 4h(x/c)(1 − x/c). The band is the centerline offset ±halfWidth along its normal,
+ * trimmed by every end cut: each cut is a line through its point on the centerline
+ * ({ x, y, angle, atStart }) at `angle` to the centerline's tangent at that end, and the
+ * strip keeps the side its centerline is on just inside that end. One cut makes a miter, two make an
+ * asymmetric miter; a cut that is the grid strip's face trims the band wherever it crosses it.
+ */
+export function buildCurvedStripLocalPoints(length, halfWidth, curveOrSagitta, cuts = [], samples = 48) {
+  const curve = typeof curveOrSagitta === 'object' ? curveOrSagitta : { sagitta: curveOrSagitta };
+  if (curve.lead > 0 || curve.startLead > 0) samples = Math.max(samples, 96); // the bend only occupies the middle
+  const { centre, tangent } = curveSampler(length, curve);
+  const left = [], right = [];
+  for (let i = 0; i <= samples; i++) {
+    const t = i / samples, [x, y] = centre(t), [tx, ty] = tangent(t), nx = -ty, ny = tx;
+    left.push([x + halfWidth * nx, y + halfWidth * ny]);
+    right.push([x - halfWidth * nx, y - halfWidth * ny]);
+  }
+  // Each end is cut separately, and by trimming the band's two EDGE curves rather than
+  // clipping the whole outline: a cut whose line runs almost along the strip (a notch face)
+  // would otherwise also slice the far end of a bowed strip where it crosses the line again.
+  // The edges run a little past both ends of the chord, straight along the end tangents, so a
+  // cut that slants back behind the chord end (a miter whose outer corner sits further out
+  // than the centerline's end) has material to trim down to.
+  const ext = 14 * halfWidth + 1;
+  const [t0x, t0y] = tangent(0), [t1x, t1y] = tangent(1);
+  const shift = (p, tx, ty, k) => [p[0] + tx * k, p[1] + ty * k];
+  left.unshift(shift(left[0], t0x, t0y, -ext)); right.unshift(shift(right[0], t0x, t0y, -ext));
+  left.push(shift(left[left.length - 1], t1x, t1y, ext)); right.push(shift(right[right.length - 1], t1x, t1y, ext));
+
+  // The side of a cut that stays is the one the centerline is on just inside that end (not the
+  // strip's middle: a strongly bowed strip can cross a nearly-parallel cut line further on).
+  const inside = (atStart) => centre(atStart ? 0.03 : 0.97);
+  const lines = cuts.map((cut) => {
+    const keep = inside(cut.atStart);
+    const [tx, ty] = tangent(cut.atStart ? 0 : 1), r = (cut.angle * Math.PI) / 180;
+    const d = [tx * Math.cos(r) - ty * Math.sin(r), tx * Math.sin(r) + ty * Math.cos(r)];
+    const p0 = [cut.x, cut.y];
+    const raw = (q) => d[0] * (q[1] - p0[1]) - d[1] * (q[0] - p0[0]);
+    const sgn = raw(keep) >= 0 ? 1 : -1;
+    return { atStart: cut.atStart, p0, d, f: (q) => sgn * raw(q) };
+  });
+  const startLines = lines.filter((l) => l.atStart), endLines = lines.filter((l) => !l.atStart);
+  const mid = Math.floor(left.length / 2);
+  // Trim one edge at one end: walk in from the extended tip; each cut keeps the part past its
+  // crossing, the deepest crossing wins. Returns the kept points (from the tip inward,
+  // beginning with the crossing point) and which cut bound.
+  const trimEnd = (edge, ls, atStart) => {
+    const seq = atStart ? edge.slice(0, mid + 1) : edge.slice(mid).reverse();
+    let best = { i: 0, pt: seq[0], bind: -1 };
+    ls.forEach((l, k) => {
+      for (let i = 1; i < seq.length; i++) {
+        const fa = l.f(seq[i - 1]), fb = l.f(seq[i]);
+        if (fa < 0 && fb >= 0) {
+          const u = fa / (fa - fb), pt = [seq[i - 1][0] + u * (seq[i][0] - seq[i - 1][0]), seq[i - 1][1] + u * (seq[i][1] - seq[i - 1][1])];
+          if (i > best.i || (i === best.i && Math.hypot(pt[0] - seq[i][0], pt[1] - seq[i][1]) < Math.hypot(best.pt[0] - seq[i][0], best.pt[1] - seq[i][1]))) best = { i, pt, bind: k };
+          return;
+        }
+      }
+    });
+    return { head: best.pt, from: best.i, bind: best.bind };
+  };
+  const cross = (a, b) => { // where two cut lines meet
+    const den = a.d[0] * b.d[1] - a.d[1] * b.d[0];
+    if (Math.abs(den) < 1e-9) return null;
+    const u = ((b.p0[0] - a.p0[0]) * b.d[1] - (b.p0[1] - a.p0[1]) * b.d[0]) / den;
+    return [a.p0[0] + u * a.d[0], a.p0[1] + u * a.d[1]];
+  };
+  const sL = trimEnd(left, startLines, true), sR = trimEnd(right, startLines, true);
+  const eL = trimEnd(left, endLines, false), eR = trimEnd(right, endLines, false);
+  const lastIdx = (e, edge) => edge.length - 1 - e.from; // index of the last original vertex kept on the edge
+  const out = [];
+  const push = (p) => out.push(p);
+  // left edge, start → end
+  // (with no cut at an end, `head` is the tip vertex itself, which is not pushed twice)
+  push(sL.head); for (let i = sL.from + (sL.bind < 0 ? 1 : 0); i <= lastIdx(eL, left) - (eL.bind < 0 ? 1 : 0); i++) push(left[i]);
+  push(eL.head);
+  if (eL.bind >= 0 && eR.bind >= 0 && eL.bind !== eR.bind) { const a = cross(endLines[eL.bind], endLines[eR.bind]); if (a) push(a); }
+  push(eR.head);
+  for (let i = lastIdx(eR, right) - (eR.bind < 0 ? 1 : 0); i >= sR.from + (sR.bind < 0 ? 1 : 0); i--) push(right[i]);
+  push(sR.head);
+  if (sL.bind >= 0 && sR.bind >= 0 && sL.bind !== sR.bind) { const a = cross(startLines[sR.bind], startLines[sL.bind]); if (a) push(a); }
+  return out.flat();
 }

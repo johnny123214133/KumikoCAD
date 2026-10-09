@@ -5,6 +5,7 @@ import GridBorderStrip from './GridBorderStrip.jsx'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import { computeStripRenderData } from '../../geometry/renderPattern.js'
+import { curveSampler } from '../../geometry/curve.js'
 
 const NOTCH_COLORS = {
   halfLap: '#4a9eff',
@@ -29,7 +30,7 @@ const NOTCH_LABELS = {
   taper: 'Taper',
   butt: 'Butt',
   vNotch: 'V-notch',
-  asymMiter: 'Asymmetric miter',
+  asymMiter: 'Asymmetric taper',
   custom: 'Custom',
 }
 const notchLabel = (t) => NOTCH_LABELS[t] ?? t
@@ -146,10 +147,23 @@ export default function PatternLayer({ pattern, activeLayers }) {
 
       {activeLayers.centerlines && pattern.strips.map(s => {
         const start = flip(s.start), end = flip(s.end)
+        let pts = [start.x, start.y, end.x, end.y]
+        if (s.curve) {
+          // A bent strip's centerline is its parabola, not the straight chord (see geometry/curve.js).
+          const dx = s.end.x - s.start.x, dy = s.end.y - s.start.y, c = Math.hypot(dx, dy)
+          const nx = -dy / c, ny = dx / c
+          pts = []
+          const { centre } = curveSampler(c, s.curve), ux = dx / c, uy = dy / c
+          for (let i = 0; i <= 64; i++) {
+            const [lx, ly] = centre(i / 64)
+            const q = flip({ x: s.start.x + ux * lx + nx * ly, y: s.start.y + uy * lx + ny * ly })
+            pts.push(q.x, q.y)
+          }
+        }
         return (
           <Line
             key={`cl-${s.id}`}
-            points={[start.x, start.y, end.x, end.y]}
+            points={pts}
             stroke="#94a3b8"
             strokeWidth={1}
             strokeScaleEnabled={false}

@@ -1,0 +1,861 @@
+{
+  "id": "builtin:yae-urahana-kikko-sixth",
+  "name": "Yae-urahana-kikko",
+  "readOnly": true,
+  "version": 3,
+  "sideLength": 75,
+  "patternParams": {},
+  "stripProperties": [
+    {
+      "id": "sp0",
+      "width": 3,
+      "thickness": 6,
+      "material": "hinoki",
+      "grain": "along",
+      "color": "#e8d5b0",
+      "finish": "natural",
+      "edgeProfile": null
+    }
+  ],
+  "vertices": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 75,
+      "y": 0
+    },
+    "C": {
+      "x": 37.5,
+      "y": 64.9519
+    }
+  },
+  "centroid": {
+    "x": 37.5,
+    "y": 21.6506
+  },
+  "_note": "Reference snapshot generated from the yae-urahana-kikko factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "strips": [
+    {
+      "id": "s0",
+      "start": {
+        "x": 0,
+        "y": 0
+      },
+      "end": {
+        "x": 18.75,
+        "y": 10.8253
+      },
+      "orientation": 0.5236,
+      "cuts": [
+        {
+          "jointId": "j3",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 18.75,
+            "y": 10.8253
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "start": {
+        "x": 37.5,
+        "y": 0
+      },
+      "end": {
+        "x": 18.75,
+        "y": 10.8253
+      },
+      "orientation": 2.618,
+      "cuts": [
+        {
+          "jointId": "j4",
+          "position": {
+            "x": 37.5,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j4",
+          "position": {
+            "x": 37.5,
+            "y": 0
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 18.75,
+            "y": 10.8253
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "start": {
+        "x": 18.75,
+        "y": 32.476
+      },
+      "end": {
+        "x": 18.75,
+        "y": 10.8253
+      },
+      "orientation": -1.5708,
+      "cuts": [
+        {
+          "jointId": "j5",
+          "position": {
+            "x": 18.75,
+            "y": 32.476
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j5",
+          "position": {
+            "x": 18.75,
+            "y": 32.476
+          },
+          "angle": 150,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 18.75,
+            "y": 10.8253
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "start": {
+        "x": 75,
+        "y": 0
+      },
+      "end": {
+        "x": 56.25,
+        "y": 10.8253
+      },
+      "orientation": 2.618,
+      "cuts": [
+        {
+          "jointId": "j6",
+          "position": {
+            "x": 75,
+            "y": 0
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 56.25,
+            "y": 10.8253
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "start": {
+        "x": 56.25,
+        "y": 32.476
+      },
+      "end": {
+        "x": 56.25,
+        "y": 10.8253
+      },
+      "orientation": -1.5708,
+      "cuts": [
+        {
+          "jointId": "j7",
+          "position": {
+            "x": 56.25,
+            "y": 32.476
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j7",
+          "position": {
+            "x": 56.25,
+            "y": 32.476
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 56.25,
+            "y": 10.8253
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "start": {
+        "x": 37.5,
+        "y": 0
+      },
+      "end": {
+        "x": 56.25,
+        "y": 10.8253
+      },
+      "orientation": 0.5236,
+      "cuts": [
+        {
+          "jointId": "j4",
+          "position": {
+            "x": 37.5,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j4",
+          "position": {
+            "x": 37.5,
+            "y": 0
+          },
+          "angle": 150,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 56.25,
+            "y": 10.8253
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "start": {
+        "x": 37.5,
+        "y": 64.9519
+      },
+      "end": {
+        "x": 37.5,
+        "y": 43.3013
+      },
+      "orientation": -1.5708,
+      "cuts": [
+        {
+          "jointId": "j8",
+          "position": {
+            "x": 37.5,
+            "y": 64.9519
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 37.5,
+            "y": 43.3013
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "start": {
+        "x": 18.75,
+        "y": 32.476
+      },
+      "end": {
+        "x": 37.5,
+        "y": 43.3013
+      },
+      "orientation": 0.5236,
+      "cuts": [
+        {
+          "jointId": "j5",
+          "position": {
+            "x": 18.75,
+            "y": 32.476
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j5",
+          "position": {
+            "x": 18.75,
+            "y": 32.476
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 37.5,
+            "y": 43.3013
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s8",
+      "start": {
+        "x": 56.25,
+        "y": 32.476
+      },
+      "end": {
+        "x": 37.5,
+        "y": 43.3013
+      },
+      "orientation": 2.618,
+      "cuts": [
+        {
+          "jointId": "j7",
+          "position": {
+            "x": 56.25,
+            "y": 32.476
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j7",
+          "position": {
+            "x": 56.25,
+            "y": 32.476
+          },
+          "angle": 150,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 37.5,
+            "y": 43.3013
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "joints": [
+    {
+      "id": "j3",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "taper"
+    },
+    {
+      "id": "j4",
+      "position": {
+        "x": 37.5,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        },
+        {
+          "stripId": "s5",
+          "role": "end"
+        }
+      ],
+      "notchType": "asymMiter"
+    },
+    {
+      "id": "j5",
+      "position": {
+        "x": 18.75,
+        "y": 32.476
+      },
+      "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        },
+        {
+          "stripId": "s7",
+          "role": "end"
+        }
+      ],
+      "notchType": "asymMiter"
+    },
+    {
+      "id": "j0",
+      "position": {
+        "x": 18.75,
+        "y": 10.8253
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        },
+        {
+          "stripId": "s1",
+          "role": "end"
+        },
+        {
+          "stripId": "s2",
+          "role": "end"
+        }
+      ],
+      "notchType": "taper"
+    },
+    {
+      "id": "j6",
+      "position": {
+        "x": 75,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s3",
+          "role": "end"
+        }
+      ],
+      "notchType": "taper"
+    },
+    {
+      "id": "j7",
+      "position": {
+        "x": 56.25,
+        "y": 32.476
+      },
+      "members": [
+        {
+          "stripId": "s4",
+          "role": "end"
+        },
+        {
+          "stripId": "s8",
+          "role": "end"
+        }
+      ],
+      "notchType": "asymMiter"
+    },
+    {
+      "id": "j1",
+      "position": {
+        "x": 56.25,
+        "y": 10.8253
+      },
+      "members": [
+        {
+          "stripId": "s3",
+          "role": "end"
+        },
+        {
+          "stripId": "s4",
+          "role": "end"
+        },
+        {
+          "stripId": "s5",
+          "role": "end"
+        }
+      ],
+      "notchType": "taper"
+    },
+    {
+      "id": "j8",
+      "position": {
+        "x": 37.5,
+        "y": 64.9519
+      },
+      "members": [
+        {
+          "stripId": "s6",
+          "role": "end"
+        }
+      ],
+      "notchType": "taper"
+    },
+    {
+      "id": "j2",
+      "position": {
+        "x": 37.5,
+        "y": 43.3013
+      },
+      "members": [
+        {
+          "stripId": "s6",
+          "role": "end"
+        },
+        {
+          "stripId": "s7",
+          "role": "end"
+        },
+        {
+          "stripId": "s8",
+          "role": "end"
+        }
+      ],
+      "notchType": "taper"
+    }
+  ],
+  "pieceTemplates": [
+    {
+      "id": "pt0",
+      "stripPropertyId": "sp0",
+      "stripId": "s0",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 21.6506,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt1",
+      "stripPropertyId": "sp0",
+      "stripId": "s1",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 21.6506,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt2",
+      "stripPropertyId": "sp0",
+      "stripId": "s2",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 150,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 21.6506,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt3",
+      "stripPropertyId": "sp0",
+      "stripId": "s3",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 21.6506,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt4",
+      "stripPropertyId": "sp0",
+      "stripId": "s4",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 21.6506,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt5",
+      "stripPropertyId": "sp0",
+      "stripId": "s5",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 150,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 21.6506,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt6",
+      "stripPropertyId": "sp0",
+      "stripId": "s6",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 21.6506,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt7",
+      "stripPropertyId": "sp0",
+      "stripId": "s7",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 30,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 21.6506,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt8",
+      "stripPropertyId": "sp0",
+      "stripId": "s8",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 150,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 21.6506,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "difficulty": "advanced",
+    "tags": [
+      "six-fold",
+      "traditional"
+    ],
+    "description": "A half-size Asanoha in each of the three corners of the cell: nine strips, three-way tapers at the three small centres, 30° tapers at the cell corners and at the edge midpoints.",
+    "thumbnail": null
+  }
+}
