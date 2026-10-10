@@ -1,0 +1,1085 @@
+{
+  "id": "builtin:sokuten-kikko-sixth",
+  "name": "Sokuten-kikko",
+  "readOnly": true,
+  "version": 3,
+  "sideLength": 75,
+  "patternParams": {
+    "inset": {
+      "length": 11,
+      "unit": "mm"
+    }
+  },
+  "stripProperties": [
+    {
+      "id": "sp0",
+      "width": 3,
+      "thickness": 6,
+      "material": "hinoki",
+      "grain": "along",
+      "color": "#e8d5b0",
+      "finish": "natural",
+      "edgeProfile": null
+    }
+  ],
+  "vertices": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 75,
+      "y": 0
+    },
+    "C": {
+      "x": 37.5,
+      "y": 64.9519
+    }
+  },
+  "centroid": {
+    "x": 37.5,
+    "y": 21.6506
+  },
+  "_note": "Reference snapshot generated from the sokuten-kikko factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "strips": [
+    {
+      "id": "s0",
+      "start": {
+        "x": 7.2169,
+        "y": 12.5
+      },
+      "end": {
+        "x": 67.7831,
+        "y": 12.5
+      },
+      "orientation": 0,
+      "cuts": [
+        {
+          "jointId": "j3",
+          "position": {
+            "x": 7.2169,
+            "y": 12.5
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j12",
+          "position": {
+            "x": 7.2169,
+            "y": 12.5
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 21.6506,
+            "y": 12.5
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 53.3494,
+            "y": 12.5
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "jointId": "j15",
+          "position": {
+            "x": 67.7831,
+            "y": 12.5
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "jointId": "j4",
+          "position": {
+            "x": 67.7831,
+            "y": 12.5
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "start": {
+        "x": 60.5662,
+        "y": 0
+      },
+      "end": {
+        "x": 30.2831,
+        "y": 52.4519
+      },
+      "orientation": 2.0944,
+      "cuts": [
+        {
+          "jointId": "j5",
+          "position": {
+            "x": 60.5662,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j16",
+          "position": {
+            "x": 60.5662,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 53.3494,
+            "y": 12.5
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 37.5,
+            "y": 39.9519
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "jointId": "j19",
+          "position": {
+            "x": 30.2831,
+            "y": 52.4519
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "jointId": "j6",
+          "position": {
+            "x": 30.2831,
+            "y": 52.4519
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "start": {
+        "x": 44.7169,
+        "y": 52.4519
+      },
+      "end": {
+        "x": 14.4338,
+        "y": 0
+      },
+      "orientation": -2.0944,
+      "cuts": [
+        {
+          "jointId": "j7",
+          "position": {
+            "x": 44.7169,
+            "y": 52.4519
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j20",
+          "position": {
+            "x": 44.7169,
+            "y": 52.4519
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 37.5,
+            "y": 39.9519
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 21.6506,
+            "y": 12.5
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "jointId": "j11",
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "jointId": "j8",
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "start": {
+        "x": 14.4338,
+        "y": 0
+      },
+      "end": {
+        "x": 7.2169,
+        "y": 12.5
+      },
+      "orientation": 2.0944,
+      "cuts": [
+        {
+          "jointId": "j9",
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j11",
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "jointId": "j12",
+          "position": {
+            "x": 7.2169,
+            "y": 12.5
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "jointId": "j10",
+          "position": {
+            "x": 7.2169,
+            "y": 12.5
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "start": {
+        "x": 67.7831,
+        "y": 12.5
+      },
+      "end": {
+        "x": 60.5662,
+        "y": 0
+      },
+      "orientation": -2.0944,
+      "cuts": [
+        {
+          "jointId": "j13",
+          "position": {
+            "x": 67.7831,
+            "y": 12.5
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j15",
+          "position": {
+            "x": 67.7831,
+            "y": 12.5
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "jointId": "j16",
+          "position": {
+            "x": 60.5662,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "jointId": "j14",
+          "position": {
+            "x": 60.5662,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "start": {
+        "x": 30.2831,
+        "y": 52.4519
+      },
+      "end": {
+        "x": 44.7169,
+        "y": 52.4519
+      },
+      "orientation": 0,
+      "cuts": [
+        {
+          "jointId": "j17",
+          "position": {
+            "x": 30.2831,
+            "y": 52.4519
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j19",
+          "position": {
+            "x": 30.2831,
+            "y": 52.4519
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "jointId": "j20",
+          "position": {
+            "x": 44.7169,
+            "y": 52.4519
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "jointId": "j18",
+          "position": {
+            "x": 44.7169,
+            "y": 52.4519
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "joints": [
+    {
+      "id": "j0",
+      "position": {
+        "x": 53.3494,
+        "y": 12.5
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "role-bottom-2"
+        },
+        {
+          "stripId": "s1",
+          "role": "role-top-2"
+        }
+      ],
+      "notchType": "halfLap"
+    },
+    {
+      "id": "j1",
+      "position": {
+        "x": 21.6506,
+        "y": 12.5
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "role-top-2"
+        },
+        {
+          "stripId": "s2",
+          "role": "role-bottom-2"
+        }
+      ],
+      "notchType": "halfLap"
+    },
+    {
+      "id": "j2",
+      "position": {
+        "x": 37.5,
+        "y": 39.9519
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "role-top-2"
+        },
+        {
+          "stripId": "s2",
+          "role": "role-bottom-2"
+        }
+      ],
+      "notchType": "halfLap"
+    },
+    {
+      "id": "j3",
+      "position": {
+        "x": 7.2169,
+        "y": 12.5
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j4",
+      "position": {
+        "x": 67.7831,
+        "y": 12.5
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j5",
+      "position": {
+        "x": 60.5662,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j6",
+      "position": {
+        "x": 30.2831,
+        "y": 52.4519
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j7",
+      "position": {
+        "x": 44.7169,
+        "y": 52.4519
+      },
+      "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j8",
+      "position": {
+        "x": 14.4338,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j9",
+      "position": {
+        "x": 14.4338,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s3",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j10",
+      "position": {
+        "x": 7.2169,
+        "y": 12.5
+      },
+      "members": [
+        {
+          "stripId": "s3",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j11",
+      "position": {
+        "x": 14.4338,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s3",
+          "role": "role-top-2"
+        },
+        {
+          "stripId": "s2",
+          "role": "role-bottom-2"
+        }
+      ],
+      "notchType": "halfLap"
+    },
+    {
+      "id": "j12",
+      "position": {
+        "x": 7.2169,
+        "y": 12.5
+      },
+      "members": [
+        {
+          "stripId": "s3",
+          "role": "role-top-2"
+        },
+        {
+          "stripId": "s0",
+          "role": "role-bottom-2"
+        }
+      ],
+      "notchType": "halfLap"
+    },
+    {
+      "id": "j13",
+      "position": {
+        "x": 67.7831,
+        "y": 12.5
+      },
+      "members": [
+        {
+          "stripId": "s4",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j14",
+      "position": {
+        "x": 60.5662,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s4",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j15",
+      "position": {
+        "x": 67.7831,
+        "y": 12.5
+      },
+      "members": [
+        {
+          "stripId": "s4",
+          "role": "role-top-2"
+        },
+        {
+          "stripId": "s0",
+          "role": "role-bottom-2"
+        }
+      ],
+      "notchType": "halfLap"
+    },
+    {
+      "id": "j16",
+      "position": {
+        "x": 60.5662,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s4",
+          "role": "role-top-2"
+        },
+        {
+          "stripId": "s1",
+          "role": "role-bottom-2"
+        }
+      ],
+      "notchType": "halfLap"
+    },
+    {
+      "id": "j17",
+      "position": {
+        "x": 30.2831,
+        "y": 52.4519
+      },
+      "members": [
+        {
+          "stripId": "s5",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j18",
+      "position": {
+        "x": 44.7169,
+        "y": 52.4519
+      },
+      "members": [
+        {
+          "stripId": "s5",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j19",
+      "position": {
+        "x": 30.2831,
+        "y": 52.4519
+      },
+      "members": [
+        {
+          "stripId": "s5",
+          "role": "role-top-2"
+        },
+        {
+          "stripId": "s1",
+          "role": "role-bottom-2"
+        }
+      ],
+      "notchType": "halfLap"
+    },
+    {
+      "id": "j20",
+      "position": {
+        "x": 44.7169,
+        "y": 52.4519
+      },
+      "members": [
+        {
+          "stripId": "s5",
+          "role": "role-top-2"
+        },
+        {
+          "stripId": "s2",
+          "role": "role-bottom-2"
+        }
+      ],
+      "notchType": "halfLap"
+    }
+  ],
+  "pieceTemplates": [
+    {
+      "id": "pt0",
+      "stripPropertyId": "sp0",
+      "stripId": "s0",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "position": {
+            "x": 46.1325,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "position": {
+            "x": 60.5662,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "position": {
+            "x": 60.5662,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt1",
+      "stripPropertyId": "sp0",
+      "stripId": "s1",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "position": {
+            "x": 46.1325,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "position": {
+            "x": 60.5662,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "position": {
+            "x": 60.5662,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt2",
+      "stripPropertyId": "sp0",
+      "stripId": "s2",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "position": {
+            "x": 46.1325,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "position": {
+            "x": 60.5662,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-top-2"
+        },
+        {
+          "position": {
+            "x": 60.5662,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt3",
+      "stripPropertyId": "sp0",
+      "stripId": "s3",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt4",
+      "stripPropertyId": "sp0",
+      "stripId": "s4",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt5",
+      "stripPropertyId": "sp0",
+      "stripId": "s5",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 0.5,
+          "role": "cut-bottom-2"
+        },
+        {
+          "position": {
+            "x": 14.4338,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "difficulty": "intermediate",
+    "tags": [
+      "six-fold",
+      "traditional"
+    ],
+    "description": "Goma's three strips, set further in, with three corner strips each running from one border to another and lapping over the Goma strips where those meet the border. The lap is centred on the border, so the miter cut halves it.",
+    "thumbnail": null
+  }
+}

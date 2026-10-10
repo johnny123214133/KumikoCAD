@@ -11,44 +11,48 @@ import { definePattern, makeStrip, endCut, endJoint, lineIntersect, localCutAngl
 // the centroid. Variant A turns them clockwise by 30° (240° / 0° / 120°: each
 // parallel to a different edge), variant B counter-clockwise (300° / 60° /
 // 180°) — mirror images of one another.
+// The three strips of the original pattern for a cell: ones from the border to the centroid,
+// meeting there in a three-way taper.
+export function buildBishamonStrips(cell, rotationDeg) {
+  const { G } = cell;
+  const { A, B, C } = cell.inner;
+  const edges = [[A, B], [B, C], [C, A]].map(([p, q]) => {
+    const len = Math.hypot(q.x - p.x, q.y - p.y);
+    return { p, d: { x: (q.x - p.x) / len, y: (q.y - p.y) / len }, len };
+  });
+  const strips = [270, 30, 150].map((deg, i) => {
+    const rad = ((deg + rotationDeg) * Math.PI) / 180;
+    const out = { x: Math.cos(rad), y: Math.sin(rad) }; // from the centroid to the border
+    // The border edge the ray reaches (the one it isn't parallel to, ahead of G).
+    let hit = null, edge = null;
+    for (const e of edges) {
+      if (Math.abs(out.x * e.d.y - out.y * e.d.x) < 1e-9) continue;
+      const x = lineIntersect(G, out, e.p, e.d);
+      const along = (x.x - e.p.x) * e.d.x + (x.y - e.p.y) * e.d.y;
+      const ahead = (x.x - G.x) * out.x + (x.y - G.y) * out.y;
+      if (ahead > 0 && along >= -1e-6 && along <= e.len + 1e-6) { hit = x; edge = e; }
+    }
+    const toCentre = { x: -out.x, y: -out.y };
+    return makeStrip(`s${i}`, hit, { ...G }, [
+      endCut(`j${i + 1}`, hit, localCutAngle(toCentre, edge.d)),
+      endCut('j0', G, 120),
+    ]);
+  });
+  return {
+    strips,
+    joints: [
+      { id: 'j0', position: { ...G }, members: strips.map((s) => ({ stripId: s.id, role: 'end' })), notchType: 'taper' },
+      ...strips.map((s, i) => endJoint(`j${i + 1}`, s.start, s.id, 'miter')),
+    ],
+  };
+}
+
 function defineBishamon({ id, name, rotationDeg, description }) {
   return definePattern({
     id,
     name,
     meta: { difficulty: 'intermediate', tags: ['six-fold', 'traditional'], description, thumbnail: null },
-    build: ({ cell }) => {
-      const { G } = cell;
-      const { A, B, C } = cell.inner;
-      const edges = [[A, B], [B, C], [C, A]].map(([p, q]) => {
-        const len = Math.hypot(q.x - p.x, q.y - p.y);
-        return { p, d: { x: (q.x - p.x) / len, y: (q.y - p.y) / len }, len };
-      });
-      const strips = [270, 30, 150].map((deg, i) => {
-        const rad = ((deg + rotationDeg) * Math.PI) / 180;
-        const out = { x: Math.cos(rad), y: Math.sin(rad) }; // from the centroid to the border
-        // The border edge the ray reaches (the one it isn't parallel to, ahead of G).
-        let hit = null, edge = null;
-        for (const e of edges) {
-          if (Math.abs(out.x * e.d.y - out.y * e.d.x) < 1e-9) continue;
-          const x = lineIntersect(G, out, e.p, e.d);
-          const along = (x.x - e.p.x) * e.d.x + (x.y - e.p.y) * e.d.y;
-          const ahead = (x.x - G.x) * out.x + (x.y - G.y) * out.y;
-          if (ahead > 0 && along >= -1e-6 && along <= e.len + 1e-6) { hit = x; edge = e; }
-        }
-        const toCentre = { x: -out.x, y: -out.y };
-        return makeStrip(`s${i}`, hit, { ...G }, [
-          endCut(`j${i + 1}`, hit, localCutAngle(toCentre, edge.d)),
-          endCut('j0', G, 120),
-        ]);
-      });
-      return {
-        strips,
-        joints: [
-          { id: 'j0', position: { ...G }, members: strips.map((s) => ({ stripId: s.id, role: 'end' })), notchType: 'taper' },
-          ...strips.map((s, i) => endJoint(`j${i + 1}`, s.start, s.id, 'miter')),
-        ],
-      };
-    },
+    build: ({ cell }) => buildBishamonStrips(cell, rotationDeg),
   });
 }
 

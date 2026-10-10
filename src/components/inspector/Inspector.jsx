@@ -46,7 +46,7 @@ function StripCard({ strip, pattern }) {
         <tbody>
           <tr><td className="text-muted py-0 pe-2">Length</td><td className="py-0">{length.toFixed(2)} mm</td></tr>
           {strip.curve?.lead > 0 && <tr><td className="text-muted py-0 pe-2">Straight ends</td><td className="py-0">{strip.curve.lead.toFixed(2)} mm each</td></tr>}
-          {strip.curve?.startLead > 0 && <tr><td className="text-muted py-0 pe-2">Straight end</td><td className="py-0">{strip.curve.startLead.toFixed(2)} mm</td></tr>}
+          {(strip.curve?.startLead > 0 || strip.curve?.endLead > 0) && <tr><td className="text-muted py-0 pe-2">Straight ends</td><td className="py-0">{(strip.curve.startLead || 0).toFixed(2)} / {(strip.curve.endLead || 0).toFixed(2)} mm</td></tr>}
           {strip.curve && <tr><td className="text-muted py-0 pe-2">Chord / bow</td><td className="py-0">{chord.toFixed(2)} mm / {Math.abs(strip.curve.sagitta).toFixed(2)} mm</td></tr>}
           <tr><td className="text-muted py-0 pe-2">Start</td><td className="py-0">{fmtPt(strip.start)}</td></tr>
           <tr><td className="text-muted py-0 pe-2">End</td><td className="py-0">{fmtPt(strip.end)}</td></tr>

@@ -1,5 +1,6 @@
-import { definePattern, makeStrip, endCut, endJoint, chordAtHeight, cellContext, localCutAngle } from './_shared.js';
+import { definePattern, makeStrip, endCut, endJoint, chordAtHeight, cellContext, localCutAngle, lineIntersect } from './_shared.js';
 import { curveLength, worldTangents, curveFamily, cutReachable } from '../curve.js';
+import { lengthLedParams } from './_lengthLed.js';
 import { MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM } from '../units.js';
 
 // Ume: one thick strip from Sakura A — the one cutting off the top corner, with a V-notch in
@@ -23,21 +24,83 @@ import { MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM } from '../units.js';
 //
 // At the corner the strip ends in two cuts through the grid corner, one along each grid strip
 // face (an asymmetric miter), so the end is the point of the corner.
+//
+// Ume B changes only the corner end. There the strip ends in a single miter flush with the SIDE
+// grid face (as Rindo's strips do), its lower edge — the one facing the bottom border — passing
+// exactly through the inner grid corner, so the cut face never touches the bottom border. That
+// frees the arrival angle (it is solved so that the bend is a symmetric parabola), and with it
+// the room for Shippo's behaviour: once the strips run side by side down the axis (τ = 0) a
+// longer strip keeps a straight section down from the notch, then bends, then runs straight
+// again into the corner along the direction it arrives at there.
 const SQRT3 = Math.sqrt(3);
 const ALPHA = 45;                      // half the notch angle: a 90° V (opened a little for the most splayed strips)
 const TAU_MAX = 40;                    // strip direction in the notch, degrees from the axis
 const LEAD_MAX = 30;                   // longest straight section down from the notch (mm)
 const alphaFor = (tauDeg) => Math.max(ALPHA, tauDeg + 15); // the notch face is at least 15° off the strip
 const THETA_MIN = 3, THETA_MAX = 35;   // bend at each end (degrees)
+const THETA_MAX_B = 48;             // Ume B arrives at the corner more steeply
 const WEDGE_MARGIN = 4;                // arrival direction at least this far from both grid faces
 const rad = (d) => (d * Math.PI) / 180;
 const deg = (r) => (r * 180) / Math.PI;
+const wrapRad = (r) => Math.atan2(Math.sin(r), Math.cos(r));
 const wrap = (d) => ((((d + 180) % 360) + 360) % 360) - 180;
+
+const norm2 = (v) => { const l = Math.hypot(v.x, v.y); return { x: v.x / l, y: v.y / l }; };
+const cross2 = (a, b) => a.x * b.y - a.y * b.x;
+
+// Ume B, left strip (to corner A): where the strip arrives. The end is a miter along the AC face
+// with the strip's lower edge through A: given the arrival direction u, the centerline end E is
+// where the line through A + (w/2)·(right normal of u) along u meets AC. The bend is symmetric
+// about the chord S→E, so u is d (the direction leaving S) mirrored in that chord — E and u depend on
+// each other and are found by iterating.
+function arriveB(A, S, d, w) {
+  const ac = { x: Math.cos(Math.PI / 3), y: Math.sin(Math.PI / 3) };
+  const endFor = (u) => {
+    const phi = Math.atan2(u.y, u.x);
+    return lineIntersect({ x: A.x + (w / 2) * Math.sin(phi), y: A.y - (w / 2) * Math.cos(phi) }, u, A, ac);
+  };
+  let u = norm2({ x: A.x - S.x, y: A.y - S.y });
+  for (let i = 0; i < 60; i++) {
+    const E = endFor(u), g = norm2({ x: E.x - S.x, y: E.y - S.y }), dg = d.x * g.x + d.y * g.y;
+    const un = { x: 2 * dg * g.x - d.x, y: 2 * dg * g.y - d.y };
+    const done = Math.hypot(un.x - u.x, un.y - u.y) < 1e-11;
+    u = un;
+    if (done) break;
+  }
+  const E = endFor(u), g = norm2({ x: E.x - S.x, y: E.y - S.y }), dg = d.x * g.x + d.y * g.y;
+  const resid = Math.hypot(2 * dg * g.x - d.x - u.x, 2 * dg * g.y - d.y - u.y);
+  return { E, u, g, ok: resid < 1e-6 };
+}
+
+// The left strip of Ume B, in the left half's own frame (the right strip is its mirror image).
+function leftStripB(cell, w, N, lam, al, tau, lead) {
+  const A = cell.inner.A;
+  const face = { x: -Math.sin(al), y: -Math.cos(al) };
+  const S = { x: N.x + lam * face.x, y: N.y + lam * face.y };
+  const d = { x: -Math.sin(tau), y: -Math.cos(tau) };
+  const { E, u, g, ok } = arriveB(A, S, d, w);
+  if (!ok) return null;
+  const ang = (v) => Math.atan2(v.y, v.x);
+  const chordA = ang({ x: E.x - S.x, y: E.y - S.y });
+  if (!(lead > 0)) {
+    const c = Math.hypot(E.x - S.x, E.y - S.y), thetaS = wrap(deg(ang(d) - ang(g)));
+    return { S, E, face, u, c, theta: thetaS, h: (c * Math.tan(rad(thetaS))) / 4, curve: { sagitta: (c * Math.tan(rad(thetaS))) / 4 } };
+  }
+  // Running side by side (τ = 0): a straight lead down the axis, the bend, and a straight lead into the corner.
+  const R = { x: E.x - S.x - lead * d.x, y: E.y - S.y - lead * d.y };
+  const den = cross2(g, u), c = cross2(R, u) / den, l2 = cross2(g, R) / den;
+  if (!(c > 0) || !(l2 >= -1e-9)) return null;
+  const thetaS = wrap(deg(ang(d) - ang(g))), h = (c * Math.tan(rad(thetaS))) / 4;
+  return {
+    S, E, face, u, c, theta: thetaS, h,
+    curve: { sagitta: h, startLead: lead, startAngle: wrapRad(ang(d) - chordA), endLead: Math.max(l2, 0), endAngle: wrapRad(ang(u) - chordA) },
+  };
+}
 
 // The family parameter p: the strip's direction τ in the notch (degrees from the axis, p ≥ 0)
 // — longer = smaller τ — and, at τ = 0 where the two strips run side by side along the axis,
 // flush against each other, a straight section of length −p (p < 0) before the bend.
-function umeShape(cell, w, wThick, spacing, p) {
+function umeShape(cell, w, wThick, spacing, p, variant = 'A') {
   const { G } = cell;
   const clear = cell.r - cell.gridStripWidth / 2;
   const outerFace = 2 * clear - spacing;
@@ -50,6 +113,18 @@ function umeShape(cell, w, wThick, spacing, p) {
   const N = { x: G.x, y: yMouth + depth };                     // apex
   out.N = N; out.depth = depth; out.alpha = alphaDeg;
   const lam = w / 2 / Math.sin(al - tau);                      // from the apex along the notch face to the strip's centerline
+  if (variant === 'B') {
+    const left = leftStripB(cell, w, N, lam, al, tau, lead);
+    if (!left) return out;
+    const mirror = (pt) => ({ x: 2 * G.x - pt.x, y: pt.y });
+    const ac = { x: Math.cos(Math.PI / 3), y: Math.sin(Math.PI / 3) }, bc = { x: -ac.x, y: ac.y };
+    const flip = (c) => ({ ...c, sagitta: -c.sagitta, ...(c.startLead > 0 || c.endLead > 0 ? { startAngle: -c.startAngle, endAngle: -c.endAngle } : {}) });
+    out.sides.push({ side: -1, S: left.S, E: left.E, face: left.face, endFace: ac, c: left.c, h: left.h, theta: left.theta, curve: left.curve, u: left.u });
+    out.sides.push({
+      side: 1, S: mirror(left.S), E: mirror(left.E), face: { x: -left.face.x, y: left.face.y }, endFace: bc,
+      c: left.c, h: -left.h, theta: -left.theta, curve: flip(left.curve), u: { x: -left.u.x, y: left.u.y },
+    });
+  } else
   for (const side of [-1, 1]) { // -1 = left strip (to corner A), +1 = right (to corner B)
     const E = side < 0 ? cell.inner.A : cell.inner.B;
     const face = { x: side * Math.sin(al), y: -Math.cos(al) };
@@ -69,16 +144,16 @@ function umeShape(cell, w, wThick, spacing, p) {
   const faceHalf = (cell.inner.C.y - yMouth) * Math.tan(rad(30));
   if (!(depth * Math.tan(al) + 1 <= faceHalf)) return out;
   const L0 = out.sides[0];
-  if (!(L0.c > 0) || !(Math.abs(L0.theta) >= THETA_MIN) || !(Math.abs(L0.theta) <= THETA_MAX)) return out;
+  if (!(L0.c > 0) || !(Math.abs(L0.theta) >= THETA_MIN) || !(Math.abs(L0.theta) <= (variant === 'B' ? THETA_MAX_B : THETA_MAX))) return out;
   // Arrival: the strip's reversed end tangent, measured from the grid face along the bottom edge.
   const tan = worldTangents(L0.S, L0.E, L0.curve);
   const beta = deg(Math.atan2(-tan.end.y, -tan.end.x)); // corner A: grid faces at 0° (AB) and 60° (AC)
   if (!(beta >= WEDGE_MARGIN && beta <= 60 - WEDGE_MARGIN)) return out;
-  // Both edges of the band must reach the notch face and the two grid faces (see cutReachable).
+  // Both edges of the band must reach the notch face and the grid face(s) it ends against (see cutReachable).
   const hw = w / 2, flat = { x: 1, y: 0 }, ac = { x: Math.cos(Math.PI / 3), y: Math.sin(Math.PI / 3) };
   const reach = [
     { point: L0.S, dir: L0.face, atStart: true },
-    { point: L0.E, dir: flat, atStart: false },
+    ...(variant === 'B' ? [] : [{ point: L0.E, dir: flat, atStart: false }]),
     { point: L0.E, dir: ac, atStart: false },
   ];
   if (!reach.every((r) => cutReachable(L0.S, L0.E, L0.curve, hw, r))) return out;
@@ -92,13 +167,13 @@ function umeShape(cell, w, wThick, spacing, p) {
 // positions of the thick strip. The thick strip's width and spacing then range over the
 // positions at which the length currently chosen can be made.
 const familyCache = new Map();
-function familyFor(ctx, thick, spacing) {
+function familyFor(ctx, thick, spacing, variant = 'A') {
   const { cellWidth, gridStripWidth, patternStripWidth: w } = ctx;
-  const key = `${cellWidth}|${gridStripWidth}|${w}|${thick}|${spacing}`;
+  const key = `${variant}|${cellWidth}|${gridStripWidth}|${w}|${thick}|${spacing}`;
   if (!familyCache.has(key)) {
     if (familyCache.size > 4000) familyCache.clear();
     const cell = cellContext(cellWidth, gridStripWidth);
-    familyCache.set(key, curveFamily((p) => umeShape(cell, w, thick, spacing, p), -LEAD_MAX, TAU_MAX, 90));
+    familyCache.set(key, curveFamily((p) => umeShape(cell, w, thick, spacing, p, variant), -LEAD_MAX, TAU_MAX, 90));
   }
   return familyCache.get(key);
 }
@@ -108,101 +183,38 @@ const maxDepth = (w) => { let m = 0; for (let t = 0; t <= TAU_MAX; t += 1) m = M
 // The notch's mouth has to fit along the thick strip's face toward the centre. (The face lies
 // spacing + thick below the corner, and the inner triangle there is that times tan 30° wide on each side of the axis.)
 const minReach = (w) => { let m = 0; for (let t = 0; t <= TAU_MAX; t += 1) { const a = alphaFor(t); m = Math.max(m, ((w * Math.cos(rad(a))) / Math.sin(rad(a - t))) * Math.tan(rad(a)) + 1); } return m / Math.tan(rad(30)); };
-const thickLo = (w) => Math.max(MIN_STRIP_WIDTH_MM, maxDepth(w) + 0.5);
-const thickCap = ({ cellWidth, gridStripWidth, patternStripWidth: w }) =>
-  Math.max(thickLo(w), Math.min(cellWidth * MAX_STRIP_WIDTH_FRACTION, (SQRT3 * cellWidth - 3 * gridStripWidth) / 4));
-const spacingLo = (w, thick) => Math.max(0, minReach(w) - thick);
-const spacingCap = ({ cellWidth, gridStripWidth }, thick) => Math.max(0, (SQRT3 * cellWidth - 3 * gridStripWidth - 4 * thick) / 4);
-// lo, the whole numbers between, hi — a coarse scan that still includes both ends
-const scan = (lo, hi) => {
-  const v = [lo];
-  for (let x = Math.floor(lo) + 1; x < hi - 1e-9; x += 1) v.push(x);
-  if (hi > lo + 1e-9) v.push(hi);
-  return v;
+const thickLo = ({ patternStripWidth: w }) => Math.max(MIN_STRIP_WIDTH_MM, maxDepth(w) + 0.5);
+const thickCap = (ctx) => {
+  const { cellWidth, gridStripWidth } = ctx;
+  return Math.max(thickLo(ctx), Math.min(cellWidth * MAX_STRIP_WIDTH_FRACTION, (SQRT3 * cellWidth - 3 * gridStripWidth) / 4));
 };
+const spacingLo = ({ patternStripWidth: w }, thick) => Math.max(0, minReach(w) - thick);
+const spacingCap = ({ cellWidth, gridStripWidth }, thick) => Math.max(0, (SQRT3 * cellWidth - 3 * gridStripWidth - 4 * thick) / 4);
 
-const gridCache = new Map();
-function gridFor(ctx) {
-  const { cellWidth, gridStripWidth, patternStripWidth: w } = ctx;
-  const key = `${cellWidth}|${gridStripWidth}|${w}`;
-  if (!gridCache.has(key)) {
-    if (gridCache.size > 64) gridCache.clear();
-    const g = [];
-    for (const t of scan(thickLo(w), thickCap(ctx))) for (const s of scan(spacingLo(w, t), spacingCap(ctx, t))) g.push({ t, s, fam: familyFor(ctx, t, s) });
-    gridCache.set(key, g);
-  }
-  return gridCache.get(key);
-}
-const reaches = (fam, L) => fam.feasible && L >= fam.Lmin - 1e-6 && L <= fam.Lmax + 1e-6;
-
-export const buildUme = definePattern({
-  id: 'builtin:ume-sixth',
-  name: 'Ume',
+const defineUme = ({ id, name, variant, description }) => definePattern({
+  id,
+  name,
   maxStripWidth: 3,
   defaultStripWidth: 3,
   // Order matters: the thick strip's range depends on the length, and the spacing's on both.
-  paramDefs: [
-    {
-      key: 'curveLength',
-      label: 'Curved strip length',
-      kind: 'length',
-      default: 50.0,
-      step: 0.5,
-      // Starts well bowed, for the default thick strip.
-      defaultValue: (ctx) => {
-        const w = ctx.patternStripWidth;
-        const t = Math.min(Math.max(14, thickLo(w)), thickCap(ctx));
-        const s = Math.min(Math.max(8, spacingLo(w, t)), spacingCap(ctx, t));
-        const f = familyFor(ctx, t, s);
-        if (f.feasible) return f.Lmin + 0.8 * (f.Lmax - f.Lmin);
-        const fs = gridFor(ctx).filter((c) => c.fam.feasible);
-        return fs.length ? (Math.min(...fs.map((c) => c.fam.Lmin)) + Math.max(...fs.map((c) => c.fam.Lmax))) / 2 : null;
-      },
-      min: (ctx) => { const fs = gridFor(ctx).filter((c) => c.fam.feasible); return fs.length ? Math.min(...fs.map((c) => c.fam.Lmin)) : 0; },
-      max: (ctx) => { const fs = gridFor(ctx).filter((c) => c.fam.feasible); return fs.length ? Math.max(...fs.map((c) => c.fam.Lmax)) : 0; },
-      description: 'Length of each bent strip; a longer strip bows more (and cuts a shallower notch), and past a point runs straight down from the notch before it bends. The thick strip\'s ranges follow this length.',
-    },
-    {
-      key: 'thickStripWidth',
-      label: 'Thick strip width',
-      kind: 'length',
-      default: 14.0,
-      // The widths at which the chosen length can be made (at some spacing).
-      min: (ctx) => { const fs = gridFor(ctx).filter((c) => reaches(c.fam, ctx.params.curveLength)); return fs.length ? Math.min(...fs.map((c) => c.t)) : thickLo(ctx.patternStripWidth); },
-      max: (ctx) => { const fs = gridFor(ctx).filter((c) => reaches(c.fam, ctx.params.curveLength)); return fs.length ? Math.max(...fs.map((c) => c.t)) : thickLo(ctx.patternStripWidth); },
-      description: 'Width of the thick strip across the top corner (the regular Strip width sets the two bent strips).',
-    },
-    {
-      key: 'cornerSpacing',
-      label: 'Corner spacing',
-      kind: 'length',
-      default: 8.0,
-      // The spacings at which the chosen length can be made with the chosen thick strip.
-      min: (ctx) => {
-        const t = ctx.params.thickStripWidth, w = ctx.patternStripWidth;
-        const ok = scan(spacingLo(w, t), spacingCap(ctx, t)).filter((s) => reaches(familyFor(ctx, t, s), ctx.params.curveLength));
-        return ok.length ? Math.min(...ok) : spacingLo(w, t);
-      },
-      max: (ctx) => {
-        const t = ctx.params.thickStripWidth, w = ctx.patternStripWidth;
-        const ok = scan(spacingLo(w, t), spacingCap(ctx, t)).filter((s) => reaches(familyFor(ctx, t, s), ctx.params.curveLength));
-        return ok.length ? Math.max(...ok) : spacingLo(w, t);
-      },
-      description: 'Gap between the top corner and the thick strip.',
-    },
-  ],
+  paramDefs: lengthLedParams({
+    familyFor: (ctx, t, sp) => familyFor(ctx, t, sp, variant), thickLo, thickCap, spacingLo, spacingCap, defaultThick: 14, defaultSpacing: 8,
+    lengthDescription: 'Length of each bent strip; a longer strip bows more (and cuts a shallower notch), and past a point runs straight down from the notch before it bends. The thick strip\'s ranges follow this length.',
+    thickDescription: 'Width of the thick strip across the top corner (the regular Strip width sets the two bent strips).',
+    spacingDescription: 'Gap between the top corner and the thick strip.',
+  }),
   meta: {
     difficulty: 'advanced',
     tags: ['six-fold', 'traditional', 'curved'],
-    description: 'A thick strip across the top corner with a V-notch, and two thin strips bent from the notch down to the bottom corners, meeting at the notch apex. Thin strip width defaults to and is capped at 3 mm.',
+    description,
     thumbnail: null,
   },
   build: ({ cell, params, patternStripWidth: w }) => {
     const { G } = cell;
     const wThick = params.thickStripWidth;
     const ctx = { cellWidth: cell.cellWidth, gridStripWidth: cell.gridStripWidth, patternStripWidth: w };
-    const fam = familyFor(ctx, wThick, params.cornerSpacing);
-    const shape = umeShape(cell, w, wThick, params.cornerSpacing, fam.paramFor(params.curveLength));
+    const fam = familyFor(ctx, wThick, params.cornerSpacing, variant);
+    const shape = umeShape(cell, w, wThick, params.cornerSpacing, fam.paramFor(params.curveLength), variant);
     const { N } = shape;
 
     // The thick strip (s2): Sakura A's top bar, mitered to the grid faces, notch toward the centre.
@@ -217,23 +229,36 @@ export const buildUme = definePattern({
     const joints = [
       { id: 'j0', position: { ...N }, members: [{ stripId: 's2', role: 'notch' }], notchType: 'taper' },
     ];
-    shape.sides.forEach(({ side, S, E, face, curve }, i) => {
+    shape.sides.forEach(({ side, S, E, face, curve, endFace }, i) => {
       const tan = worldTangents(S, E, curve);
       const jS = `j${i + 6}`, jE = `j${2 + i}`;
       const A = cell.inner.A, B = cell.inner.B, C = cell.inner.C;
       const grid1 = side < 0 ? { x: B.x - A.x, y: B.y - A.y } : { x: A.x - B.x, y: A.y - B.y };    // along the bottom face
       const grid2 = side < 0 ? { x: C.x - A.x, y: C.y - A.y } : { x: C.x - B.x, y: C.y - B.y };    // up the side face
-      const s = makeStrip(`s${i}`, S, E, [
+      const s = makeStrip(`s${i}`, S, E, variant === 'B' ? [
+        endCut(jS, S, localCutAngle(tan.start, face)),
+        endCut(jE, E, localCutAngle(tan.end, endFace)),
+      ] : [
         endCut(jS, S, localCutAngle(tan.start, face)),
         endCut(jE, E, localCutAngle(tan.end, grid1)),
         endCut(jE, E, localCutAngle(tan.end, grid2)),
       ]);
       s.curve = { ...curve };
       strips.push(s);
-      joints.push(endJoint(jS, S, s.id, 'miter'), endJoint(jE, E, s.id, 'asymMiter'));
+      joints.push(endJoint(jS, S, s.id, 'miter'), endJoint(jE, E, s.id, variant === 'B' ? 'miter' : 'asymMiter'));
     });
     joints.push(endJoint('j4', start, 's2', 'miter'), endJoint('j5', end, 's2', 'miter'));
     strips.push(bar);
     return { strips, joints, stripWidths: { s2: wThick } };
   },
 });
+
+export const buildUmeA = defineUme({
+  id: 'builtin:ume-sixth', name: 'Ume A', variant: 'A',
+  description: 'A thick strip across the top corner with a V-notch, and two thin strips bent from the notch down to the bottom corners, meeting at the notch apex. Thin strip width defaults to and is capped at 3 mm.',
+});
+export const buildUmeB = defineUme({
+  id: 'builtin:ume-b-sixth', name: 'Ume B', variant: 'B',
+  description: 'Like Ume A, but the bent strips end in a single miter along the side border (as in Rindo) instead of tapering across the bottom border, leaving room for them to run straight, bend, and run straight again at longer lengths.',
+});
+export const buildUme = buildUmeA;

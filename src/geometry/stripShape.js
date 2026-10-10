@@ -129,7 +129,7 @@ export function buildStripLocalPoints(length, halfWidth, startAngleDeg, endAngle
  */
 export function buildCurvedStripLocalPoints(length, halfWidth, curveOrSagitta, cuts = [], samples = 48) {
   const curve = typeof curveOrSagitta === 'object' ? curveOrSagitta : { sagitta: curveOrSagitta };
-  if (curve.lead > 0 || curve.startLead > 0) samples = Math.max(samples, 96); // the bend only occupies the middle
+  if (curve.lead > 0 || curve.startLead > 0 || curve.endLead > 0) samples = Math.max(samples, 96); // the bend only occupies the middle
   const { centre, tangent } = curveSampler(length, curve);
   const left = [], right = [];
   for (let i = 0; i <= samples; i++) {

@@ -25,38 +25,45 @@ export function arcLength(c, h) {
 
 // Length of the whole centerline for a strip whose chord (start → end) is `chord`.
 export function curveLength(chord, curve) {
-  if (curve.startLead > 0) return curve.startLead + arcLength(startParabola(chord, curve).span, curve.sagitta);
+  if (curve.startLead > 0 || curve.endLead > 0) { const g = legs(chord, curve); return g.l1 + g.l2 + arcLength(g.span, curve.sagitta); }
   if (!(curve.lead > 0)) return arcLength(chord, curve.sagitta);
   return 2 * curve.lead + arcLength(curve.span, curve.sagitta);
 }
 
-// The other form of lead: a straight stretch at the START only, `curve = { sagitta, startLead,
-// startAngle }` — it leaves the start at `startAngle` (radians, to the chord's left) for
-// `startLead`, then bends as a parabola (sagitta h, measured off ITS chord, from the end of the
-// lead to the strip's end) whose start tangent continues the lead. Used by Ume.
-function startParabola(chord, curve) {
-  const l0 = curve.startLead, e = curve.startAngle;
-  const px = l0 * Math.cos(e), py = l0 * Math.sin(e);
-  const vx = chord - px, vy = -py, span = Math.hypot(vx, vy);
-  return { px, py, span, ux: vx / span, uy: vy / span };
+// The other form of lead: straight stretches at the START and/or END, `curve = { sagitta,
+// startLead, startAngle, endLead, endAngle }` — the centerline leaves the start at `startAngle`
+// (radians, to the chord's left) for `startLead`, bends as a parabola (sagitta h, measured off
+// ITS chord, from the end of that lead to the start of the end lead) whose end tangents
+// continue the leads, and arrives at the end running at `endAngle` (its direction of travel,
+// radians to the chord's left) after `endLead`. A lead of 0 (or none) drops that stretch.
+// Used by Ume.
+function legs(chord, curve) {
+  const l1 = curve.startLead > 0 ? curve.startLead : 0, e1 = curve.startAngle || 0;
+  const l2 = curve.endLead > 0 ? curve.endLead : 0, e2 = curve.endAngle || 0;
+  const px = l1 * Math.cos(e1), py = l1 * Math.sin(e1);
+  const qx = chord - l2 * Math.cos(e2), qy = -l2 * Math.sin(e2);
+  const vx = qx - px, vy = qy - py, span = Math.hypot(vx, vy);
+  return { l1, e1, l2, e2, px, py, qx, qy, span, ux: vx / span, uy: vy / span };
 }
 
 // Centerline sampler in the chord frame (x along the chord from 0 to `length`, y toward +left):
 // centre(t) and the unit tangent(t) for t in [0, 1]. t is piecewise-linear in the pieces' lengths.
 export function curveSampler(length, curve) {
   const h = curve.sagitta, lead = curve.lead > 0 ? curve.lead : 0;
-  if (curve.startLead > 0) {
-    const l0 = curve.startLead, e = curve.startAngle, { px, py, span, ux, uy } = startParabola(length, curve);
-    const nx = -uy, ny = ux, f = l0 / (l0 + arcLength(span, h));
+  if (curve.startLead > 0 || curve.endLead > 0) {
+    const { l1, e1, l2, e2, px, py, qx, qy, span, ux, uy } = legs(length, curve);
+    const nx = -uy, ny = ux, total = l1 + l2 + arcLength(span, h), f1 = l1 / total, f2 = l2 / total;
     return {
       centre: (t) => {
-        if (t <= f) return [(px * t) / f, (py * t) / f];
-        const u = (t - f) / (1 - f), b = 4 * h * u * (1 - u);
+        if (f1 > 0 && t <= f1) return [(px * t) / f1, (py * t) / f1];
+        if (f2 > 0 && t >= 1 - f2) { const s = (t - (1 - f2)) / f2; return [qx + (length - qx) * s, qy + (0 - qy) * s]; }
+        const u = (t - f1) / (1 - f1 - f2), b = 4 * h * u * (1 - u);
         return [px + ux * span * u + nx * b, py + uy * span * u + ny * b];
       },
       tangent: (t) => {
-        if (t <= f) return [Math.cos(e), Math.sin(e)];
-        const u = (t - f) / (1 - f), b = 4 * h * (1 - 2 * u), dx = ux * span + nx * b, dy = uy * span + ny * b, l = Math.hypot(dx, dy);
+        if (f1 > 0 && t <= f1) return [Math.cos(e1), Math.sin(e1)];
+        if (f2 > 0 && t >= 1 - f2) return [Math.cos(e2), Math.sin(e2)];
+        const u = (t - f1) / (1 - f1 - f2), b = 4 * h * (1 - 2 * u), dx = ux * span + nx * b, dy = uy * span + ny * b, l = Math.hypot(dx, dy);
         return [dx / l, dy / l];
       },
     };

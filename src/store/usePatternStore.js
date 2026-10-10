@@ -32,7 +32,12 @@ import mitsuBishi from '../patterns/mitsu-bishi.json';
 import urahanaKikko from '../patterns/urahana-kikko.json';
 import yaeUrahanaKikko from '../patterns/yae-urahana-kikko.json';
 import shippo from '../patterns/shippo.json';
+import bishamonKikkoInsetA from '../patterns/bishamon-kikko-inset-a.json';
+import bishamonKikkoInsetB from '../patterns/bishamon-kikko-inset-b.json';
+import sakuraShippo from '../patterns/sakura-shippo.json';
+import sokutenKikko from '../patterns/sokuten-kikko.json';
 import ume from '../patterns/ume.json';
+import umeB from '../patterns/ume-b.json';
 import blank from '../patterns/blank.json';
 import { validatePattern } from '../geometry/schema/validate.js';
 import { buildAsanoha } from '../geometry/factories/asanoha.js';
@@ -60,7 +65,10 @@ import { buildMitsuBishi } from '../geometry/factories/mitsuBishi.js';
 import { buildUrahanaKikko } from '../geometry/factories/urahanaKikko.js';
 import { buildYaeUrahanaKikko } from '../geometry/factories/yaeUrahanaKikko.js';
 import { buildShippo } from '../geometry/factories/shippo.js';
-import { buildUme } from '../geometry/factories/ume.js';
+import { buildBishamonKikkoInsetA, buildBishamonKikkoInsetB } from '../geometry/factories/bishamonKikkoInset.js';
+import { buildSakuraShippo } from '../geometry/factories/sakuraShippo.js';
+import { buildSokutenKikko } from '../geometry/factories/sokutenKikko.js';
+import { buildUme, buildUmeB } from '../geometry/factories/ume.js';
 import { buildBlank } from '../geometry/factories/blank.js';
 import useGridStore from './useGridStore.js';
 import useSelectionStore from './useSelectionStore.js';
@@ -78,7 +86,7 @@ import { readLengthMm, lengthParam, resolveParamState } from '../geometry/params
 // 'blank' is appended at the END deliberately — BUILT_INS[0] is what seeds the
 // default activePatternId below, and an empty pattern being the default on
 // first launch is exactly the bug that got fixed by removing asanoha-one.
-const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, matsuba, bishamonKikkoA, bishamonKikkoB, matsunoha, rindo, sakuraA, sakura, kawariYaeZakura, yaeZakuraKikko, tsunoAsanoha, tsunoAsanohaPointed, yaeAsanoha, kikyoAsanoha, komachiKikkoA, komachiKikkoB, ryusoAsanohaA, ryusoAsanohaB, futaeAsanoha, kawariAsanoha, warigikuKikko, oumeKikko, seiunKikko, mitsuBishi, urahanaKikko, yaeUrahanaKikko, shippo, ume, blank];
+const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, matsuba, bishamonKikkoA, bishamonKikkoB, matsunoha, rindo, sakuraA, sakura, kawariYaeZakura, yaeZakuraKikko, tsunoAsanoha, tsunoAsanohaPointed, yaeAsanoha, kikyoAsanoha, komachiKikkoA, komachiKikkoB, ryusoAsanohaA, ryusoAsanohaB, futaeAsanoha, kawariAsanoha, warigikuKikko, oumeKikko, seiunKikko, mitsuBishi, urahanaKikko, yaeUrahanaKikko, shippo, ume, umeB, bishamonKikkoInsetA, bishamonKikkoInsetB, sakuraShippo, sokutenKikko, blank];
 
 BUILT_INS.forEach((p) => {
   const errs = validatePattern(p);
@@ -127,7 +135,12 @@ const FACTORY_BY_ID = {
   'builtin:urahana-kikko-sixth': buildUrahanaKikko,
   'builtin:yae-urahana-kikko-sixth': buildYaeUrahanaKikko,
   'builtin:shippo-sixth': buildShippo,
+  'builtin:bishamon-kikko-inset-a-sixth': buildBishamonKikkoInsetA,
+  'builtin:bishamon-kikko-inset-b-sixth': buildBishamonKikkoInsetB,
+  'builtin:sakura-shippo-sixth': buildSakuraShippo,
+  'builtin:sokuten-kikko-sixth': buildSokutenKikko,
   'builtin:ume-sixth': buildUme,
+  'builtin:ume-b-sixth': buildUmeB,
   'builtin:blank': buildBlank,
 };
 

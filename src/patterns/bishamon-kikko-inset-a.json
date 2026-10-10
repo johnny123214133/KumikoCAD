@@ -1,0 +1,320 @@
+{
+  "id": "builtin:bishamon-kikko-inset-a-sixth",
+  "name": "Bishamon-kikko Inset A",
+  "readOnly": true,
+  "version": 3,
+  "sideLength": 75,
+  "patternParams": {
+    "inset": {
+      "length": 24,
+      "unit": "mm"
+    }
+  },
+  "stripProperties": [
+    {
+      "id": "sp0",
+      "width": 3,
+      "thickness": 6,
+      "material": "hinoki",
+      "grain": "along",
+      "color": "#e8d5b0",
+      "finish": "natural",
+      "edgeProfile": null
+    }
+  ],
+  "vertices": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 75,
+      "y": 0
+    },
+    "C": {
+      "x": 37.5,
+      "y": 64.9519
+    }
+  },
+  "centroid": {
+    "x": 37.5,
+    "y": 21.6506
+  },
+  "_note": "Reference snapshot generated from the bishamon-kikko-inset-a factory at cellWidth 75, gridStripWidth 0, patternStripWidth 3. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "strips": [
+    {
+      "id": "s0",
+      "start": {
+        "x": 29.4449,
+        "y": 0
+      },
+      "end": {
+        "x": 43.3013,
+        "y": 24
+      },
+      "orientation": 1.0472,
+      "cuts": [
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 29.4449,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 43.3013,
+            "y": 24
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "start": {
+        "x": 60.2776,
+        "y": 25.5
+      },
+      "end": {
+        "x": 32.5648,
+        "y": 25.5
+      },
+      "orientation": 3.1416,
+      "cuts": [
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 60.2776,
+            "y": 25.5
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j3",
+          "position": {
+            "x": 32.5648,
+            "y": 25.5
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "start": {
+        "x": 22.7776,
+        "y": 39.4519
+      },
+      "end": {
+        "x": 36.634,
+        "y": 15.4519
+      },
+      "orientation": -1.0472,
+      "cuts": [
+        {
+          "jointId": "j4",
+          "position": {
+            "x": 22.7776,
+            "y": 39.4519
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j5",
+          "position": {
+            "x": 36.634,
+            "y": 15.4519
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "joints": [
+    {
+      "id": "j0",
+      "position": {
+        "x": 29.4449,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j1",
+      "position": {
+        "x": 43.3013,
+        "y": 24
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j2",
+      "position": {
+        "x": 60.2776,
+        "y": 25.5
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j3",
+      "position": {
+        "x": 32.5648,
+        "y": 25.5
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j4",
+      "position": {
+        "x": 22.7776,
+        "y": 39.4519
+      },
+      "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j5",
+      "position": {
+        "x": 36.634,
+        "y": 15.4519
+      },
+      "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    }
+  ],
+  "pieceTemplates": [
+    {
+      "id": "pt0",
+      "stripPropertyId": "sp0",
+      "stripId": "s0",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 27.7128,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt1",
+      "stripPropertyId": "sp0",
+      "stripId": "s1",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 27.7128,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt2",
+      "stripPropertyId": "sp0",
+      "stripId": "s2",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 27.7128,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "difficulty": "intermediate",
+    "tags": [
+      "six-fold",
+      "traditional"
+    ],
+    "description": "Bishamon-kikko A's strips moved away from the edges they run parallel to, so they close into a small triangle around the centre instead of meeting at it. The smallest inset is Bishamon-kikko A.",
+    "thumbnail": null
+  }
+}
