@@ -11,6 +11,9 @@ import {
 } from '../../geometry/units.js'
 import UnitToggle from '../shared/UnitToggle.jsx'
 import OverlayControls from '../pattern-editor/OverlayControls.jsx'
+import Accordion from '../shared/Accordion.jsx'
+import { FieldLabel } from '../shared/HelpTip.jsx'
+import ColorSwatchLine from '../shared/ColorSwatchLine.jsx'
 import PatternParams from './PatternParams.jsx'
 
 const sectionLabelStyle = { letterSpacing: '0.05em', fontSize: '11px' }
@@ -99,8 +102,6 @@ export default function Inspector() {
   // shrink-clamp broadcast reaching this pattern from outside.
   usePatternStore(s => s.patternOverrides)
   const pattern = getActivePattern()
-  const stripsExpanded = useAppStore(s => s.stripsExpanded)
-  const setStripsExpanded = useAppStore(s => s.setStripsExpanded)
 
   // Strip width is genuinely live now — draft is a plain string so the user
   // can freely clear/retype (a bare controlled number input fights you the
@@ -240,69 +241,35 @@ export default function Inspector() {
   // custom ones, and not the blank pattern, which has nothing to set).
   const isBuiltIn = !!pattern.readOnly && activePatternId !== 'builtin:blank'
 
+  const widthMaxDisplay = Number((widthUnit === 'mm' ? stripWidthMaxMm : mmToIn(stripWidthMaxMm)).toFixed(4))
+
   // The Save Pattern section is pinned to the bottom of the panel; everything
-  // above it scrolls.
+  // above it scrolls. Each section above it is its own accordion (open/closed
+  // state in useAppStore, so it survives this menu unmounting on a workspace
+  // switch): Pattern Parameters and Strip Properties start open.
   return (
     <div className="d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
       <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <div className="fw-semibold small text-uppercase text-muted" style={sectionLabelStyle}>Pattern</div>
+      <div className="d-flex justify-content-end mb-3">
         <UnitToggle />
       </div>
-      {/* Strips section — collapsed by default (state lives in useAppStore,
-          not here, so it survives Inspector unmounting on a workspace
-          switch). When expanded this is a FIXED max-height box with its own
-          scroll, not a flex-grow region — flex-grow by construction fills
-          exactly the space left over and can never overflow its container,
-          which is why the rest of the panel (Strip properties, Overlays)
-          used to always stay in view but this section could get squeezed to
-          almost nothing. A fixed box lets total content genuinely exceed the
-          panel's height when expanded, which is what lets RightPanel's
-          existing overflow-auto wrapper actually activate and scroll the
-          whole menu — that mechanism was already there, just never
-          triggered before. */}
-      <div className="d-flex align-items-center justify-content-between mb-2">
-        <div className="fw-semibold small text-uppercase text-muted" style={sectionLabelStyle}>
-          Strips ({pattern.strips.length})
-        </div>
-        <button
-          type="button"
-          className="btn btn-sm btn-outline-secondary"
-          style={{ padding: '1px 8px', fontSize: '11px' }}
-          onClick={() => setStripsExpanded(!stripsExpanded)}
-          aria-expanded={stripsExpanded}
-        >
-          {stripsExpanded ? '▲ Collapse' : '▼ Expand'}
-        </button>
-      </div>
-      {stripsExpanded && (
-        <div className="overflow-auto mb-1" style={{ maxHeight: '55vh', minHeight: '220px' }}>
-          {pattern.strips.map(strip => (
-            <StripCard key={strip.id} strip={strip} pattern={pattern} />
-          ))}
-        </div>
-      )}
 
-      <hr className="my-3" />
-
-      {/* Strip properties */}
-      <div>
-        <div className="d-flex align-items-baseline justify-content-between mb-2">
-          <div className="fw-semibold small text-uppercase text-muted" style={sectionLabelStyle}>Strip properties</div>
-          {hasStripSelection && (
-            <div className="text-muted" style={{ fontSize: '11px' }}>
-              {selectedStripIds.length} strip{selectedStripIds.length > 1 ? 's' : ''} selected
-            </div>
-          )}
-        </div>
-
+      {/* Strip width and whatever other parameters the active pattern's factory
+          declares (e.g. Goma's inset) — each with a hover tooltip for its
+          description and the range it can take right now. */}
+      <Accordion id="pe.params" title="Pattern Parameters" defaultOpen>
         <div className="mb-3">
-          <label className="form-label small mb-1">Strip width</label>
+          <FieldLabel
+            label="Strip width"
+            htmlFor="pattern-strip-width"
+            tip="Width of the pattern's strips. It applies to the whole pattern — width isn't per-strip yet."
+          />
           <div className="input-group input-group-sm">
             <input
+              id="pattern-strip-width"
               type="number"
               min={minWidthDisplay}
-              max={Number((widthUnit === 'mm' ? stripWidthMaxMm : mmToIn(stripWidthMaxMm)).toFixed(4))}
+              max={widthMaxDisplay}
               step={widthUnit === 'mm' ? MM_STEP : STRIP_IN_STEP}
               className="form-control"
               value={draftWidth}
@@ -311,39 +278,50 @@ export default function Inspector() {
             />
             <span className="input-group-text">{widthUnit}</span>
           </div>
-          {hasStripSelection && (
-            <div className="form-text" style={{ fontSize: '11px' }}>Applies to the whole pattern — width isn't per-strip yet.</div>
-          )}
+          <div className="form-text" style={{ fontSize: '11px' }}>Range {Number(minWidthDisplay.toFixed(widthUnit === 'mm' ? 2 : 4))}–{Number(widthMaxDisplay.toFixed(widthUnit === 'mm' ? 2 : 4))} {widthUnit}</div>
         </div>
+        <PatternParams pattern={pattern} patternStripWidth={effectiveWidthMm} />
+      </Accordion>
 
+      <Accordion
+        id="pe.props"
+        title="Strip Properties"
+        defaultOpen
+        right={hasStripSelection && (
+          <div className="text-muted" style={{ fontSize: '11px' }}>
+            {selectedStripIds.length} strip{selectedStripIds.length > 1 ? 's' : ''} selected
+          </div>
+        )}
+      >
         <div className="mb-2">
           <label className="form-label small mb-1">Wood{hasStripSelection ? ' (selected strips)' : ''}</label>
           <select className="form-select form-select-sm" value={material} onChange={(e) => onMaterialChange(e.target.value)}>
             {WOOD_OPTIONS.map(w => <option key={w.id} value={w.id}>{w.label}</option>)}
           </select>
         </div>
-
         <div>
           <label className="form-label small mb-1">Finish{hasStripSelection ? ' (selected strips)' : ''}</label>
           <select className="form-select form-select-sm" value={finish} onChange={(e) => onFinishChange(e.target.value)}>
             {FINISH_OPTIONS.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
           </select>
         </div>
-      </div>
+        <ColorSwatchLine material={material} finish={finish} />
+      </Accordion>
 
-      {/* Per-pattern parameters (e.g. Goma's inset) — built from whatever the
-          active pattern's factory declares; renders nothing (including its
-          own divider) for patterns with none. */}
-      <PatternParams pattern={pattern} patternStripWidth={effectiveWidthMm} />
-
-      <hr className="my-3" />
-
-      {/* Overlay toggles — this used to live in the left panel, before that
-          sidebar's pattern-list section was built out; the component itself
-          was never deleted, just no longer imported anywhere. Reused as-is. */}
-      <div>
+      <Accordion id="pe.overlays" title="Overlays">
         <OverlayControls />
-      </div>
+      </Accordion>
+
+      {/* The strips' cut details. A fixed max-height box with its own scroll: the
+          section can grow past the panel's height, and RightPanel's overflow-auto
+          wrapper then scrolls the whole menu. */}
+      <Accordion id="pe.strips" title={`Strips (${pattern.strips.length})`}>
+        <div className="overflow-auto" style={{ maxHeight: '55vh', minHeight: '220px' }}>
+          {pattern.strips.map(strip => (
+            <StripCard key={strip.id} strip={strip} pattern={pattern} />
+          ))}
+        </div>
+      </Accordion>
 
       </div>
 

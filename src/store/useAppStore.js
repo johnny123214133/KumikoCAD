@@ -70,17 +70,16 @@ const useAppStore = create((set, get) => ({
   // "selection locks" lived only in Toolbar.jsx's copy of TOOL_LOCK and
   // nothing enforced the other two spots matching it).
   viewportLocked: TOOL_LOCK.selection,
-  // Whether the Inspector's Strips section (pattern-editor right panel) is
-  // expanded. Lives here rather than as local state in Inspector.jsx because
-  // Inspector actually unmounts/remounts every time you switch to
-  // panel-editor and back (RightPanel swaps it for GridInspector) — local
-  // state wouldn't survive that. Collapsed by default, in-session only (not
-  // persisted to localStorage — wasn't asked for here, unlike panel widths).
-  stripsExpanded: false,
+  // Which right-menu sections (components/shared/Accordion.jsx) the user has opened
+  // or closed, by section id; a section not listed uses its own default. Lives here
+  // rather than in the menus because Inspector/GridInspector unmount whenever the
+  // workspace switches. In-session only.
+  sectionOpen: {},
+  setSectionOpen: (id, open) => set((s) => ({ sectionOpen: { ...s.sectionOpen, [id]: !!open } })),
   // The one length unit the whole CAD is entered and shown in (grid and pattern
   // inspectors, strip details, the scale overlay) — 'mm' | 'in'. Display/input only; every
   // stored dimension stays mm (see geometry/units.js). Lives here for the same
-  // reason as stripsExpanded: GridInspector unmounts whenever the workspace
+  // reason as sectionOpen: GridInspector unmounts whenever the workspace
   // switches, which would otherwise reset it. In-session only.
   // "Don't show again" on the delete-pattern confirmation. Session only: it
   // resets on reload so a fresh session always asks first.
@@ -190,7 +189,6 @@ const useAppStore = create((set, get) => ({
     if (tool in TOOL_LOCK) set({ viewportLocked: TOOL_LOCK[tool] });
   },
   setViewportLocked: (locked) => set({ viewportLocked: locked }),
-  setStripsExpanded: (expanded) => set({ stripsExpanded: expanded }),
   // Use store/unitActions.js's setUnit, which also snaps values onto the new
   // unit's step grids.
   setGridUnit: (unit) => { if (unit === 'mm' || unit === 'in') { saveSetting('kumiko_unit', unit); set({ gridUnit: unit }); } },

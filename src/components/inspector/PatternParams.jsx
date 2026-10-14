@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useId } from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useAppStore from '../../store/useAppStore.js'
 import { resolveParamState, isRatioDef } from '../../geometry/params.js'
 import { mmToIn, inToMm, MM_STEP, STRIP_IN_STEP } from '../../geometry/units.js'
-
-const sectionLabelStyle = { letterSpacing: '0.05em', fontSize: '11px' }
+import { FieldLabel } from '../shared/HelpTip.jsx'
 
 const toDisplay = (mm, unit) => Number((unit === 'mm' ? mm : mmToIn(mm)).toFixed(unit === 'mm' ? 2 : 4))
 
@@ -15,6 +14,7 @@ const toDisplay = (mm, unit) => Number((unit === 'mm' ? mm : mmToIn(mm)).toFixed
 // Values are always persisted in mm; the unit is display/input only.
 function LengthParamInput({ def, valueMm, bounds, ratioNote, onCommit }) {
   const unit = useAppStore(s => s.gridUnit)
+  const inputId = useId()
   const [draft, setDraft] = useState(String(toDisplay(valueMm, unit)))
 
   // Re-sync when the effective value changes from outside this input (a
@@ -44,9 +44,14 @@ function LengthParamInput({ def, valueMm, bounds, ratioNote, onCommit }) {
   const minAttr = unit === 'mm' ? Math.ceil(bounds.min / stepMm - 1e-9) * stepMm : toDisplay(bounds.min, unit)
   return (
     <div className="mb-3">
-      <label className="form-label small mb-1">{def.label}</label>
+      <FieldLabel
+        label={def.label}
+        htmlFor={inputId}
+        tip={[def.description, ratioNote && `${ratioNote}.`].filter(Boolean).join(' ') || undefined}
+      />
       <div className="input-group input-group-sm">
         <input
+          id={inputId}
           type="number"
           min={unit === 'mm' ? Number(minAttr.toFixed(4)) : minAttr}
           max={hasMax ? toDisplay(bounds.max, unit) : undefined}
@@ -59,10 +64,11 @@ function LengthParamInput({ def, valueMm, bounds, ratioNote, onCommit }) {
         />
         <span className="input-group-text">{unit}</span>
       </div>
+      {/* What the pattern can physically be built with at the current dimensions. */}
       <div className="form-text" style={{ fontSize: '11px' }}>
-        {def.description}
-        {ratioNote && ` ${ratioNote}.`}
-        {hasMax && ` Range ${toDisplay(bounds.min, unit)}–${toDisplay(bounds.max, unit)} ${unit} at the current dimensions.`}
+        {hasMax
+          ? `Range ${toDisplay(bounds.min, unit)}–${toDisplay(bounds.max, unit)} ${unit}`
+          : `Minimum ${toDisplay(bounds.min, unit)} ${unit}`}
       </div>
     </div>
   )
@@ -80,7 +86,8 @@ function ratioNoteFor(def, valueMm, cellWidth, declared) {
 // Controls for the active pattern's own parameters, built from the
 // definitions its factory declares (geometry/params.js) — so a new pattern's
 // parameters show up here without touching this component. Renders nothing
-// for patterns that declare none.
+// for patterns that declare none. (The section heading and the strip width above
+// these belong to the Inspector's Pattern Parameters accordion.)
 export default function PatternParams({ pattern, patternStripWidth }) {
   const getParamDefs = usePatternStore(s => s.getParamDefs)
   const setPatternParam = usePatternStore(s => s.setPatternParam)
@@ -102,22 +109,18 @@ export default function PatternParams({ pattern, patternStripWidth }) {
 
   return (
     <>
-      <hr className="my-3" />
-      <div>
-        <div className="fw-semibold small text-uppercase text-muted mb-2" style={sectionLabelStyle}>Pattern parameters</div>
-        {defs.map(def => (
-          <LengthParamInput
-            key={`${pattern.id}:${def.key}`}
-            def={def}
-            // pattern.patternParams holds the EFFECTIVE value (already
-            // clamped by the factory), not necessarily what was last typed.
-            valueMm={pattern.patternParams?.[def.key]?.length ?? def.default}
-            bounds={bounds[def.key]}
-            ratioNote={ratioNoteFor(def, pattern.patternParams?.[def.key]?.length, cellWidth, declared[def.key])}
-            onCommit={(mm) => setPatternParam(pattern.id, def.key, mm)}
-          />
-        ))}
-      </div>
+      {defs.map(def => (
+        <LengthParamInput
+          key={`${pattern.id}:${def.key}`}
+          def={def}
+          // pattern.patternParams holds the EFFECTIVE value (already
+          // clamped by the factory), not necessarily what was last typed.
+          valueMm={pattern.patternParams?.[def.key]?.length ?? def.default}
+          bounds={bounds[def.key]}
+          ratioNote={ratioNoteFor(def, pattern.patternParams?.[def.key]?.length, cellWidth, declared[def.key])}
+          onCommit={(mm) => setPatternParam(pattern.id, def.key, mm)}
+        />
+      ))}
     </>
   )
 }

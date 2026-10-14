@@ -5,8 +5,7 @@ import useSelectionStore from '../../store/useSelectionStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import { paintCells } from '../../store/paintActions.js'
 import { WOOD_OPTIONS, FINISH_OPTIONS } from '../../geometry/materials.js'
-import { getMaterialColor } from '../../geometry/woodFinishColors.js'
-import { darkenHex } from '../../geometry/color.js'
+import ColorSwatchLine from '../shared/ColorSwatchLine.jsx'
 import {
   LeftPanelIcon, RightPanelIcon, SaveProjectIcon, LoadProjectIcon, LockIcon, UnlockIcon,
   RotateCcwIcon, RotateCwIcon, HelpIcon,
@@ -30,7 +29,6 @@ function FillPaintMenu({ workspace, anchorRef, menuRef, open, onEnter, onLeave }
   const inPatternEditor = workspace === 'pattern-editor'
   if (!open || !anchorRef.current) return null
   const rect = anchorRef.current.getBoundingClientRect()
-  const color = getMaterialColor(paintMaterial, paintFinish)
   const targets = inPatternEditor ? selectedStripIds : selectedSpaceIds.filter(id => spacePatterns[id])
   const applyToSelected = () => {
     if (inPatternEditor) {
@@ -64,14 +62,7 @@ function FillPaintMenu({ workspace, anchorRef, menuRef, open, onEnter, onLeave }
       <select className="form-select form-select-sm mb-2" aria-label="Paint finish" value={paintFinish} onChange={(e) => setPaintFinish(e.target.value)}>
         {FINISH_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
       </select>
-      <div className="d-flex align-items-center gap-2 mb-2">
-        <div
-          aria-label="Resulting colour"
-          data-color={color}
-          style={{ width: 36, height: 36, borderRadius: 4, background: color, border: `2px solid ${darkenHex(color, 0.15)}` }}
-        />
-        <span className="small text-muted">{color}</span>
-      </div>
+      <ColorSwatchLine material={paintMaterial} finish={paintFinish} className="mb-2" />
       <button
         type="button"
         className="btn btn-sm btn-dark"

@@ -4,6 +4,7 @@ import useAppStore from '../../store/useAppStore.js'
 import PatternIcon from './PatternIcon.jsx'
 import useApplyToSelection from './useApplyToSelection.jsx'
 import usePatternDelete from './usePatternDelete.jsx'
+import { AccordionHeader } from '../shared/Accordion.jsx'
 
 // Quick-access list of up to 15 most-recently-selected patterns (most recent
 // first). Includes the currently-active pattern if it was reached by
@@ -41,17 +42,7 @@ export default function RecentPatterns() {
   // LeftPanel gives it (set by dragging the divider above it) and scrolls inside it.
   return (
     <div className="d-flex flex-column" style={{ minHeight: 0, height: '100%' }}>
-      <button
-        type="button"
-        className="btn btn-link p-0 d-flex align-items-center gap-1 text-start text-decoration-none flex-shrink-0"
-        style={{ color: 'inherit' }}
-        aria-expanded={recentOpen}
-        aria-controls="recent-patterns-list"
-        onClick={() => setRecentOpen(!recentOpen)}
-      >
-        <span className="text-muted" style={{ fontSize: '10px', width: '10px', display: 'inline-block' }} aria-hidden="true">{recentOpen ? '▾' : '▸'}</span>
-        <span className="fw-semibold small text-uppercase text-muted" style={{ letterSpacing: '0.05em', fontSize: '11px' }}>Recently Used</span>
-      </button>
+      <AccordionHeader open={recentOpen} onToggle={() => setRecentOpen(!recentOpen)} controls="recent-patterns-list">Recently Used</AccordionHeader>
       {recentOpen && (
       <div id="recent-patterns-list" className="list-group list-group-flush mt-2 overflow-auto" style={{ minHeight: 0, flex: '1 1 auto' }}>
         {recent.map(p => (

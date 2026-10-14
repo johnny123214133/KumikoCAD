@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef, useId } from 'react'
 import { mmToIn, inToMm } from '../../geometry/units.js'
 import { createDebouncedCommitter } from './debouncedCommitter.js'
+import { FieldLabel } from '../shared/HelpTip.jsx'
 
 // Inches get 4 decimals so a 1/16" step (0.0625) displays exactly — see the
 // Inspector's identical note on its strip width input.
 const toDisplay = (mm, unit) => String(Number((unit === 'mm' ? mm : mmToIn(mm)).toFixed(unit === 'mm' ? 2 : 4)))
 
-// A length input for the Grid inspector whose edits are DEBOUNCED: what you type
+// A length input for the Grid inspector (`help`, if given, is shown as a hover
+// tooltip beside the label) whose edits are DEBOUNCED: what you type
 // shows immediately, but it's only handed to `onCommit` (in mm) once you pause
 // (GRID_FIELD_DEBOUNCE_MS), leave the field, or press Enter — typing "75" or
 // clicking the spinner five times is one change, not several. Arrow keys and
@@ -98,7 +100,7 @@ export default function DebouncedLengthField({ label, help, valueMm, unit, minMm
 
   return (
     <div className="mb-3">
-      <label htmlFor={inputId} className="form-label small mb-1">{label}</label>
+      <FieldLabel label={label} tip={help} htmlFor={inputId} />
       <div className="input-group input-group-sm">
         <input
           id={inputId}
@@ -117,7 +119,6 @@ export default function DebouncedLengthField({ label, help, valueMm, unit, minMm
         />
         <span className="input-group-text">{unit}</span>
       </div>
-      {help && <div className="form-text" style={{ fontSize: '11px' }}>{help}</div>}
     </div>
   )
 }
