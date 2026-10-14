@@ -63,6 +63,7 @@ function defineYaeZakura({ id, name, meta, kikko }) {
       key: 'secondarySpacing',
       label: 'Secondary spacing',
       kind: 'length',
+      basis: 'cell',
       default: 4.0,
       min: 0,
       max: ({ cellWidth, gridStripWidth, patternStripWidth, params }) => Math.max(

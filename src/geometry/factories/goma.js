@@ -19,7 +19,7 @@ import { definePattern, buildLapTriangle, inradius } from './_shared.js';
 // Strip ends are mitered against the grid strip's inner face: they're
 // clipped to the triangle inset by gridStripWidth/2 on every edge (cell.
 // retract), not to the nominal cell edges.
-const INSET_DEFAULT_MM = 6.0;
+const INSET_DEFAULT_MM = 4.0;
 
 // Stacking at the half-laps, top → bottom. A plain total order — every strip
 // is either over or under each other strip, never the cyclic over/under
@@ -35,6 +35,7 @@ export const buildGoma = definePattern({
     key: 'inset',
     label: 'Inset',
     kind: 'length',
+    basis: 'cell',
     default: INSET_DEFAULT_MM,
     min: 0,
     max: ({ cellWidth, gridStripWidth, patternStripWidth }) => Math.max(0, inradius(cellWidth) - gridStripWidth / 2 - patternStripWidth),

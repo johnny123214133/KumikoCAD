@@ -2,9 +2,10 @@ import React from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
 import useAppStore from '../../store/useAppStore.js'
 import PatternIcon from './PatternIcon.jsx'
+import useApplyToSelection from './useApplyToSelection.jsx'
 import usePatternDelete from './usePatternDelete.jsx'
 
-// Quick-access list of up to 5 most-recently-selected patterns (most recent
+// Quick-access list of up to 15 most-recently-selected patterns (most recent
 // first). Includes the currently-active pattern if it was reached by
 // selecting it, same as most "recent items" UIs (VS Code, browser history).
 export default function RecentPatterns() {
@@ -18,9 +19,10 @@ export default function RecentPatterns() {
   const setViewportLocked = useAppStore(s => s.setViewportLocked)
 
   const { deleteButton, deleteDialog } = usePatternDelete()
+  const { hoverProps, applyMenu, panelDraggable, startPanelDrag } = useApplyToSelection()
 
   const byId = Object.fromEntries([...builtInPatterns, ...userPatterns].map(p => [p.id, p]))
-  const recent = recentPatternIds.map(id => byId[id]).filter(Boolean).slice(0, 5)
+  const recent = recentPatternIds.map(id => byId[id]).filter(Boolean).slice(0, 15)
 
   // Same rule as PatternLibrary.jsx's selectPattern — this is just another
   // way to select a pattern, so it should behave consistently.
@@ -53,7 +55,7 @@ export default function RecentPatterns() {
       {recentOpen && (
       <div id="recent-patterns-list" className="list-group list-group-flush mt-2 overflow-auto" style={{ minHeight: 0, flex: '1 1 auto' }}>
         {recent.map(p => (
-          <div key={p.id} className="pattern-card">
+          <div key={p.id} className="pattern-card" {...hoverProps(p)} {...(panelDraggable ? { draggable: true, onDragStart: (e) => startPanelDrag(e, p) } : {})}>
             <button
               className={`list-group-item list-group-item-action py-2 px-2 d-flex align-items-center gap-2 ${activePatternId === p.id ? 'active' : ''}`}
               style={{ fontSize: '13px' }}
@@ -68,6 +70,7 @@ export default function RecentPatterns() {
       </div>
       )}
       {deleteDialog}
+      {applyMenu}
     </div>
   )
 }

@@ -2,6 +2,8 @@ import React, { useMemo, useEffect, useState } from 'react'
 import { Line, Circle, Label, Tag, Text } from 'react-konva'
 import PatternStrips from './PatternStrips.jsx'
 import GridBorderStrip from './GridBorderStrip.jsx'
+import ScaleOverlay from '../shared/ScaleOverlay.jsx'
+import OrientationArrow from '../shared/OrientationArrow.jsx'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import { computeStripRenderData } from '../../geometry/renderPattern.js'
@@ -71,6 +73,14 @@ export default function PatternLayer({ pattern, activeLayers }) {
   // constant on-screen size whatever the zoom.
   const [hoveredDot, setHoveredDot] = useState(null) // { x, y, scale, text } | null
   const gridStripWidth = useGridStore(s => s.gridStripWidth)
+  // Ruler under the rendered cell (Konva space: y down, so "below" is larger y).
+  const scaleAxes = useMemo(() => {
+    const { A, B, C } = pattern.vertices
+    const minX = Math.min(A.x, B.x, C.x), maxX = Math.max(A.x, B.x, C.x)
+    const bottom = Math.max(-A.y, -B.y, -C.y) + gridStripWidth / 2
+    return [{ origin: { x: minX, y: bottom }, dir: { x: 1, y: 0 }, out: { x: 0, y: 1 }, length: maxX - minX, gapPx: 14 }]
+  }, [pattern, gridStripWidth])
+
   const boundaryPoints = useMemo(() => {
     const { A, B, C } = pattern.vertices
     return [A, B, C].flatMap(v => { const f = flip(v); return [f.x, f.y] })
@@ -144,6 +154,11 @@ export default function PatternLayer({ pattern, activeLayers }) {
         strokeScaleEnabled={false}
         listening={false}
       />
+
+      {activeLayers.viewOrientation && <OrientationArrow vertices={pattern.vertices} />}
+
+      {/* Show Scale: a ruler under the cell, from its left corner across its width. */}
+      {activeLayers.showScale && <ScaleOverlay axes={scaleAxes} />}
 
       {activeLayers.centerlines && pattern.strips.map(s => {
         const start = flip(s.start), end = flip(s.end)

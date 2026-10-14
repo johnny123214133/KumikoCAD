@@ -3,6 +3,7 @@
 // (GridBorderStrip.jsx reuses a few of the pure math helpers).
 import { getMaterialColor } from '../woodFinishColors.js';
 import { resolveParams, toPatternParams } from '../params.js';
+import { DEFAULT_PATTERN_STRIP_WIDTH_MM } from '../units.js';
 
 export const SQRT3_2 = Math.sqrt(3) / 2;
 
@@ -337,13 +338,17 @@ export function buildLapTriangle(cell, { height, stackOrder = ['s1', 's0', 's2']
 // `patternParams` reports those same effective values. The factory function
 // carries `.paramDefs` so the store/UI can discover a pattern's parameters
 // without a separate registry.
-export function definePattern({ id, name, meta, paramDefs = [], build, maxStripWidth, defaultStripWidth }) {
+export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], build, maxStripWidth, defaultStripWidth }) {
+  // Each def learns the strip width the pattern starts at: its `default` (mm) is a value at the
+  // reference dimensions with that strip width, which a ratio parameter's default ratio is
+  // worked out from (geometry/params.js, referenceRatios).
+  const paramDefs = declaredDefs.map((def) => ({ ...def, refStripWidth: defaultStripWidth ?? DEFAULT_PATTERN_STRIP_WIDTH_MM }));
   function factory({
-    cellWidth, gridStripWidth = 0, patternStripWidth = 3, patternParams = {},
-    material = 'hinoki', finish = 'natural',
+    cellWidth, gridStripWidth = 0, patternStripWidth = DEFAULT_PATTERN_STRIP_WIDTH_MM, patternParams = {},
+    material = 'hinoki', finish = 'natural', paramStep,
   }) {
     const cell = cellContext(cellWidth, gridStripWidth);
-    const params = resolveParams(paramDefs, patternParams, { cellWidth, gridStripWidth, patternStripWidth });
+    const params = resolveParams(paramDefs, patternParams, { cellWidth, gridStripWidth, patternStripWidth, paramStep });
     const { strips, joints, stripWidths = {} } = build({ cell, params, patternStripWidth });
 
     const stripProperties = makeStripProperties(patternStripWidth, material, finish);

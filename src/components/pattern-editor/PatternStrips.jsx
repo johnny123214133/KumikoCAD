@@ -2,6 +2,8 @@ import React from 'react'
 import { Line } from 'react-konva'
 import { computeStripRenderData } from '../../geometry/renderPattern.js'
 import useAppStore from '../../store/useAppStore.js'
+import usePatternStore from '../../store/usePatternStore.js'
+import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 
 // Uses the shared computeStripRenderData (geometry/renderPattern.js) so this
@@ -59,6 +61,11 @@ export default function PatternStrips({ pattern, wireframe = false }) {
   const handleClick = (stripId) => {
     if (activeTool === 'selection') toggleStripSelection(stripId)
     else if (activeTool === 'multi-select') toggleStripMultiSelection(stripId)
+    else if (activeTool === 'fill-paint') {
+      const { paintMaterial, paintFinish } = useGridStore.getState()
+      const { activePatternId, paintStrips } = usePatternStore.getState()
+      paintStrips(activePatternId, [stripId], paintMaterial, paintFinish)
+    }
     // other tools: no strip-click behavior yet
   }
 

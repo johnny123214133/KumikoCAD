@@ -67,9 +67,9 @@ export const buildSakuraShippo = definePattern({
   id: 'builtin:sakura-shippo-sixth',
   name: 'Sakura-shippo',
   maxStripWidth: 3,
-  defaultStripWidth: 3,
+  defaultStripWidth: 1,
   paramDefs: lengthLedParams({
-    spacingStep: 0.5, familyFor, thickLo, thickCap, spacingLo, spacingCap, defaultThick: 10, defaultSpacing: 8,
+    spacingStep: 0.5, familyFor, thickLo, thickCap, spacingLo, spacingCap, defaultLength: 26.5, defaultThick: 6, defaultSpacing: 6,
     lengthDescription: 'Length of each bent strip, notch to notch; a longer strip bows more (and cuts a shallower notch), and past a point runs straight along the notch before it bends. The thick strip\'s ranges follow this length.',
     thickDescription: 'Width of the three thick strips (the regular Strip width sets the bent strips).',
     spacingDescription: 'Gap between each corner and the thick strip nearest it.',

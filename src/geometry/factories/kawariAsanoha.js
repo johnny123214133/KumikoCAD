@@ -59,7 +59,8 @@ export const buildKawariAsanoha = definePattern({
       key: 'inset',
       label: 'Inset',
       kind: 'length',
-      default: 8.0,
+      basis: 'cell',
+      default: 5.0,
       step: 0.5,
       min: 1,
       max: ({ cellWidth, gridStripWidth, patternStripWidth, params }) => {

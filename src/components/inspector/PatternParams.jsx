@@ -1,24 +1,28 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
 import useGridStore from '../../store/useGridStore.js'
-import { resolveParamState } from '../../geometry/params.js'
+import useAppStore from '../../store/useAppStore.js'
+import { resolveParamState, isRatioDef } from '../../geometry/params.js'
 import { mmToIn, inToMm, MM_STEP, STRIP_IN_STEP } from '../../geometry/units.js'
 
 const sectionLabelStyle = { letterSpacing: '0.05em', fontSize: '11px' }
 
 const toDisplay = (mm, unit) => Number((unit === 'mm' ? mm : mmToIn(mm)).toFixed(unit === 'mm' ? 2 : 4))
 
-// One numeric length input with an mm/in toggle. Same draft-string approach
+// One numeric length input, in the CAD-wide unit (shown beside the box). Same draft-string approach
 // as the Inspector's strip width: the user can freely clear/retype, and only a
 // valid number is committed (the store clamps it to the parameter's range).
-// Values are always persisted in mm; the unit select is display/input only.
-function LengthParamInput({ def, valueMm, bounds, onCommit }) {
-  const [unit, setUnit] = useState('mm')
+// Values are always persisted in mm; the unit is display/input only.
+function LengthParamInput({ def, valueMm, bounds, ratioNote, onCommit }) {
+  const unit = useAppStore(s => s.gridUnit)
   const [draft, setDraft] = useState(String(toDisplay(valueMm, unit)))
 
   // Re-sync when the effective value changes from outside this input (a
-  // clamp from a dimension change, a different pattern, a unit flip).
-  useEffect(() => { setDraft(String(toDisplay(valueMm, unit))) }, [valueMm, unit])
+  // clamp from a dimension change, a different pattern, a unit flip). Not while the
+  // field is being typed in: a ratio parameter is put on the unit's rounding grid when the
+  // pattern is built, so the value in effect can differ from the half-typed text.
+  const focused = useRef(false)
+  useEffect(() => { if (!focused.current) setDraft(String(toDisplay(valueMm, unit))) }, [valueMm, unit])
 
   const onChange = (e) => {
     const raw = e.target.value
@@ -28,7 +32,7 @@ function LengthParamInput({ def, valueMm, bounds, onCommit }) {
   }
   // Snap the text back to the value actually in effect (e.g. after an
   // out-of-range entry was clamped, or the field was left empty).
-  const onBlur = () => setDraft(String(toDisplay(valueMm, unit)))
+  const onBlur = () => { focused.current = false; setDraft(String(toDisplay(valueMm, unit))) }
 
   const hasMax = Number.isFinite(bounds.max)
   // The arrows step by the def's own `step` (mm; default half a millimetre).
@@ -50,19 +54,27 @@ function LengthParamInput({ def, valueMm, bounds, onCommit }) {
           className="form-control"
           value={draft}
           onChange={onChange}
+          onFocus={() => { focused.current = true }}
           onBlur={onBlur}
         />
-        <select className="form-select" style={{ maxWidth: '70px', flex: '0 0 auto' }} value={unit} onChange={(e) => setUnit(e.target.value)}>
-          <option value="mm">mm</option>
-          <option value="in">in</option>
-        </select>
+        <span className="input-group-text">{unit}</span>
       </div>
       <div className="form-text" style={{ fontSize: '11px' }}>
         {def.description}
+        {ratioNote && ` ${ratioNote}.`}
         {hasMax && ` Range ${toDisplay(bounds.min, unit)}–${toDisplay(bounds.max, unit)} ${unit} at the current dimensions.`}
       </div>
     </div>
   )
+}
+
+// "Scales with the cell: 12% of its width" — for the parameters stored as ratios, so the
+// user can tell they follow the cell size when it is changed.
+function ratioNoteFor(def, valueMm, cellWidth, declared) {
+  if (!isRatioDef(def) || !Number.isFinite(valueMm)) return null
+  if (def.basis === 'cell') return `Scales with the cell (${Number(((valueMm / cellWidth) * 100).toFixed(1))}% of its width)`
+  const span = declared && declared.max - declared.min
+  return span > 0 ? `Scales with the cell (${Math.round(((valueMm - declared.min) / span) * 100)}% of the way through its range)` : null
 }
 
 // Controls for the active pattern's own parameters, built from the
@@ -72,6 +84,7 @@ function LengthParamInput({ def, valueMm, bounds, onCommit }) {
 export default function PatternParams({ pattern, patternStripWidth }) {
   const getParamDefs = usePatternStore(s => s.getParamDefs)
   const setPatternParam = usePatternStore(s => s.setPatternParam)
+  const getParamLimits = usePatternStore(s => s.getParamLimits)
   const cellWidth = useGridStore(s => s.cellWidth)
   const gridStripWidth = useGridStore(s => s.gridStripWidth)
 
@@ -80,7 +93,12 @@ export default function PatternParams({ pattern, patternStripWidth }) {
 
   // Resolved in declaration order, so a param's range can depend on earlier
   // ones (Sakura's corner spacing on its thick strip width).
-  const { bounds } = resolveParamState(defs, pattern.patternParams, { cellWidth, gridStripWidth, patternStripWidth })
+  const declared = resolveParamState(defs, pattern.patternParams, { cellWidth, gridStripWidth, patternStripWidth }).bounds
+  // The range each param really allows: its declared one, tightened to what the whole
+  // pattern can be built with (a value that's fine for its own strip can still make
+  // another strip impossible).
+  const limits = getParamLimits(pattern.id, patternStripWidth)
+  const bounds = Object.fromEntries(defs.map(d => [d.key, limits[d.key] ?? declared[d.key]]))
 
   return (
     <>
@@ -95,6 +113,7 @@ export default function PatternParams({ pattern, patternStripWidth }) {
             // clamped by the factory), not necessarily what was last typed.
             valueMm={pattern.patternParams?.[def.key]?.length ?? def.default}
             bounds={bounds[def.key]}
+            ratioNote={ratioNoteFor(def, pattern.patternParams?.[def.key]?.length, cellWidth, declared[def.key])}
             onCommit={(mm) => setPatternParam(pattern.id, def.key, mm)}
           />
         ))}

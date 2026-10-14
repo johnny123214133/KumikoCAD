@@ -39,7 +39,8 @@ function defineLapped({ id, name, description, kind, triangleOnTop }) {
         key: 'inset',
         label: 'Inset',
         kind: 'length',
-        default: 8.0,
+        basis: 'cell',
+        default: 7.0,
         step: 0.5,
         min: 0,
         // The triangle's hole must stay big enough for the centre taper where the
@@ -50,6 +51,7 @@ function defineLapped({ id, name, description, kind, triangleOnTop }) {
         key: 'inset',
         label: 'Inset',
         kind: 'length',
+        basis: 'cell',
         default: 0.0,
         step: 0.5,
         min: 0,

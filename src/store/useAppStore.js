@@ -19,7 +19,7 @@ function clampPanelWidth(w) { return Math.min(PANEL_WIDTH_MAX, Math.max(PANEL_WI
 // Left-panel library layout: how the pattern list is sorted, whether the Recently
 // Used accordion is open, and how tall that section is (set by dragging the divider
 // above it). Persisted so they survive reloads like the panel widths do.
-const SORT_MODES = ['default', 'alpha', 'complexity'];
+const SORT_MODES = ['default', 'alpha', 'complexity', 'default-custom-first', 'alpha-custom-first', 'complexity-custom-first'];
 function loadSetting(key, fallback, ok) {
   try {
     const raw = localStorage.getItem(key);
@@ -50,7 +50,7 @@ const useAppStore = create((set) => ({
   defaultPatterStripWidth : 2.3,
   activeLayers: { ...DEFAULT_LAYERS },
   // Which toolbar tool is visually selected (selection / place-pattern /
-  // multi-select / area-select / align-to-gridpoint / fill-paint).
+  // multi-select / fill-paint / snap-gridpoint).
   activeTool: 'selection',
   // Locks the viewport's pan/zoom (Stage draggable + wheel-zoom, see
   // Viewport.jsx). Deliberately NOT auto-derived from activeTool via a
@@ -76,6 +76,16 @@ const useAppStore = create((set) => ({
   // state wouldn't survive that. Collapsed by default, in-session only (not
   // persisted to localStorage — wasn't asked for here, unlike panel widths).
   stripsExpanded: false,
+  // The one length unit the whole CAD is entered and shown in (grid and pattern
+  // inspectors, strip details, the scale overlay) — 'mm' | 'in'. Display/input only; every
+  // stored dimension stays mm (see geometry/units.js). Lives here for the same
+  // reason as stripsExpanded: GridInspector unmounts whenever the workspace
+  // switches, which would otherwise reset it. In-session only.
+  // "Don't show again" on the delete-pattern confirmation. Session only: it
+  // resets on reload so a fresh session always asks first.
+  confirmDeletePattern: true,
+  setConfirmDeletePattern: (v) => set({ confirmDeletePattern: !!v }),
+  gridUnit: loadSetting('kumiko_unit', 'mm', (v) => v === 'mm' || v === 'in'),
   // Not reactive render state — just a handle Viewport publishes on mount so
   // sibling components (e.g. ViewControls in the left panel) can call into the
   // SceneManager/PatternRenderer instances that live inside Viewport's canvas.
@@ -88,6 +98,10 @@ const useAppStore = create((set) => ({
   // (culling recomputes on every change) so it's deliberately NOT updated on
   // every raw pointermove.
   viewportVisibleRect: null,
+  // The stage's current zoom (screen px per world mm), published together with
+  // the visible rect. GridLayer uses it to pick the resolution cells are
+  // rasterized at once the zoom settles.
+  viewportZoom: null,
   // Switching workspaces resets tool selection to 'selection' and its
   // corresponding lock state (read from the same shared TOOL_LOCK the
   // initial state above uses — not hardcoded separately, which is exactly
@@ -124,8 +138,11 @@ const useAppStore = create((set) => ({
   },
   setViewportLocked: (locked) => set({ viewportLocked: locked }),
   setStripsExpanded: (expanded) => set({ stripsExpanded: expanded }),
+  // Use store/unitActions.js's setUnit, which also snaps values onto the new
+  // unit's step grids.
+  setGridUnit: (unit) => { if (unit === 'mm' || unit === 'in') { saveSetting('kumiko_unit', unit); set({ gridUnit: unit }); } },
   setViewportApi: (api) => set({ viewportApi: api }),
-  setViewportVisibleRect: (rect) => set({ viewportVisibleRect: rect }),
+  setViewportVisibleRect: (rect, zoom) => set(zoom > 0 ? { viewportVisibleRect: rect, viewportZoom: zoom } : { viewportVisibleRect: rect }),
 }));
 
 export default useAppStore;

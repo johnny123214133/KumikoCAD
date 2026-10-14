@@ -4,16 +4,11 @@
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
-  "patternParams": {
-    "inset": {
-      "length": 4,
-      "unit": "mm"
-    }
-  },
+  "patternParams": {},
   "stripProperties": [
     {
       "id": "sp0",
-      "width": 3,
+      "width": 2,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",

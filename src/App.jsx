@@ -5,6 +5,7 @@ import Toolbar from './components/layout/Toolbar.jsx'
 import LeftPanel from './components/layout/LeftPanel.jsx'
 import RightPanel from './components/layout/RightPanel.jsx'
 import Viewport from './components/layout/Viewport.jsx'
+import ErrorBoundary from './components/layout/ErrorBoundary.jsx'
 
 export default function App() {
   return (
@@ -12,8 +13,8 @@ export default function App() {
       <Toolbar />
       <div className="app-body">
         <LeftPanel />
-        <Viewport />
-        <RightPanel />
+        <ErrorBoundary label="The viewport"><Viewport /></ErrorBoundary>
+        <ErrorBoundary label="The side panel"><RightPanel /></ErrorBoundary>
       </div>
       {/* Mounted once at the app root — any component just calls
           toast.success/error/etc. from 'react-toastify' (see Inspector.jsx's

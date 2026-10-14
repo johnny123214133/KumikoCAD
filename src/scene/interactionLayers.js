@@ -13,9 +13,10 @@ export const INTERACTION_LAYERS_BY_TOOL = {
   selection: ['cellHitRegions'],
   'place-pattern': ['cellHitRegions'],
   'multi-select': ['cellHitRegions'],
-  'area-select': ['cellHitRegions'],
-  'align-gridpoint': ['cellHitRegions'],
   'fill-paint': ['cellHitRegions'],
+  // Snap to Gridpoint: the cells aren't clickable; the grid's joints are (the
+  // 'jointHandles' layer, drawn by GridLayer.jsx).
+  'snap-gridpoint': ['jointHandles'],
 };
 
 export function isInteractionLayerActive(activeTool, layerName) {

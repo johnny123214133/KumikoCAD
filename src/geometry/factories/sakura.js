@@ -57,7 +57,7 @@ function defineSakura({ id, name, notch, description }) {
       key: 'cornerSpacing',
       label: 'Corner spacing',
       kind: 'length',
-      default: 8.0,
+      default: 6.0,
       // Lower bound: the thick strip's inner face (sp + w_thick from the
       // corner apex) must be at least as long as a thin spoke is wide, or the
       // spoke's flat end would stick out past the thick strip into the

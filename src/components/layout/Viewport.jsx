@@ -8,6 +8,8 @@ import PatternLayer, { getPatternBoundingBox } from '../pattern-editor/PatternLa
 import GridLayer from '../panel-editor/GridLayer.jsx'
 import { computeGridGeometry } from '../../geometry/grid/computeGridGeometry.js'
 import { computeZoomToFit, computeWheelZoom } from '../../scene/viewportMath.js'
+import { PATTERN_DRAG_TYPE } from '../pattern-editor/useApplyToSelection.jsx'
+import { createPlacementStroke } from '../../scene/placementStroke.js'
 import { normalizeRect, rectTouchesPolygon } from '../../geometry/rectSelect.js'
 
 export default function Viewport() {
@@ -16,6 +18,7 @@ export default function Viewport() {
   const [size, setSize] = useState({ width: 0, height: 0 }) // drives the <Stage> element's own pixel size
   const [stageMounted, setStageMounted] = useState(false)
   const workspace = useAppStore(s => s.workspace)
+  useAppStore(s => s.gridUnit) // ratio-based pattern parameters are built on the unit's rounding grid
   const activeTool = useAppStore(s => s.activeTool)
   const activeLayers = useAppStore(s => s.activeLayers)
   const setViewportApi = useAppStore(s => s.setViewportApi)
@@ -100,7 +103,7 @@ export default function Viewport() {
       // the same Y-up world convention computeGridGeometry's spaces use.
       const kx0 = (0 - pos.x) / scale, kx1 = (w - pos.x) / scale
       const ky0 = (0 - pos.y) / scale, ky1 = (h - pos.y) / scale
-      setViewportVisibleRect({ minX: kx0, maxX: kx1, minY: -ky1, maxY: -ky0 })
+      setViewportVisibleRect({ minX: kx0, maxX: kx1, minY: -ky1, maxY: -ky0 }, scale)
     })
   }, [setViewportVisibleRect])
 
@@ -114,12 +117,17 @@ export default function Viewport() {
     // canvas.clientWidth/clientHeight directly rather than relying on React state.
     const w = container.clientWidth, h = container.clientHeight
     if (!w || !h) return
-    const bbox = workspace === 'panel-editor'
+    let bbox = workspace === 'panel-editor'
       ? (() => {
           const { width, height } = computeGridGeometry({ cols, rows, cellWidth, orientation, cornerBehavior }).bounds
           return { minX: 0, maxX: width, minY: 0, maxY: height }
         })()
       : getPatternBoundingBox(patternRef.current, gridStripWidth)
+    // Show Scale puts a ruler below (and, in the panel, left of) the work: leave room.
+    if (useAppStore.getState().activeLayers.showScale) {
+      const room = 0.12 * Math.max(bbox.maxX - bbox.minX, bbox.maxY - bbox.minY)
+      bbox = { ...bbox, minY: bbox.minY - room, minX: workspace === 'panel-editor' ? bbox.minX - room : bbox.minX }
+    }
     const { leftPanelOpen, leftPanelWidth, rightPanelOpen, rightPanelWidth } = panelStateRef.current
     const t = computeZoomToFit(
       bbox, w, h,
@@ -194,7 +202,38 @@ export default function Viewport() {
     return { x: (screenPos.x - pos.x) / scale, y: (screenPos.y - pos.y) / scale }
   }
 
+  // Place Pattern, click-and-drag: the active pattern goes into every cell the
+  // cursor passes over (scene/placementStroke.js batches the updates). Only with
+  // the viewport locked — unlocked, a drag pans the view instead.
+  const strokeRef = useRef(null) // { stroke, stage, stop } | null
+  const endStroke = () => {
+    const cur = strokeRef.current
+    strokeRef.current = null
+    if (!cur) return
+    window.removeEventListener('mouseup', cur.stop)
+    const pointer = cur.stage.getPointerPosition?.()
+    cur.stroke.end(pointer ? toKonvaLocal(cur.stage, pointer) : undefined)
+  }
+
+  const startStroke = (e) => {
+    if (e.evt?.button != null && e.evt.button !== 0) return
+    const stage = e.target.getStage()
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+    const stroke = createPlacementStroke({
+      getCells: () => useSelectionStore.getState().selectableSpaces,
+      getStep: () => useGridStore.getState().cellWidth / 6,
+      apply: (ids) => useGridStore.getState().setSpacesPattern(ids, usePatternStore.getState().activePatternId),
+    })
+    // Released outside the canvas: the stroke still ends.
+    const stop = () => endStroke()
+    strokeRef.current = { stroke, stage, stop }
+    window.addEventListener('mouseup', stop)
+    stroke.start(toKonvaLocal(stage, pointer))
+  }
+
   const handleStageMouseDown = (e) => {
+    if (activeTool === 'place-pattern' && workspace === 'panel-editor' && viewportLocked) return startStroke(e)
     if (activeTool !== 'multi-select') return
     const stage = e.target.getStage()
     const pointer = stage.getPointerPosition()
@@ -205,6 +244,12 @@ export default function Viewport() {
   }
 
   const handleStageMouseMove = (e) => {
+    if (strokeRef.current) {
+      const stage = e.target.getStage()
+      const pointer = stage.getPointerPosition()
+      if (pointer) strokeRef.current.stroke.move(toKonvaLocal(stage, pointer))
+      return
+    }
     if (activeTool !== 'multi-select' || !dragAnchorRef.current) return
     const stage = e.target.getStage()
     const pointer = stage.getPointerPosition()
@@ -215,6 +260,7 @@ export default function Viewport() {
   }
 
   const handleStageMouseUp = (e) => {
+    if (strokeRef.current) return endStroke()
     if (activeTool !== 'multi-select') return
     const anchor = dragAnchorRef.current
     dragAnchorRef.current = null
@@ -233,6 +279,25 @@ export default function Viewport() {
     } else {
       sel.setStripSelection(sel.selectableStrips.filter(c => rectTouchesPolygon(rect, c.polygon)).map(c => c.id))
     }
+  }
+
+  // A pattern dragged from the library and dropped anywhere on the panel goes into
+  // the currently selected cells (the whole panel is the drop target, so a slightly
+  // off drop still lands, while a stray drag from the library with nothing selected
+  // does nothing — the cursor shows "not allowed" for it).
+  const dragIsPattern = (e) => workspace === 'panel-editor'
+    && Array.from(e.dataTransfer?.types ?? []).includes(PATTERN_DRAG_TYPE)
+    && useSelectionStore.getState().selectedSpaceIds.length > 0
+  const handlePatternDragOver = (e) => {
+    if (!dragIsPattern(e)) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  }
+  const handlePatternDrop = (e) => {
+    if (!dragIsPattern(e)) return
+    e.preventDefault()
+    const id = e.dataTransfer.getData(PATTERN_DRAG_TYPE)
+    if (id) useGridStore.getState().setSpacesPattern(useSelectionStore.getState().selectedSpaceIds, id)
   }
 
   const handleWheel = (e) => {
@@ -254,7 +319,13 @@ export default function Viewport() {
   }
 
   return (
-    <div className="viewport-container" ref={containerRef} style={{ width: '100%', height: '100%' }}>
+    <div
+      className="viewport-container"
+      ref={containerRef}
+      style={{ width: '100%', height: '100%' }}
+      onDragOver={handlePatternDragOver}
+      onDrop={handlePatternDrop}
+    >
       {size.width > 0 && size.height > 0 && (
         <Stage
           ref={setStageRef}

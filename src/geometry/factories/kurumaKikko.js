@@ -21,13 +21,14 @@ import { definePattern, makeStrip, endCut, endJoint, inradius, buildLapTriangle 
 // meaningless); in the variant it is just the gap, and 0 is fine. Growing it
 // shrinks the triangle. The upper bound is where the triangle's hole closes
 // (the strips' inner faces meet): inset = inradius − gridStripWidth/2 − 2·width.
-const INSET_DEFAULT_MM = 4.0;
+// Defaults in mm at the reference dimensions (50 mm cell): 3 for the base pattern, 5 for the triangle variant.
 
-const insetDef = (min, description) => ({
+const insetDef = (min, description, defaultMm) => ({
   key: 'inset',
   label: 'Inset',
   kind: 'length',
-  default: INSET_DEFAULT_MM,
+  basis: 'cell', // a fraction of the cell width, so it keeps its look when the cell is resized
+  default: defaultMm,
   min,
   max: ({ cellWidth, gridStripWidth, patternStripWidth }) =>
     Math.max(min, inradius(cellWidth) - gridStripWidth / 2 - 2 * patternStripWidth),
@@ -120,7 +121,7 @@ function buildKurumaLapped({ cell, params, patternStripWidth: w }) {
 export const buildKurumaKikko = definePattern({
   id: 'builtin:kuruma-kikko-sixth',
   name: 'Kuruma-kikko',
-  paramDefs: [insetDef(1, 'Length of the spokes from each triangle corner to the grid strip (the gap between the corner and the grid strip). Larger = smaller triangle.')],
+  paramDefs: [insetDef(1, 'Length of the spokes from each triangle corner to the grid strip (the gap between the corner and the grid strip). Larger = smaller triangle.', 3.0)],
   meta: {
     difficulty: 'intermediate',
     tags: ['six-fold', 'traditional'],
@@ -133,7 +134,7 @@ export const buildKurumaKikko = definePattern({
 export const buildKurumaKikkoTriangle = definePattern({
   id: 'builtin:kuruma-kikko-triangle-sixth',
   name: 'Kuruma-kikko triangle',
-  paramDefs: [insetDef(0, 'Gap between each triangle corner and the grid strip at the edge midpoint. Larger = smaller triangle.')],
+  paramDefs: [insetDef(0, 'Gap between each triangle corner and the grid strip at the edge midpoint. Larger = smaller triangle.', 5.0)],
   meta: {
     difficulty: 'beginner',
     tags: ['six-fold', 'traditional'],

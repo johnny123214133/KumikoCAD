@@ -26,7 +26,7 @@ export const buildUrahanaKikko = definePattern({
   name: 'Urahana-kikko',
   paramDefs: [{
     ...STUB_LENGTH,
-    default: 13.0,
+    default: 14.0,
     label: 'Stub length',
     // The spoke needs room for its two tapers, and so does a branch (clear − s/2).
     min: ({ patternStripWidth }) => SQRT3_2 * patternStripWidth,

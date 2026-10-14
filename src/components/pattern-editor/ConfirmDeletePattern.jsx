@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 // "Are you sure?" dialog for deleting a custom pattern. Built from Bootstrap's
@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom'
 // accident.
 export default function ConfirmDeletePattern({ pattern, placedCount, onConfirm, onCancel }) {
   const cancelRef = useRef(null)
+  const [dontAsk, setDontAsk] = useState(false)
 
   useEffect(() => {
     cancelRef.current?.focus()
@@ -40,10 +41,14 @@ export default function ConfirmDeletePattern({ pattern, placedCount, onConfirm, 
                   It's placed in {placedCount} {placedCount === 1 ? 'cell' : 'cells'} of the panel — {placedCount === 1 ? 'that cell' : 'those cells'} will be emptied.
                 </p>
               )}
+              <div className="form-check mt-2 mb-0">
+                <input id="delete-pattern-dont-ask" className="form-check-input" type="checkbox" checked={dontAsk} onChange={(e) => setDontAsk(e.target.checked)} />
+                <label className="form-check-label" htmlFor="delete-pattern-dont-ask">Don't show this again</label>
+              </div>
             </div>
             <div className="modal-footer py-2">
               <button ref={cancelRef} type="button" className="btn btn-sm btn-outline-secondary" onClick={onCancel}>Cancel</button>
-              <button type="button" className="btn btn-sm btn-danger" onClick={onConfirm}>Delete</button>
+              <button type="button" className="btn btn-sm btn-danger" onClick={() => onConfirm({ dontAskAgain: dontAsk })}>Delete</button>
             </div>
           </div>
         </div>

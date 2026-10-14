@@ -97,13 +97,13 @@ export const buildShippo = definePattern({
   id: 'builtin:shippo-sixth',
   name: 'Shippo',
   maxStripWidth: 3,
-  defaultStripWidth: 3,
+  defaultStripWidth: 1,
   paramDefs: [{
     key: 'curveLength',
     label: 'Curved strip length',
     kind: 'length',
-    default: 47.0,
-    defaultFraction: 0.6, // well bowed to begin with
+    basis: 'range', // a position within its own range, so the bow survives a resize
+    default: 45.0, // mm at the reference dimensions (50 mm cell, 3 mm grid strips, 1 mm strips)
     step: 0.5,
     min: (ctx) => familyFor(ctx).Lmin,
     max: (ctx) => familyFor(ctx).Lmax,

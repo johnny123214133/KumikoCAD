@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
 import useGridStore from '../../store/useGridStore.js'
+import useAppStore from '../../store/useAppStore.js'
 import ConfirmDeletePattern from './ConfirmDeletePattern.jsx'
 
 // Delete-a-custom-pattern UI shared by every list of pattern cards (the
@@ -15,7 +16,8 @@ export default function usePatternDelete() {
   // The custom pattern awaiting an "are you sure?" answer, if any.
   const [pending, setPending] = useState(null)
   const cancel = useCallback(() => setPending(null), [])
-  const confirm = () => {
+  const confirm = ({ dontAskAgain } = {}) => {
+    if (dontAskAgain) useAppStore.getState().setConfirmDeletePattern(false)
     deleteUserPattern(pending.id)
     setPending(null)
   }
@@ -28,7 +30,12 @@ export default function usePatternDelete() {
       className="pattern-delete"
       title={`Delete ${p.name}`}
       aria-label={`Delete ${p.name}`}
-      onClick={(e) => { e.stopPropagation(); setPending(p) }}
+      onClick={(e) => {
+        e.stopPropagation()
+        // "Don't show again" was ticked earlier this session: just delete.
+        if (!useAppStore.getState().confirmDeletePattern) deleteUserPattern(p.id)
+        else setPending(p)
+      }}
     >
       &times;
     </button>

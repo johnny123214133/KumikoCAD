@@ -16,21 +16,6 @@ export const MultiSelectIcon = () => (
   </svg>
 )
 
-export const AreaSelectIcon = () => (
-  <svg {...base}>
-    <rect x="4" y="4" width="16" height="16" rx="1" strokeDasharray="3 2.5" />
-  </svg>
-)
-
-export const AlignGridIcon = () => (
-  <svg {...base}>
-    {[5, 12, 19].map(cx => [5, 12, 19].map(cy => (
-      <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={cx === 12 && cy === 12 ? 2.2 : 1.2}
-        fill={cx === 12 && cy === 12 ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={cx === 12 && cy === 12 ? 0 : 1.4} />
-    )))}
-  </svg>
-)
-
 export const FillPaintIcon = () => (
   <svg {...base}>
     <path d="M4 12 L12 4 L20 12 L12 20 Z" />
@@ -110,5 +95,34 @@ export const UnlockIcon = () => (
   <svg {...base}>
     <rect x="5" y="11" width="14" height="10" rx="1.5" />
     <path d="M8 11 L8 7 a4 4 0 0 1 7.4 -2" />
+  </svg>
+)
+
+
+// Rotate the selected patterns 120° counterclockwise / clockwise.
+export const RotateCcwIcon = () => (
+  <svg {...base}>
+    <path d="M5 12 A7 7 0 1 0 8 6.2" />
+    <path d="M4.5 4 L7.8 6.4 L5.2 9.6" />
+    <text x="12" y="15.2" textAnchor="middle" fontSize="7.5" fontWeight="600" fill="currentColor" stroke="none" fontFamily="sans-serif">120</text>
+  </svg>
+)
+
+export const RotateCwIcon = () => (
+  <svg {...base}>
+    <path d="M19 12 A7 7 0 1 1 16 6.2" />
+    <path d="M19.5 4 L16.2 6.4 L18.8 9.6" />
+    <text x="12" y="15.2" textAnchor="middle" fontSize="7.5" fontWeight="600" fill="currentColor" stroke="none" fontFamily="sans-serif">120</text>
+  </svg>
+)
+
+// Snap to Gridpoint: a joint where six cells meet, each turned toward it.
+export const SnapGridpointIcon = () => (
+  <svg {...base}>
+    <circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="6.4" strokeDasharray="1.2 2.6" />
+    {[0, 60, 120, 180, 240, 300].map(a => (
+      <path key={a} d="M12 4.2 L12 7.6 M10.7 6.1 L12 7.6 L13.3 6.1" transform={`rotate(${a} 12 12)`} strokeWidth="1.3" />
+    ))}
   </svg>
 )

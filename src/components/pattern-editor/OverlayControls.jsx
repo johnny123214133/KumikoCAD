@@ -5,8 +5,9 @@ const LAYERS = [
   { key: 'centerlines', label: 'Centerlines' },
   { key: 'jointDots', label: 'Joint dots' },
   { key: 'wireframe', label: 'Wireframe' },
+  { key: 'viewOrientation', label: 'View orientation' },
+  { key: 'showScale', label: 'Show Scale' },
   { key: 'annotations', label: 'Annotations (coming soon)', disabled: true },
-  { key: 'scalebar', label: 'Scale bar (coming soon)', disabled: true },
   { key: 'coordinates', label: 'Coordinates (coming soon)', disabled: true },
 ]
 

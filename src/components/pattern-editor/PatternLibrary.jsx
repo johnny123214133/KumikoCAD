@@ -3,8 +3,9 @@ import usePatternStore from '../../store/usePatternStore.js'
 import useAppStore from '../../store/useAppStore.js'
 import PatternIcon from './PatternIcon.jsx'
 import usePatternDelete from './usePatternDelete.jsx'
+import useApplyToSelection from './useApplyToSelection.jsx'
 import { ListViewIcon, GridViewIcon } from '../layout/icons.jsx'
-import { SORT_OPTIONS, sortPatterns } from './sortPatterns.js'
+import { SORT_OPTIONS, sortPatterns, canReorderCustom } from './sortPatterns.js'
 
 export default function PatternLibrary() {
   const builtInPatterns = usePatternStore(s => s.builtInPatterns)
@@ -16,10 +17,46 @@ export default function PatternLibrary() {
   const setViewportLocked = useAppStore(s => s.setViewportLocked)
   const patternSort = useAppStore(s => s.patternSort)
   const setPatternSort = useAppStore(s => s.setPatternSort)
+  const reorderUserPatterns = usePatternStore(s => s.reorderUserPatterns)
   const all = useMemo(() => sortPatterns(builtInPatterns, userPatterns, patternSort), [builtInPatterns, userPatterns, patternSort])
   const [view, setView] = useState('list') // 'list' | 'icon'
+  // Drag and drop: in the default orderings, custom patterns can be dragged onto
+  // one another to put them in a new order (kept across reloads).
+  const reorderable = canReorderCustom(patternSort)
+  const [dragId, setDragId] = useState(null)
+  const [overId, setOverId] = useState(null)
+  const isCustom = (p) => !p.readOnly
+  const dragProps = (p) => {
+    if (!reorderable || !isCustom(p)) return {}
+    return {
+      draggable: true,
+      onDragStart: (e) => { setDragId(p.id); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', p.id) } catch { /* ignore */ } },
+      onDragEnd: () => { setDragId(null); setOverId(null) },
+      onDragOver: (e) => { if (dragId && dragId !== p.id) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (overId !== p.id) setOverId(p.id) } },
+      onDrop: (e) => { e.preventDefault(); if (dragId && dragId !== p.id) reorderUserPatterns(dragId, p.id); setDragId(null); setOverId(null) },
+      'data-dragging': dragId === p.id ? 'true' : undefined,
+      'data-drop-target': overId === p.id && dragId !== p.id ? 'true' : undefined,
+      style: {
+        opacity: dragId === p.id ? 0.4 : 1,
+        boxShadow: overId === p.id && dragId !== p.id ? 'inset 0 2px 0 0 #0d6efd' : undefined,
+      },
+    }
+  }
   // Hover (x) + "are you sure?" dialog for custom patterns — see usePatternDelete.
   const { deleteButton, deleteDialog } = usePatternDelete()
+  // Hover menu: "Apply to Current Selection" (panel editor, cells selected).
+  const { hoverProps, applyMenu, panelDraggable, startPanelDrag } = useApplyToSelection()
+  // dragProps (custom cards: drag to reorder) plus, in the panel editor, dragging
+  // any card onto the panel to apply it to the selected cells.
+  const cardProps = (p) => {
+    const base = dragProps(p)
+    if (!panelDraggable) return base
+    return {
+      ...base,
+      draggable: true,
+      onDragStart: (e) => { base.onDragStart?.(e); startPanelDrag(e, p) },
+    }
+  }
 
   // In the panel editor, picking a pattern here means "place copies of this
   // pattern" — so it should behave as if the Place Pattern tool button
@@ -43,7 +80,7 @@ export default function PatternLibrary() {
           style={{ width: 'auto', fontSize: '11px', padding: '1px 22px 1px 6px', minWidth: 0 }}
           value={patternSort}
           onChange={(e) => setPatternSort(e.target.value)}
-          title="Sort patterns — custom patterns are sorted the same way and listed after the built-in ones"
+          title="Sort patterns — custom patterns are sorted the same way; the 'custom first' options list them above the built-in ones. In the Default orderings, drag custom patterns to reorder them."
           aria-label="Sort patterns"
         >
           {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -80,7 +117,7 @@ export default function PatternLibrary() {
         {view === 'list' ? (
           <div className="list-group list-group-flush">
             {all.map(p => (
-              <div key={p.id} className="pattern-card">
+              <div key={p.id} className="pattern-card" {...cardProps(p)} {...hoverProps(p)}>
                 <button
                   className={`list-group-item list-group-item-action py-2 px-2 d-flex align-items-center gap-2 ${activePatternId === p.id ? 'active' : ''}`}
                   style={{ fontSize: '13px' }}
@@ -100,7 +137,7 @@ export default function PatternLibrary() {
             style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))' }}
           >
             {all.map(p => (
-              <div key={p.id} className="pattern-card">
+              <div key={p.id} className="pattern-card" {...cardProps(p)} {...hoverProps(p)}>
                 <button
                   title={p.name}
                   onClick={() => selectPattern(p.id)}
@@ -118,6 +155,7 @@ export default function PatternLibrary() {
       </div>
 
       {deleteDialog}
+      {applyMenu}
     </div>
   )
 }

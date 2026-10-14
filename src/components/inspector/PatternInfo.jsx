@@ -1,8 +1,11 @@
 import React from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
+import useAppStore from '../../store/useAppStore.js'
+import { formatLength } from '../../geometry/units.js'
 
 export default function PatternInfo() {
   const getActivePattern = usePatternStore(s => s.getActivePattern)
+  const unit = useAppStore(s => s.gridUnit)
   const p = getActivePattern()
   if (!p) return null
   return (
@@ -11,7 +14,7 @@ export default function PatternInfo() {
       <table className="table table-sm table-borderless mb-0" style={{ fontSize: '12px' }}>
         <tbody>
           <tr><td className="text-muted py-0 pe-2">ID</td><td className="py-0" style={{ fontFamily: 'monospace', fontSize: '11px' }}>{p.id}</td></tr>
-          <tr><td className="text-muted py-0 pe-2">Side</td><td className="py-0">{p.sideLength} mm</td></tr>
+          <tr><td className="text-muted py-0 pe-2">Side</td><td className="py-0">{formatLength(p.sideLength, unit)}</td></tr>
           <tr><td className="text-muted py-0 pe-2">Strips</td><td className="py-0">{p.strips.length}</td></tr>
           <tr><td className="text-muted py-0 pe-2">Joints</td><td className="py-0">{p.joints.length}</td></tr>
           <tr><td className="text-muted py-0 pe-2">Pieces</td><td className="py-0">{p.pieceTemplates.length}</td></tr>

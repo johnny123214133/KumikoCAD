@@ -6,7 +6,8 @@ import { definePattern, makeStrip, endCut, endJoint, normalize, inradius, triLap
 // through the centroid G, and ends `stubLength` beyond it, on the far side, in
 // a square cut. The strips therefore cross at G at 60° to one another instead
 // of meeting there in a three-way mitre, so the centre is a three-strip lap
-// (the same 'triLap' as Mikado's): s0 on top, s1 in the middle, s2 below.
+// (the same 'triLap' as Mikado's). The vertical strip (s2, the one from the apex) is on
+// top, then s0, then s1 below.
 //
 // stubLength — how far each strip reaches past G, measured to the end of its
 //   centerline. The lap notch is √3·w long, centred on G, so a stub shorter
@@ -17,19 +18,23 @@ export const STUB_LENGTH = {
   key: 'stubLength',
   label: 'Stub length',
   kind: 'length',
-  default: 8.0,
+  basis: 'cell', // a fraction of the cell width, so it keeps its look when the cell is resized
+  default: 6.0, // mm at the reference dimensions (50 mm cell)
   step: 0.5,
   min: ({ patternStripWidth }) => (Math.sqrt(3) / 2) * patternStripWidth,
   max: ({ cellWidth, gridStripWidth }) => inradius(cellWidth) - gridStripWidth / 2,
   description: 'How far each strip extends past the centre of the cell.',
 };
 
+// Top -> bottom at the centre lap: the vertical strip from the apex first.
+const TRI_LAP_STACK = ['s2', 's0', 's1'];
+
 function defineTsuno({ id, name, pointed, description }) {
   return definePattern({
   id,
   name,
-  // Tsuno-asanoha's stubs default to 12 mm (Yae-asanoha's to 8 mm).
-  paramDefs: [{ ...STUB_LENGTH, default: 12.0 }],
+  // Tsuno-asanoha's stubs default to 7 mm at the reference cell (Yae-/Futae-asanoha's to 6 mm).
+  paramDefs: [{ ...STUB_LENGTH, default: 7.0 }],
   meta: { difficulty: 'advanced', tags: ['six-fold', 'traditional'], description, thumbnail: null },
   build: ({ cell, params }) => {
     const { G } = cell;
@@ -39,12 +44,12 @@ function defineTsuno({ id, name, pointed, description }) {
       const end = { x: G.x + params.stubLength * u.x, y: G.y + params.stubLength * u.y };
       return makeStrip(`s${i}`, start, end, [
         endCut(`j${i + 1}`, start, 30),
-        ...triLapCuts(`s${i}`, 'j0', G),
+        ...triLapCuts(`s${i}`, 'j0', G, TRI_LAP_STACK),
         endCut(`j${i + 4}`, end, pointed ? 150 : 90),
       ]);
     });
     const joints = [
-      triLapJoint('j0', G),
+      triLapJoint('j0', G, TRI_LAP_STACK),
       ...strips.flatMap((s, i) => [endJoint(`j${i + 1}`, s.start, s.id, 'taper'), endJoint(`j${i + 4}`, s.end, s.id, pointed ? 'taper' : 'butt')]),
     ];
     return { strips, joints };

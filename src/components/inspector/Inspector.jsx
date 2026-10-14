@@ -7,8 +7,9 @@ import useSelectionStore from '../../store/useSelectionStore.js'
 import { WOOD_OPTIONS, FINISH_OPTIONS } from '../../geometry/materials.js'
 import {
   mmToIn, inToMm, MM_STEP, STRIP_IN_STEP, MIN_STRIP_WIDTH_MM,
-  roundUpToStripInStep, roundDownToMmStep, roundToMmStep, roundToStripInStep,
+  roundToMmStep, roundToStripInStep, formatLength, toUnit,
 } from '../../geometry/units.js'
+import UnitToggle from '../shared/UnitToggle.jsx'
 import OverlayControls from '../pattern-editor/OverlayControls.jsx'
 import PatternParams from './PatternParams.jsx'
 
@@ -16,7 +17,7 @@ const sectionLabelStyle = { letterSpacing: '0.05em', fontSize: '11px' }
 
 function dist(a, b) { return Math.hypot(b.x - a.x, b.y - a.y) }
 function midpoint(a, b) { return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } }
-function fmtPt(p) { return `(${p.x.toFixed(2)}, ${p.y.toFixed(2)})` }
+function fmtPt(p, unit) { return `(${Number(toUnit(p.x, unit).toFixed(unit === 'in' ? 4 : 2))}, ${Number(toUnit(p.y, unit).toFixed(unit === 'in' ? 4 : 2))}) ${unit}` }
 
 // Cut role strings look like 'end', 'cut-top-2', 'cut-bottom-3' — see the
 // factories. 'cut-top' / 'cut-bottom' name the FACE the notch is cut into, so
@@ -35,6 +36,8 @@ function describeCutRole(role) {
 }
 
 function StripCard({ strip, pattern }) {
+  const unit = useAppStore(s => s.gridUnit)
+  const len = (mm) => formatLength(mm, unit)
   const chord = dist(strip.start, strip.end)
   // A bent strip's length is its arc length (the number to cut it to); the chord is how far apart its ends are.
   const length = strip.curve ? curveLength(chord, strip.curve) : chord
@@ -44,13 +47,13 @@ function StripCard({ strip, pattern }) {
       <div className="fw-semibold mb-1">Strip {strip.id}</div>
       <table className="table table-sm table-borderless mb-2" style={{ fontSize: '11px' }}>
         <tbody>
-          <tr><td className="text-muted py-0 pe-2">Length</td><td className="py-0">{length.toFixed(2)} mm</td></tr>
-          {strip.curve?.lead > 0 && <tr><td className="text-muted py-0 pe-2">Straight ends</td><td className="py-0">{strip.curve.lead.toFixed(2)} mm each</td></tr>}
-          {(strip.curve?.startLead > 0 || strip.curve?.endLead > 0) && <tr><td className="text-muted py-0 pe-2">Straight ends</td><td className="py-0">{(strip.curve.startLead || 0).toFixed(2)} / {(strip.curve.endLead || 0).toFixed(2)} mm</td></tr>}
-          {strip.curve && <tr><td className="text-muted py-0 pe-2">Chord / bow</td><td className="py-0">{chord.toFixed(2)} mm / {Math.abs(strip.curve.sagitta).toFixed(2)} mm</td></tr>}
-          <tr><td className="text-muted py-0 pe-2">Start</td><td className="py-0">{fmtPt(strip.start)}</td></tr>
-          <tr><td className="text-muted py-0 pe-2">End</td><td className="py-0">{fmtPt(strip.end)}</td></tr>
-          <tr><td className="text-muted py-0 pe-2">Midpoint</td><td className="py-0">{fmtPt(mid)}</td></tr>
+          <tr><td className="text-muted py-0 pe-2">Length</td><td className="py-0">{len(length)}</td></tr>
+          {strip.curve?.lead > 0 && <tr><td className="text-muted py-0 pe-2">Straight ends</td><td className="py-0">{len(strip.curve.lead)} each</td></tr>}
+          {(strip.curve?.startLead > 0 || strip.curve?.endLead > 0) && <tr><td className="text-muted py-0 pe-2">Straight ends</td><td className="py-0">{len(strip.curve.startLead || 0)} / {len(strip.curve.endLead || 0)}</td></tr>}
+          {strip.curve && <tr><td className="text-muted py-0 pe-2">Chord / bow</td><td className="py-0">{len(chord)} / {len(Math.abs(strip.curve.sagitta))}</td></tr>}
+          <tr><td className="text-muted py-0 pe-2">Start</td><td className="py-0">{fmtPt(strip.start, unit)}</td></tr>
+          <tr><td className="text-muted py-0 pe-2">End</td><td className="py-0">{fmtPt(strip.end, unit)}</td></tr>
+          <tr><td className="text-muted py-0 pe-2">Midpoint</td><td className="py-0">{fmtPt(mid, unit)}</td></tr>
         </tbody>
       </table>
       <div className="text-muted mb-1" style={{ fontSize: '10px', letterSpacing: '0.03em' }}>CUTS</div>
@@ -59,7 +62,7 @@ function StripCard({ strip, pattern }) {
           const joint = pattern.joints.find(j => j.id === cut.jointId)
           return (
             <li key={i} className="ps-2 border-start">
-              <div>{fmtPt(cut.position)} — {joint?.notchType ?? 'unknown'}, {cut.angle}°, depth {Number(cut.depth.toFixed(3))}</div>
+              <div>{fmtPt(cut.position, unit)} — {joint?.notchType ?? 'unknown'}, {cut.angle}°, depth {len(cut.depth)}</div>
               <div className="text-muted">{describeCutRole(cut.role)}</div>
             </li>
           )
@@ -85,6 +88,10 @@ export default function Inspector() {
   const setStripsFinish = usePatternStore(s => s.setStripsFinish)
   const hasUnsavedChanges = usePatternStore(s => s.hasUnsavedChanges)
   const saveUserPattern = usePatternStore(s => s.saveUserPattern)
+  const saveChanges = usePatternStore(s => s.saveChanges)
+  const setAsDefault = usePatternStore(s => s.setAsDefault)
+  const revertToDefault = usePatternStore(s => s.revertToDefault)
+  const defaultOverridden = usePatternStore(s => !!s.builtInDefaults[s.activePatternId])
   const selectedStripIds = useSelectionStore(s => s.selectedStripIds)
   // Not read directly — subscribed so this re-renders (and the effect below
   // re-syncs the draft input) when patternOverrides changes for a reason
@@ -104,7 +111,8 @@ export default function Inspector() {
   // field just doesn't commit — "don't update the render when set to 0" —
   // rather than reverting what's displayed.
   const effectiveWidthMm = getEffectiveStripWidth(activePatternId)
-  const [widthUnit, setWidthUnit] = useState('mm')
+  // The CAD-wide unit (the toggle at the top of this panel).
+  const widthUnit = useAppStore(s => s.gridUnit)
   const [draftWidth, setDraftWidth] = useState(String(effectiveWidthMm))
   // Material/finish are genuinely live, AND scoped to the current selection:
   // with one or more strips selected (Selection/Multi-select tool), the
@@ -177,6 +185,18 @@ export default function Inspector() {
     setSaveName(result.name)
   }
 
+  // Save changes: writes the open custom pattern's state back into itself.
+  const handleSaveChanges = () => {
+    const result = saveChanges(activePatternId)
+    if (!result.ok) {
+      if (result.reason === 'duplicate') {
+        toast.error(`A pattern with these exact parameters already exists: "${result.existingName}".`)
+      }
+      return
+    }
+    toast.success(`Saved changes to "${result.name}"`)
+  }
+
   const onWidthInputChange = (e) => {
     const raw = e.target.value
     setDraftWidth(raw)
@@ -200,21 +220,8 @@ export default function Inspector() {
     setPatternStripWidth(activePatternId, Math.max(snappedMm, MIN_STRIP_WIDTH_MM))
   }
 
-  // Fires only when the mm/in TOGGLE itself flips, not on every keystroke —
-  // snaps the current width to a clean number in the newly-selected unit.
-  // Opposite direction from the cell-width toggle: round UP to the nearest
-  // 1/16" when switching TO inches (a finer metric value should never
-  // quietly imply a narrower strip than what ends up displayed), round DOWN
-  // to the nearest whole mm when switching TO mm (avoid ending up over a
-  // limit purely from rounding up), with a hard 1mm floor either way.
-  const onWidthUnitChange = (nextUnit) => {
-    if (nextUnit === widthUnit) return
-    setWidthUnit(nextUnit)
-    const snappedMm = nextUnit === 'in'
-      ? inToMm(roundUpToStripInStep(effectiveWidthMm))
-      : roundDownToMmStep(effectiveWidthMm)
-    setPatternStripWidth(activePatternId, Math.max(snappedMm, MIN_STRIP_WIDTH_MM))
-  }
+  // (When the unit flips, setUnit — store/unitActions.js — snaps the width and the
+  // parameters onto the new unit's step grids.)
 
   // The HTML `min` attribute is also the base the browser's native
   // spinner/keyboard stepping counts from (valid values land on
@@ -229,8 +236,19 @@ export default function Inspector() {
     ? MIN_STRIP_WIDTH_MM
     : Math.ceil(mmToIn(MIN_STRIP_WIDTH_MM) / STRIP_IN_STEP) * STRIP_IN_STEP
 
+  // Set / Revert to Default only exist for the built-in library patterns (not
+  // custom ones, and not the blank pattern, which has nothing to set).
+  const isBuiltIn = !!pattern.readOnly && activePatternId !== 'builtin:blank'
+
+  // The Save Pattern section is pinned to the bottom of the panel; everything
+  // above it scrolls.
   return (
-    <div>
+    <div className="d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
+      <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <div className="fw-semibold small text-uppercase text-muted" style={sectionLabelStyle}>Pattern</div>
+        <UnitToggle />
+      </div>
       {/* Strips section — collapsed by default (state lives in useAppStore,
           not here, so it survives Inspector unmounting on a workspace
           switch). When expanded this is a FIXED max-height box with its own
@@ -291,10 +309,7 @@ export default function Inspector() {
               onChange={onWidthInputChange}
               onBlur={onWidthInputBlur}
             />
-            <select className="form-select" style={{ maxWidth: '70px', flex: '0 0 auto' }} value={widthUnit} onChange={(e) => onWidthUnitChange(e.target.value)}>
-              <option value="mm">mm</option>
-              <option value="in">in</option>
-            </select>
+            <span className="input-group-text">{widthUnit}</span>
           </div>
           {hasStripSelection && (
             <div className="form-text" style={{ fontSize: '11px' }}>Applies to the whole pattern — width isn't per-strip yet.</div>
@@ -330,16 +345,9 @@ export default function Inspector() {
         <OverlayControls />
       </div>
 
-      <hr className="my-3" />
+      </div>
 
-      {/* Save Pattern — records the CURRENT effective recipe (strip width,
-          wood, finish, and any per-strip overrides) as a brand new named
-          pattern in the library, rather than mutating the pattern being
-          edited (built-ins are readOnly, and overwriting an existing user
-          pattern in place isn't what was asked for here). See
-          usePatternStore's saveUserPattern for the duplicate-recipe check
-          and name-collision handling. */}
-      <div>
+      <div className="flex-shrink-0 border-top pt-3 mt-2">
         <div className="fw-semibold small text-uppercase text-muted mb-2" style={sectionLabelStyle}>Save pattern</div>
         <input
           type="text"
@@ -355,8 +363,45 @@ export default function Inspector() {
           title={canSave ? undefined : 'Change the strip width, a pattern parameter, wood, or finish first'}
           onClick={handleSavePattern}
         >
-          Save Pattern
+          Save as New Pattern
         </button>
+        {!pattern.readOnly && (
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-primary w-100 mt-2"
+            disabled={!canSave}
+            title={canSave ? 'Save the changes to this pattern' : 'Change the strip width, a pattern parameter, wood, or finish first'}
+            onClick={handleSaveChanges}
+          >
+            Save changes
+          </button>
+        )}
+        {isBuiltIn && (
+          <>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-secondary w-100 mt-2"
+              disabled={!canSave}
+              title={canSave ? 'Make the current settings this pattern\'s default' : 'Change the strip width, a pattern parameter, wood, or finish first'}
+              onClick={() => {
+                const r = setAsDefault(activePatternId)
+                // Cells already using the old default stay on a custom copy of it.
+                if (r?.cellsMoved) toast.info(`${r.cellsMoved} placed ${r.cellsMoved === 1 ? 'cell keeps' : 'cells keep'} the old default as "${r.copyName}"`)
+              }}
+            >
+              Set as Default
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-secondary w-100 mt-2"
+              disabled={!defaultOverridden}
+              title={defaultOverridden ? 'Go back to this pattern\'s original built-in settings' : 'This pattern is still on its original built-in settings'}
+              onClick={() => revertToDefault(activePatternId)}
+            >
+              Revert to Default
+            </button>
+          </>
+        )}
       </div>
     </div>
   )

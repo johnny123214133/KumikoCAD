@@ -3,33 +3,17 @@
 // (GridBorderStrip.jsx), kept as one function so the two stay in sync by
 // construction rather than by remembering to update both by hand.
 //
-// Previously a fixed literal ('#8a7860'); now genuinely derived from
-// useGridStore's material/finish (the grid/panel right-sidebar's Wood/
-// Finish selectors — see GridInspector.jsx) via the same wood×finish color
-// model the pattern strips use (geometry/woodFinishColors.js), so the grid's
-// own structural strips and a cell's pattern strips both respond to the
-// same kind of parameter the same way. Deliberately a plain function of
-// (material, finish) rather than reading useGridStore itself — callers
-// already need to subscribe to material/finish via the useGridStore hook
-// to re-render on change, so they pass the values through rather than this
-// module reaching into the store non-reactively behind their back.
-//
-// Darkened a bit relative to the raw wood/finish color (same darkenHex
-// used for a selected strip's border, geometry/color.js) rather than
-// returning that color as-is: useGridStore's material/finish and a
-// pattern's own stripProperties material/finish are separate settings that
-// both happen to default to hinoki/natural, so an as-is color made the
-// grid frame and a cell's strips render as the exact same hex by default —
-// reported as "the border now matches the strip color instead of the
-// brownish we were using" once real material colors replaced the old fixed
-// placeholder. Darkening keeps the frame genuinely tied to the chosen wood/
-// finish (still updates when either changes) while keeping it visually
-// read as a distinct, slightly heavier-toned structural member framing the
-// cell, the way the old fixed placeholder did incidentally.
+// The grid's colour comes from the same wood × finish model the pattern strips
+// use (geometry/woodFinishColors.js's getMaterialColor, driven by useGridStore's
+// material/finish — the Wood/Finish selectors in GridInspector.jsx), with NO
+// grid-specific adjustment: a grid strip of a given wood and finish is exactly
+// the colour a pattern strip of that wood and finish is. (It used to be
+// darkened a little to read as distinct from the pattern strips; that meant the
+// grid never drew from the shared colour library's actual values.) Deliberately
+// a plain function of (material, finish) rather than reading useGridStore
+// itself — callers already subscribe to material/finish to re-render on
+// change, so they pass the values through.
 import { getMaterialColor } from '../geometry/woodFinishColors.js';
-import { darkenHex } from '../geometry/color.js';
-
-const GRID_STRIP_DARKEN_AMOUNT = 0.3;
 
 function hexToRgbTriplet(hex) {
   const h = hex.replace('#', '');
@@ -40,7 +24,7 @@ function hexToRgbTriplet(hex) {
 }
 
 export function getGridStripColor(material, finish) {
-  return darkenHex(getMaterialColor(material, finish), GRID_STRIP_DARKEN_AMOUNT);
+  return getMaterialColor(material, finish);
 }
 
 export function getGridStripColorRgb(material, finish) {

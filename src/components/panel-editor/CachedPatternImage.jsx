@@ -1,15 +1,6 @@
 import React, { useMemo } from 'react'
 import { Image as KonvaImage } from 'react-konva'
-import { getPatternImage, buildPatternCacheKey } from '../../geometry/patternImageCache.js'
-
-// Fixed cache resolution for panel cells — a reasonable middle ground for
-// typical working zoom levels. Known limitation, not solved here: zooming
-// in far enough will show the raster upscaling (softer than the pattern
-// editor's live vector strips) — a single fixed resolution can't serve both
-// "zoomed out over hundreds of cells" and "zoomed in on one cell" equally
-// well. Revisit with zoom-tier-based cache keys if that becomes a real
-// problem in practice.
-const CELL_CACHE_SIZE_PX = 128
+import { getPanelCellImage } from '../../geometry/patternImageCache.js'
 
 // Renders a pattern's strips as a single cached bitmap instead of one Konva
 // shape per strip — the panel-level performance work from the brainstorm.
@@ -18,21 +9,18 @@ const CELL_CACHE_SIZE_PX = 128
 // parent Group so Konva's bubbling still reaches it if a click lands on this
 // image) — this image doesn't need its own hit-testing, which would just be
 // redundant hit-canvas cost for every cell in the grid.
-export default function CachedPatternImage({ pattern, cellWidth, gridStripWidth, patternStripWidth, patternParams, selected = false }) {
-  const { canvas, worldX, worldY, worldSize } = useMemo(() => {
-    // drawBoundary=false, explicitly — the grid already draws its own
-    // real-width cell boundaries (GridLayer.jsx), so baking a triangle
-    // outline into every cell's own cached image would double up. Contrast
-    // PatternIcon.jsx, which has no such surrounding context and passes
-    // true. Written out explicitly rather than left to the default so this
-    // choice doesn't silently drift if that default ever changes.
-    // Every distinct color in use, not just stripProperties[0] — see
-    // PatternIcon.jsx's identical comment: a per-strip wood/finish override
-    // adds stripProperties entries beyond index 0.
-    const color = pattern.stripProperties?.map(sp => sp.color).join(',')
-    const cacheKey = buildPatternCacheKey(pattern.id, cellWidth, gridStripWidth, patternStripWidth, patternParams, false, selected, color)
-    return getPatternImage(cacheKey, pattern, CELL_CACHE_SIZE_PX, 3, false, selected)
-  }, [pattern, cellWidth, gridStripWidth, patternStripWidth, patternParams, selected])
+export default function CachedPatternImage({ pattern, cellWidth, gridStripWidth, patternStripWidth, patternParams, selected = false, sizePx }) {
+  // The key and render settings live in getPanelCellImage (patternImageCache.js)
+  // so the grid-dimension commit can prepare this exact entry ahead of time.
+  // `sizePx` is the zoom-dependent raster size GridLayer chose (undefined = the
+  // image cache's current one). It reads the pattern's own patternParams — the `patternParams` prop is the
+  // same object (GridLayer passes pattern.patternParams) and stays in the deps
+  // purely so a change to it re-runs the lookup.
+  const { canvas, worldX, worldY, worldSize } = useMemo(
+    () => getPanelCellImage(pattern, { cellWidth, gridStripWidth, patternStripWidth, selected, sizePx }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [pattern, cellWidth, gridStripWidth, patternStripWidth, patternParams, selected, sizePx]
+  )
 
   return (
     <KonvaImage

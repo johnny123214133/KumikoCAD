@@ -8,16 +8,12 @@
     "secondaryStripWidth": {
       "length": 2,
       "unit": "mm"
-    },
-    "inset": {
-      "length": 8,
-      "unit": "mm"
     }
   },
   "stripProperties": [
     {
       "id": "sp0",
-      "width": 3,
+      "width": 2,
       "thickness": 6,
       "material": "hinoki",
       "grain": "along",

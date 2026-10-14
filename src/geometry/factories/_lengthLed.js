@@ -15,7 +15,7 @@ export const scan = (lo, hi, step = 1) => {
 };
 const reaches = (fam, L) => fam.feasible && L >= fam.Lmin - 1e-6 && L <= fam.Lmax + 1e-6;
 
-export function lengthLedParams({ spacingStep = 1, familyFor, thickLo, thickCap, spacingLo, spacingCap, defaultThick, defaultSpacing, lengthDescription, thickDescription, spacingDescription }) {
+export function lengthLedParams({ spacingStep = 1, familyFor, thickLo, thickCap, spacingLo, spacingCap, defaultLength, defaultThick, defaultSpacing, lengthDescription, thickDescription, spacingDescription }) {
   const gridCache = new Map();
   const gridFor = (ctx) => {
     const { cellWidth, gridStripWidth, patternStripWidth: w } = ctx;
@@ -34,17 +34,12 @@ export function lengthLedParams({ spacingStep = 1, familyFor, thickLo, thickCap,
       key: 'curveLength',
       label: 'Curved strip length',
       kind: 'length',
-      default: 50.0,
+      // A position within its own range (the range is what moves with the cell), so it keeps the
+      // bow it was given when the cell is resized. `default` is the length in mm at the reference
+      // dimensions (50 mm cell, 3 mm grid strips, the pattern's starting strip width).
+      basis: 'range',
+      default: defaultLength,
       step: 0.5,
-      // Starts well bowed, for the default thick strip.
-      defaultValue: (ctx) => {
-        const t = Math.min(Math.max(defaultThick, thickLo(ctx)), thickCap(ctx));
-        const s = Math.min(Math.max(defaultSpacing, spacingLo(ctx, t)), spacingCap(ctx, t));
-        const f = familyFor(ctx, t, s);
-        if (f.feasible) return f.Lmin + 0.8 * (f.Lmax - f.Lmin);
-        const fs = feasibleGrid(ctx);
-        return fs.length ? (Math.min(...fs.map((c) => c.fam.Lmin)) + Math.max(...fs.map((c) => c.fam.Lmax))) / 2 : null;
-      },
       min: (ctx) => { const fs = feasibleGrid(ctx); return fs.length ? Math.min(...fs.map((c) => c.fam.Lmin)) : 0; },
       max: (ctx) => { const fs = feasibleGrid(ctx); return fs.length ? Math.max(...fs.map((c) => c.fam.Lmax)) : 0; },
       description: lengthDescription,

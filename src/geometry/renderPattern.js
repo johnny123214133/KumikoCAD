@@ -7,6 +7,7 @@
 // reasoning this carries over unchanged.
 import { buildStripLocalPoints, buildCurvedStripLocalPoints } from './stripShape.js';
 import { darkenHex } from './color.js';
+import { DEFAULT_PATTERN_STRIP_WIDTH_MM } from './units.js';
 
 // Paint order for the strips, bottom first. Strips are normally painted in
 // array order, but where strips overlap at a lap joint the one on top must be
@@ -45,7 +46,7 @@ function computeUnorderedStripRenderData(pattern) {
   return pattern.strips.map((strip) => {
     const pt = pattern.pieceTemplates.find(p => p.stripId === strip.id);
     const sp = pt ? spMap[pt.stripPropertyId] : pattern.stripProperties[0];
-    const width = sp?.width ?? 3;
+    const width = sp?.width ?? DEFAULT_PATTERN_STRIP_WIDTH_MM;
     const color = sp?.color ?? '#e8d5b0';
     // Darkened per-strip rather than one fixed color, so this keeps making
     // sense once strip colors vary by wood/finish choice — see the request
@@ -136,6 +137,14 @@ function computeUnorderedStripRenderData(pattern) {
   });
 }
 
+// The panel's reference cell raster: 128 px x 3 oversample. A strip's edge
+// outline is 1 px at this size, which is a fixed physical width whatever
+// resolution a cell is actually rasterized at (see renderPatternToCanvas's
+// strokeRefPx). The content is fitted into 88% of the canvas (6% margin a side),
+// so for a cell of side `sideLength` mm that width is:
+export const PANEL_REF_PX = 384;
+export const edgeStrokeWidth = (sideLength) => sideLength / (PANEL_REF_PX * 0.88);
+
 /**
  * Renders a pattern's strip bodies to an offscreen canvas, oversampled for
  * crisp thin lines/sharp joints under raster upscaling (see the panel-level
@@ -166,7 +175,7 @@ function computeUnorderedStripRenderData(pattern) {
  * with already-correct Konva-convention data can't introduce a new sign bug
  * the way re-deriving a second flip convention could.
  */
-export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBoundary = false, selected = false) {
+export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBoundary = false, selected = false, strokeRefPx = 0) {
   const { A, B, C } = pattern.vertices;
   const flip = (p) => ({ x: p.x, y: -p.y }); // same convention as scene/viewportMath.js
   const [fA, fB, fC] = [A, B, C].map(flip);
@@ -184,6 +193,14 @@ export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBound
   const scale = Math.min((px - 2 * margin) / spanX, (px - 2 * margin) / spanY);
   const offsetX = (px - spanX * scale) / 2 - minX * scale;
   const offsetY = (px - spanY * scale) / 2 - minY * scale;
+
+  // Edge/selection/boundary strokes are 1 (or 2.5) canvas px wide — "a fixed,
+  // crisp on-image thickness". For the panel's zoom tiers (several canvas
+  // sizes of the SAME cell) `strokeRefPx` is the canvas size at which that
+  // many px is meant, so a bigger tier draws proportionally thicker strokes
+  // and every tier shows the same physical edge width (edgeStrokeWidth()
+  // below). 0 (the default; icons and the like) = plain 1 px.
+  const strokePx = strokeRefPx > 0 ? px / strokeRefPx : 1;
 
   ctx.save();
   ctx.translate(offsetX, offsetY);
@@ -208,7 +225,7 @@ export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBound
     ctx.strokeStyle = selected ? s.borderColor : s.edgeColor;
     // Same 1/scale trick as the boundary stroke below — a fixed, crisp
     // on-image thickness regardless of the pattern's own size.
-    ctx.lineWidth = (selected ? 2.5 : 1) / scale;
+    ctx.lineWidth = ((selected ? 2.5 : 1) * strokePx) / scale;
     ctx.stroke();
     ctx.restore();
   }
@@ -226,7 +243,7 @@ export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBound
     ctx.lineTo(fC.x, fC.y);
     ctx.closePath();
     ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 1.5 / scale;
+    ctx.lineWidth = (1.5 * strokePx) / scale;
     ctx.stroke();
   }
 

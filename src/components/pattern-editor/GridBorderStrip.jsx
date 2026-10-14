@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react'
-import { Line } from 'react-konva'
+import { Line, Shape } from 'react-konva'
 import { centroidOf, inradius, scaleFromCentroid, dist } from '../../geometry/factories/_shared.js'
-import { getGridStripColorRgb } from '../../scene/gridStripColor.js'
+import { getGridStripColor, getGridStripColorRgb } from '../../scene/gridStripColor.js'
+import { darkenHex } from '../../geometry/color.js'
+import { drawGridStrips, shapeScale } from '../../scene/drawGridStrips.js'
 import useGridStore from '../../store/useGridStore.js'
 
 // See scene/viewportMath.js for the Y-flip convention.
@@ -26,6 +28,14 @@ const toFlippedPoints = (pts) => pts.flatMap(v => { const f = flip(v); return [f
 // edges (verified numerically) — no separate inner/outer-triangle geometry
 // needed for this case.
 //
+// The band gets the same thin, slightly darker edge the pattern strips have
+// (renderPattern.js: edgeColor = the fill darkened 0.15, a stroke centred on the
+// strip's outline). Here that is two passes along the same path: the edge colour
+// at the strip's width plus the edge width, then the fill colour over it at the
+// width minus the edge width — which leaves the edge centred on the strip's two
+// nominal faces and the miter corners correct, like the strips' own outline.
+// The edge is one screen pixel wide at every zoom, like the strips' own.
+//
 // Wireframe: that trick only gives ONE filled band, not two independent
 // outlines — so this draws the actual inner and outer edges explicitly,
 // each computed via scaleFromCentroid (the same exact centroid-scaling
@@ -43,6 +53,8 @@ export default function GridBorderStrip({ pattern, gridStripWidth, wireframe }) 
   const material = useGridStore(s => s.material)
   const finish = useGridStore(s => s.finish)
   const strokeColor = `rgba(${getGridStripColorRgb(material, finish)})`
+  const fillColor = getGridStripColor(material, finish)
+  const edgeColor = darkenHex(fillColor, 0.15)
   const { A, B, C } = pattern.vertices
   const G = useMemo(() => centroidOf(A, B, C), [A, B, C])
 
@@ -70,14 +82,18 @@ export default function GridBorderStrip({ pattern, gridStripWidth, wireframe }) 
     )
   }
 
+  // One screen pixel of edge at every zoom — worked out at draw time from the
+  // current scale (scene/drawGridStrips.js), like the pattern strips' own edge.
   return (
-    <Line
-      points={boundaryPoints}
-      closed
-      stroke={strokeColor}
-      strokeWidth={gridStripWidth}
-      lineJoin="miter"
+    <Shape
       listening={false}
+      sceneFunc={(context, shape) => drawGridStrips(context._context, {
+        scale: shapeScale(shape),
+        stripWidth: gridStripWidth,
+        fillColor,
+        edgeColor,
+        boundary: boundaryPoints,
+      })}
     />
   )
 }

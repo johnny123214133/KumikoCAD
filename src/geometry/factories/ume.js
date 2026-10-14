@@ -195,10 +195,10 @@ const defineUme = ({ id, name, variant, description }) => definePattern({
   id,
   name,
   maxStripWidth: 3,
-  defaultStripWidth: 3,
+  defaultStripWidth: 2,
   // Order matters: the thick strip's range depends on the length, and the spacing's on both.
   paramDefs: lengthLedParams({
-    familyFor: (ctx, t, sp) => familyFor(ctx, t, sp, variant), thickLo, thickCap, spacingLo, spacingCap, defaultThick: 14, defaultSpacing: 8,
+    familyFor: (ctx, t, sp) => familyFor(ctx, t, sp, variant), thickLo, thickCap, spacingLo, spacingCap, defaultLength: variant === 'A' ? 36.5 : 36, defaultThick: 6, defaultSpacing: 7,
     lengthDescription: 'Length of each bent strip; a longer strip bows more (and cuts a shallower notch), and past a point runs straight down from the notch before it bends. The thick strip\'s ranges follow this length.',
     thickDescription: 'Width of the thick strip across the top corner (the regular Strip width sets the two bent strips).',
     spacingDescription: 'Gap between the top corner and the thick strip.',

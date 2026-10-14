@@ -136,14 +136,30 @@ export function curveTangents(start, end, h) {
 // length back to a parameter (L is clamped into the limits first). Assumes L grows with p
 // over the feasible range — both patterns' tests check that.
 export function curveFamily(at, lo, hi, samples = 240) {
-  let pLo = null, pHi = null;
+  // Only the FIRST and LAST buildable samples matter (they're the family's limits), so scan in
+  // from each end and stop at the first hit rather than testing every sample in between — a
+  // buildable shape is the expensive one to test (cutReachable), and the middle of a feasible
+  // range is all buildable. Same result as testing every sample; `at` is pure, so each end's
+  // length is kept from the scan instead of being worked out again.
+  const sampleAt = (i) => lo + ((hi - lo) * i) / samples;
+  let iLo = -1, first = null;
   for (let i = 0; i <= samples; i++) {
-    const p = lo + ((hi - lo) * i) / samples;
-    if (at(p).ok) { if (pLo === null) pLo = p; pHi = p; }
+    const r = at(sampleAt(i));
+    if (r.ok) { iLo = i; first = r; break; }
   }
-  const feasible = pLo !== null;
-  if (!feasible) { pLo = pHi = (lo + hi) / 2; } // nothing buildable: hold a mid shape
-  const a = at(pLo).L, b = at(pHi).L;
+  const feasible = iLo >= 0;
+  let pLo, pHi, a, b;
+  if (!feasible) { // nothing buildable: hold a mid shape
+    pLo = pHi = (lo + hi) / 2;
+    a = b = at(pLo).L;
+  } else {
+    pLo = pHi = sampleAt(iLo);
+    a = b = first.L;
+    for (let i = samples; i > iLo; i--) {
+      const r = at(sampleAt(i));
+      if (r.ok) { pHi = sampleAt(i); b = r.L; break; }
+    }
+  }
   const Lmin = Math.min(a, b), Lmax = Math.max(a, b), increasing = b >= a;
   return {
     feasible, pLo, pHi, Lmin, Lmax,
@@ -179,11 +195,13 @@ export function cutReachable(start, end, h, hw, { point, dir, atStart }) {
     const edgeAt = (t) => { const p = centre(t), q = tan(t); return { x: p.x - side * hw * q.y, y: p.y + side * hw * q.x }; };
     const t0 = atStart ? 0 : 1, q0 = tan(t0), e0 = edgeAt(t0);
     const sign = atStart ? -1 : 1;
-    const seq = [{ x: e0.x + sign * q0.x * ext, y: e0.y + sign * q0.y * ext }];
-    for (let i = 0; i <= 100; i++) seq.push(edgeAt(atStart ? (0.25 * i) / 100 : 1 - (0.25 * i) / 100));
-    if (sgn * f0(seq[0]) >= 0) continue; // already clear of this line
+    if (sgn * f0({ x: e0.x + sign * q0.x * ext, y: e0.y + sign * q0.y * ext }) >= 0) continue; // already clear of this line
+    // Walk in along the edge and stop at the first point on the kept side — a reachable edge
+    // gets there almost at once, so the rest of the walk is only paid for by a failure.
     let crossed = false;
-    for (let i = 1; i < seq.length; i++) if (sgn * f0(seq[i]) >= 0) { crossed = true; break; }
+    for (let i = 0; i <= 100; i++) {
+      if (sgn * f0(edgeAt(atStart ? (0.25 * i) / 100 : 1 - (0.25 * i) / 100)) >= 0) { crossed = true; break; }
+    }
     if (!crossed) return false;
   }
   return true;

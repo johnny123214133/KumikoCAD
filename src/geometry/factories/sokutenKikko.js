@@ -10,7 +10,7 @@ import { definePattern, buildLapTriangle, inradius, makeStrip, endCut, endJoint,
 // corner strip and the Goma strip cross at 60° in a half-lap whose centre is ON the border —
 // so the border's miter cut takes away half the lap, leaving a half-lap notch at the end of
 // each. The corner strips are the top strip of those laps. All strips share the regular strip width.
-const INSET_DEFAULT_MM = 11.0;
+const INSET_DEFAULT_MM = 6.0;
 const STACK_ORDER = ['s1', 's0', 's2'];
 
 export const buildSokutenKikko = definePattern({
@@ -20,6 +20,7 @@ export const buildSokutenKikko = definePattern({
     key: 'inset',
     label: 'Inset',
     kind: 'length',
+    basis: 'cell',
     default: INSET_DEFAULT_MM,
     // The corner strips must be long enough to hold the half-lap at each end: ≥ 2.5 strip widths.
     min: ({ patternStripWidth: w }) => Math.max(0, 2.5 * w * Math.sin(Math.PI / 3) - w / 2),

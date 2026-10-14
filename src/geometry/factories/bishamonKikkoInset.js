@@ -20,8 +20,8 @@ const defineInset = ({ id, name, rotationDeg, description }) => definePattern({
     key: 'inset',
     label: 'Inset',
     kind: 'length',
-    default: 17.0,
-    defaultFraction: 0.4,
+    basis: 'cell',
+    default: 14.0,
     step: 0.5,
     min: ({ cellWidth, gridStripWidth, patternStripWidth }) => Math.max(0, inradius(cellWidth) - gridStripWidth / 2 - patternStripWidth / 2),
     max: ({ cellWidth, gridStripWidth, patternStripWidth: w }) => {
