@@ -45,6 +45,7 @@ export default function usePatternDelete() {
     <ConfirmDeletePattern
       pattern={pending}
       placedCount={useGridStore.getState().countSpacesWithPattern(pending.id)}
+      twinName={usePatternStore.getState().findIdenticalPattern(pending.id)?.name ?? null}
       onConfirm={confirm}
       onCancel={cancel}
     />

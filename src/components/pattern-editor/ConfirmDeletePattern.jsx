@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom'
 // isn't clipped or offset by the side panel it was opened from. Escape or a
 // click outside cancels; Cancel is the focused button so Enter can't delete by
 // accident.
-export default function ConfirmDeletePattern({ pattern, placedCount, onConfirm, onCancel }) {
+export default function ConfirmDeletePattern({ pattern, placedCount, twinName, onConfirm, onCancel }) {
   const cancelRef = useRef(null)
   const [dontAsk, setDontAsk] = useState(false)
 
@@ -36,11 +36,15 @@ export default function ConfirmDeletePattern({ pattern, placedCount, onConfirm, 
             </div>
             <div className="modal-body small">
               <p className="mb-2">Are you sure you want to delete <strong>{pattern.name}</strong>? This can't be undone.</p>
-              {placedCount > 0 && (
+              {placedCount > 0 && (twinName ? (
+                <p className="mb-0">
+                  It's placed in {placedCount} {placedCount === 1 ? 'cell' : 'cells'} of the panel — {placedCount === 1 ? 'that cell' : 'those cells'} will switch to <strong>{twinName}</strong>, which is identical.
+                </p>
+              ) : (
                 <p className="mb-0 text-danger">
                   It's placed in {placedCount} {placedCount === 1 ? 'cell' : 'cells'} of the panel — {placedCount === 1 ? 'that cell' : 'those cells'} will be emptied.
                 </p>
-              )}
+              ))}
               <div className="form-check mt-2 mb-0">
                 <input id="delete-pattern-dont-ask" className="form-check-input" type="checkbox" checked={dontAsk} onChange={(e) => setDontAsk(e.target.checked)} />
                 <label className="form-check-label" htmlFor="delete-pattern-dont-ask">Don't show this again</label>

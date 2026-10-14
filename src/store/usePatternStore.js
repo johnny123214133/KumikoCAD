@@ -1094,13 +1094,27 @@ const usePatternStore = create((set, get) => ({
       return { userPatterns: list };
     });
   },
+  // Another pattern (built-in or custom) whose saved recipe is identical to this
+  // one's — same in everything but name and id — or null. Normally the library
+  // can't hold two of these; the exception is the copy of a built-in's old
+  // default that Set as Default leaves behind, which becomes identical to the
+  // built-in again once it is reverted. Built-ins are preferred.
+  findIdenticalPattern: (id) => {
+    const state = get();
+    const all = [...state.builtInPatterns, ...state.userPatterns];
+    const self = all.find((p) => p.id === id);
+    if (!self) return null;
+    const key = recipeKey(state.getTemplateRecipe(self));
+    return all.find((p) => p.id !== id && recipeKey(state.getTemplateRecipe(p)) === key) ?? null;
+  },
   // Removes a custom (saved) pattern. Built-ins can't be deleted. Everything
   // that points at the pattern is cleaned up with it: it leaves the saved list
-  // (and localStorage), the Recently Used list and the live overrides; any
-  // panel cells holding it go back to blank (rather than silently turning into
-  // some other pattern — getComputedPattern falls back to the first built-in
-  // for an unknown id); and if it was the active pattern the editor moves to
-  // the next most recent one (or the first built-in).
+  // (and localStorage), the Recently Used list and the live overrides; and if it
+  // was the active pattern the editor moves to the next most recent one (or the
+  // first built-in). Panel cells holding it switch to an identical pattern when
+  // there is one (keeping their rotation, mirroring and paint), and otherwise go
+  // back to blank (rather than silently turning into some other pattern —
+  // getComputedPattern falls back to the first built-in for an unknown id).
   deleteUserPattern: (id) => {
     const state = get();
     if (!state.userPatterns.some((p) => p.id === id)) return { ok: false, reason: 'not-a-custom-pattern' };
@@ -1109,7 +1123,10 @@ const usePatternStore = create((set, get) => ({
     try { localStorage.setItem('kumiko_user_patterns', JSON.stringify(nextUserPatterns)); }
     catch { /* localStorage unavailable — the pattern is still gone for this session */ }
 
-    const clearedCells = useGridStore.getState().removePatternFromSpaces(id);
+    const twin = state.findIdenticalPattern(id);
+    const grid = useGridStore.getState();
+    const movedCells = twin ? grid.replacePatternInSpaces(id, twin.id) : 0;
+    const clearedCells = twin ? 0 : grid.removePatternFromSpaces(id);
     const wasActive = state.activePatternId === id;
     if (wasActive) useSelectionStore.getState().clearSelection();
 
@@ -1124,7 +1141,7 @@ const usePatternStore = create((set, get) => ({
         recentPatternIds: remaining.length ? remaining : [activePatternId],
       };
     });
-    return { ok: true, clearedCells };
+    return { ok: true, clearedCells, movedCells, movedTo: twin ? twin.name : null };
   },
 }));
 
