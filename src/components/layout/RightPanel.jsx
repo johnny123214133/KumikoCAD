@@ -2,9 +2,10 @@ import React, { useRef, useCallback } from 'react'
 import useAppStore from '../../store/useAppStore.js'
 import Inspector from '../inspector/Inspector.jsx'
 import GridInspector from '../panel-editor/GridInspector.jsx'
+import HelpPanel from './HelpPanel.jsx'
 
 export default function RightPanel() {
-  const { workspace, rightPanelOpen, setRightPanelOpen, rightPanelWidth, setRightPanelWidth } = useAppStore()
+  const { workspace, rightPanelOpen, setRightPanelOpen, rightPanelWidth, setRightPanelWidth, helpOpen } = useAppStore()
   const dragRef = useRef(null)
   const handleRef = useRef(null)
 
@@ -44,7 +45,12 @@ export default function RightPanel() {
       />
       {/* Always mounted — see custom.css's .side-panel comment. */}
       <div className="p-3 d-flex flex-column flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
-        {workspace === 'panel-editor' ? <GridInspector /> : <Inspector />}
+        {/* The Help tool swaps the usual content for the help text. The usual content
+            stays mounted, just not displayed, so half-typed fields survive. */}
+        <div style={{ display: helpOpen ? 'none' : 'contents' }}>
+          {workspace === 'panel-editor' ? <GridInspector /> : <Inspector />}
+        </div>
+        {helpOpen && <HelpPanel />}
       </div>
     </div>
   )

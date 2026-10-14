@@ -9,7 +9,9 @@
 // the two other spots that separately hardcoded activeTool:'selection' each
 // had their own hardcoded viewportLocked value that nothing kept in sync.
 //
-// All three tools with real click-based behavior lock: an unlocked Stage
+// All tools with real click-based behavior lock: an unlocked Stage
 // (draggable=true) can misinterpret the sub-pixel jitter of a normal click
-// as a micro-drag (pan) and suppress the shape's onClick entirely.
-export const TOOL_LOCK = { selection: true, 'place-pattern': true, 'multi-select': true, 'snap-gridpoint': true, 'fill-paint': true };
+// as a micro-drag (pan) and suppress the shape's onClick entirely. Drag
+// select locks for a further reason — its drag is the gesture, so it can't
+// also pan.
+export const TOOL_LOCK = { selection: true, 'place-pattern': true, 'multi-select': true, 'drag-select': true, validation: true, 'snap-gridpoint': true, 'fill-paint': true };

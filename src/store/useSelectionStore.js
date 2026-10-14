@@ -54,6 +54,10 @@ const useSelectionStore = create((set, get) => ({
   setStripSelection: (ids) => set({ selectedStripIds: ids }),
   setSpaceSelection: (ids) => set({ selectedSpaceIds: ids }),
 
+  // Shift+click / shift+drag: add to the selection, never remove or replace.
+  addStripsToSelection: (ids) => set((s) => ({ selectedStripIds: [...new Set([...s.selectedStripIds, ...ids])] })),
+  addSpacesToSelection: (ids) => set((s) => ({ selectedSpaceIds: [...new Set([...s.selectedSpaceIds, ...ids])] })),
+
   // Called on every tool change (see useAppStore's setActiveTool/
   // setWorkspace) — confirmed explicitly that switching tools always clears
   // the active selection, not just transitions specifically between

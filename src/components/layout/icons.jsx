@@ -16,6 +16,33 @@ export const MultiSelectIcon = () => (
   </svg>
 )
 
+// Drag select: a dotted squiggle swept across the cells, ending in an arrow head.
+export const DragSelectIcon = () => (
+  <svg {...base}>
+    <path d="M3 17 C5.5 7 9 7 11 12 S16.5 17 19 8" strokeDasharray="0.1 3.1" strokeWidth="2.4" />
+    <path d="M15.6 7.6 L19.4 7.2 L20.2 11" />
+  </svg>
+)
+
+// Help: a question mark in a circle.
+export const HelpIcon = () => (
+  <svg {...base}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9.3 9.4 A2.8 2.8 0 1 1 13.2 12 C12.3 12.5 12 13 12 14.2" />
+    <circle cx="12" cy="17.3" r="0.7" fill="currentColor" stroke="none" />
+  </svg>
+)
+
+// Validation: a check over a row of cells — two matching (filled) and one that isn't.
+export const ValidationIcon = () => (
+  <svg {...base}>
+    <path d="M5 8.5 L9 12.5 L18 4" />
+    <path d="M2.5 20 L7.5 20 L5 14.5 Z" fill="currentColor" fillOpacity="0.35" />
+    <path d="M9.5 20 L14.5 20 L12 14.5 Z" fill="currentColor" fillOpacity="0.35" />
+    <path d="M16.5 20 L21.5 20 L19 14.5 Z" />
+  </svg>
+)
+
 export const FillPaintIcon = () => (
   <svg {...base}>
     <path d="M4 12 L12 4 L20 12 L12 20 Z" />

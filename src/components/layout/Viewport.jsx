@@ -9,8 +9,10 @@ import GridLayer from '../panel-editor/GridLayer.jsx'
 import { computeGridGeometry } from '../../geometry/grid/computeGridGeometry.js'
 import { computeZoomToFit, computeWheelZoom } from '../../scene/viewportMath.js'
 import { PATTERN_DRAG_TYPE } from '../pattern-editor/useApplyToSelection.jsx'
-import { createPlacementStroke } from '../../scene/placementStroke.js'
+import { createPlacementStroke, sampleStepFor } from '../../scene/placementStroke.js'
+import { flagDragGesture } from '../../scene/gestureGuard.js'
 import { normalizeRect, rectTouchesPolygon } from '../../geometry/rectSelect.js'
+import { isOutsidePanel, isOutsideTriangle } from '../../scene/clickOutside.js'
 
 export default function Viewport() {
   const containerRef = useRef(null)
@@ -215,15 +217,29 @@ export default function Viewport() {
     cur.stroke.end(pointer ? toKonvaLocal(cur.stage, pointer) : undefined)
   }
 
-  const startStroke = (e) => {
+  const startStroke = (e, tool) => {
     if (e.evt?.button != null && e.evt.button !== 0) return
     const stage = e.target.getStage()
     const pointer = stage.getPointerPosition()
     if (!pointer) return
+    const inPanel = workspace === 'panel-editor'
+    const select = useSelectionStore.getState
+    // Drag select selects cells (strips in the pattern editor). A plain stroke
+    // replaces the old selection (as Multi-select's rectangle does) — so pressing
+    // on empty canvas, where it reaches nothing, clears it; with shift held the
+    // stroke appends to the selection instead.
+    if (tool === 'drag-select' && !e.evt?.shiftKey) select().clearSelection()
+    const getCells = () => (inPanel ? select().selectableSpaces : select().selectableStrips)
+    const apply = tool === 'place-pattern'
+      // Place Pattern: the active pattern goes into the cells.
+      ? (ids) => useGridStore.getState().setSpacesPattern(ids, usePatternStore.getState().activePatternId)
+      : (ids) => (inPanel ? select().addSpacesToSelection(ids) : select().addStripsToSelection(ids))
     const stroke = createPlacementStroke({
-      getCells: () => useSelectionStore.getState().selectableSpaces,
-      getStep: () => useGridStore.getState().cellWidth / 6,
-      apply: (ids) => useGridStore.getState().setSpacesPattern(ids, usePatternStore.getState().activePatternId),
+      getCells,
+      // Cells are sampled a sixth of a cell apart; strips are a couple of mm wide,
+      // so they need a step matched to the thinnest one.
+      getStep: () => (inPanel ? useGridStore.getState().cellWidth / 6 : sampleStepFor(getCells())),
+      apply,
     })
     // Released outside the canvas: the stroke still ends.
     const stop = () => endStroke()
@@ -232,13 +248,30 @@ export default function Viewport() {
     stroke.start(toKonvaLocal(stage, pointer))
   }
 
+  // Selection and Multi-select: a plain click on empty canvas — outside the
+  // panel / the pattern — clears the selection. The press is remembered here and
+  // judged on release, so a drag (a pan, or Multi-select's rectangle) isn't a click.
+  const pressRef = useRef(null) // { screenX, screenY, outside } | null
+  const isOutsideWork = (world) => {
+    if (workspace === 'panel-editor') {
+      return isOutsidePanel(useSelectionStore.getState().selectableSpaces, gridStripWidth / 2, world.x, world.y)
+    }
+    const { A, B, C } = pattern.vertices
+    return isOutsideTriangle([A.x, -A.y, B.x, -B.y, C.x, -C.y], gridStripWidth / 2, world.x, world.y)
+  }
+
   const handleStageMouseDown = (e) => {
-    if (activeTool === 'place-pattern' && workspace === 'panel-editor' && viewportLocked) return startStroke(e)
-    if (activeTool !== 'multi-select') return
+    if (viewportLocked && ((activeTool === 'place-pattern' && workspace === 'panel-editor') || activeTool === 'drag-select')) {
+      return startStroke(e, activeTool)
+    }
+    if (activeTool !== 'selection' && activeTool !== 'multi-select') return
+    if (e.evt?.button != null && e.evt.button !== 0) return
     const stage = e.target.getStage()
     const pointer = stage.getPointerPosition()
     if (!pointer) return
     const world = toKonvaLocal(stage, pointer)
+    pressRef.current = { screenX: pointer.x, screenY: pointer.y, outside: isOutsideWork(world), shift: !!e.evt?.shiftKey }
+    if (activeTool !== 'multi-select') return
     dragAnchorRef.current = { worldX: world.x, worldY: world.y, screenX: pointer.x, screenY: pointer.y }
     setDragRectState({ x1: world.x, y1: world.y, x2: world.x, y2: world.y })
   }
@@ -261,23 +294,36 @@ export default function Viewport() {
 
   const handleStageMouseUp = (e) => {
     if (strokeRef.current) return endStroke()
-    if (activeTool !== 'multi-select') return
+    const press = pressRef.current
+    pressRef.current = null
     const anchor = dragAnchorRef.current
     dragAnchorRef.current = null
     setDragRectState(null)
-    if (!anchor) return
+    if (activeTool !== 'selection' && activeTool !== 'multi-select') return
     const stage = e.target.getStage()
     const pointer = stage.getPointerPosition()
-    if (!pointer) return
-    const screenDist = Math.hypot(pointer.x - anchor.screenX, pointer.y - anchor.screenY)
-    if (screenDist < DRAG_THRESHOLD_PX) return // a plain click — the shape's own onClick already handled it
+    if (!pointer || !press) return
+    const screenDist = Math.hypot(pointer.x - press.screenX, pointer.y - press.screenY)
+    if (screenDist < DRAG_THRESHOLD_PX) {
+      // A plain click: on a cell/strip the shape's own onClick already handled it;
+      // on empty canvas there is no shape, so the selection is cleared here (unless
+      // shift is held — shift only ever adds).
+      if (press.outside && !press.shift) useSelectionStore.getState().clearSelection()
+      return
+    }
+    // A drag: the click Konva fires on the shape under the cursor next must not toggle it.
+    flagDragGesture()
+    if (activeTool !== 'multi-select' || !anchor) return
     const world = toKonvaLocal(stage, pointer)
     const rect = normalizeRect(anchor.worldX, anchor.worldY, world.x, world.y)
     const sel = useSelectionStore.getState()
+    // Shift + drag adds what the rectangle touches to the selection; otherwise it replaces it.
     if (workspace === 'panel-editor') {
-      sel.setSpaceSelection(sel.selectableSpaces.filter(c => rectTouchesPolygon(rect, c.polygon)).map(c => c.id))
+      const ids = sel.selectableSpaces.filter(c => rectTouchesPolygon(rect, c.polygon)).map(c => c.id)
+      if (press.shift) sel.addSpacesToSelection(ids); else sel.setSpaceSelection(ids)
     } else {
-      sel.setStripSelection(sel.selectableStrips.filter(c => rectTouchesPolygon(rect, c.polygon)).map(c => c.id))
+      const ids = sel.selectableStrips.filter(c => rectTouchesPolygon(rect, c.polygon)).map(c => c.id)
+      if (press.shift) sel.addStripsToSelection(ids); else sel.setStripSelection(ids)
     }
   }
 

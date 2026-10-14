@@ -5,6 +5,7 @@ import useAppStore from '../../store/useAppStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
+import { wasDragGesture } from '../../scene/gestureGuard.js'
 
 // Uses the shared computeStripRenderData (geometry/renderPattern.js) so this
 // live Konva rendering and the offscreen-canvas cache renderer (used for
@@ -58,9 +59,16 @@ export default function PatternStrips({ pattern, wireframe = false }) {
   const toggleStripSelection = useSelectionStore(s => s.toggleStripSelection)
   const toggleStripMultiSelection = useSelectionStore(s => s.toggleStripMultiSelection)
 
-  const handleClick = (stripId) => {
-    if (activeTool === 'selection') toggleStripSelection(stripId)
-    else if (activeTool === 'multi-select') toggleStripMultiSelection(stripId)
+  const handleClick = (stripId, shift) => {
+    if (activeTool === 'selection' || activeTool === 'multi-select') {
+      if (wasDragGesture()) return // the end of a rectangle drag, not a click
+      // Shift + click on the Selection tool: on to Multi-select, adding this strip.
+      if (shift && activeTool === 'selection') {
+        useAppStore.getState().selectTool('multi-select')
+        useSelectionStore.getState().addStripsToSelection([stripId])
+      } else if (activeTool === 'selection') toggleStripSelection(stripId)
+      else toggleStripMultiSelection(stripId)
+    }
     else if (activeTool === 'fill-paint') {
       const { paintMaterial, paintFinish } = useGridStore.getState()
       const { activePatternId, paintStrips } = usePatternStore.getState()
@@ -77,7 +85,7 @@ export default function PatternStrips({ pattern, wireframe = false }) {
           data={data}
           wireframe={wireframe}
           selected={selectedStripIds.includes(data.stripId)}
-          onClick={() => handleClick(data.stripId)}
+          onClick={(e) => handleClick(data.stripId, !!e?.evt?.shiftKey)}
         />
       ))}
     </>

@@ -46,8 +46,45 @@ export function cellAtPoint(cells, x, y) {
   return null;
 }
 
-// Ids of the cells along the segment a -> b, in order, each once. The segment is
-// sampled every `step` units (keep it well under a cell's inradius so no cell the
+// Ids of every shape containing the point (cells never overlap, but pattern
+// strips do where they cross).
+export function cellsAtPoint(cells, x, y) {
+  const b = boxesFor(cells);
+  const out = [];
+  for (let i = 0; i < cells.length; i++) {
+    const [x0, y0, x1, y1] = b[i];
+    if (x < x0 || x > x1 || y < y0 || y > y1) continue;
+    if (insidePolygon(cells[i].polygon, x, y)) out.push(cells[i].id);
+  }
+  return out;
+}
+
+// A sampling step fine enough for the thinnest shape in the list: half its
+// width, estimated as 2 * area / perimeter (exact for a thin strip's width, and
+// no larger than the inradius for anything else). Pattern strips are a couple of
+// millimetres wide, so they need far finer sampling than a panel's cells.
+const steps = new WeakMap();
+export function sampleStepFor(cells) {
+  let s = steps.get(cells);
+  if (s === undefined) {
+    let min = Infinity;
+    for (const { polygon } of cells) {
+      let area = 0, perimeter = 0;
+      for (let i = 0, j = polygon.length - 2; i < polygon.length; j = i, i += 2) {
+        area += polygon[j] * polygon[i + 1] - polygon[i] * polygon[j + 1];
+        perimeter += Math.hypot(polygon[i] - polygon[j], polygon[i + 1] - polygon[j + 1]);
+      }
+      area = Math.abs(area) / 2;
+      if (area > 1e-9 && perimeter > 0) min = Math.min(min, (2 * area) / perimeter);
+    }
+    s = Number.isFinite(min) ? Math.max(0.05, min / 2) : 1;
+    steps.set(cells, s);
+  }
+  return s;
+}
+
+// Ids of the shapes along the segment a -> b, in order, each once. The segment is
+// sampled every `step` units (keep it well under a shape's inradius so none the
 // line crosses is skipped).
 export function cellsAlongPath(cells, a, b, step) {
   const len = Math.hypot(b.x - a.x, b.y - a.y);
@@ -56,8 +93,9 @@ export function cellsAlongPath(cells, a, b, step) {
   const seen = new Set();
   for (let i = 0; i <= n; i++) {
     const t = i / n;
-    const id = cellAtPoint(cells, a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
-    if (id && !seen.has(id)) { seen.add(id); out.push(id); }
+    for (const id of cellsAtPoint(cells, a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)) {
+      if (!seen.has(id)) { seen.add(id); out.push(id); }
+    }
   }
   return out;
 }

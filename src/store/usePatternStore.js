@@ -830,6 +830,13 @@ const usePatternStore = create((set, get) => ({
         mergeStripMaterials(template.stripMaterialOverrides, ov.stripMaterials), material, finish),
     };
   },
+  // A string that is equal for two patterns exactly when their current recipes
+  // are (the Validation tool's "matching parameters"). An unknown id is only
+  // equal to itself.
+  getMatchKey: (id) => {
+    const recipe = get().getCurrentRecipe(id);
+    return recipe ? recipeKey(recipe) : `unknown:${id}`;
+  },
   // Save Pattern is disabled until this is true — "disable the save pattern
   // button until the parameters are updated" from a freshly-selected
   // pattern's own baseline. Deliberately compares against the pattern's own

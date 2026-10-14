@@ -4,32 +4,14 @@ import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import { paintCells } from '../../store/paintActions.js'
-import { TOOL_LOCK } from '../../scene/toolLock.js'
 import { WOOD_OPTIONS, FINISH_OPTIONS } from '../../geometry/materials.js'
 import { getMaterialColor } from '../../geometry/woodFinishColors.js'
 import { darkenHex } from '../../geometry/color.js'
 import {
-  SelectionIcon, PlacePatternIcon, MultiSelectIcon, FillPaintIcon,
   LeftPanelIcon, RightPanelIcon, SaveProjectIcon, LoadProjectIcon, LockIcon, UnlockIcon,
-  RotateCcwIcon, RotateCwIcon, SnapGridpointIcon,
+  RotateCcwIcon, RotateCwIcon, HelpIcon,
 } from './icons.jsx'
-
-// Which workspace(s) each tool applies to. Selection and Multi-select are
-// enabled in both — in panel-editor they select cells (see GridLayer.jsx),
-// in pattern-editor they select strips (see PatternStrips.jsx). Place
-// Pattern is panel-editor only: it's what actually stamps the currently-
-// selected pattern into a clicked cell — that used to be bound to plain
-// clicking regardless of tool; now it's gated to this tool specifically.
-// Fill / paint works in both: it paints clicked cells (panel) or strips (pattern).
-const TOOLS = [
-  { id: 'selection', label: 'Selection', Icon: SelectionIcon, workspaces: ['pattern-editor', 'panel-editor'] },
-  { id: 'place-pattern', label: 'Place Pattern', Icon: PlacePatternIcon, workspaces: ['panel-editor'] },
-  { id: 'multi-select', label: 'Multi-select', Icon: MultiSelectIcon, workspaces: ['pattern-editor', 'panel-editor'] },
-  { id: 'fill-paint', label: 'Fill / paint', Icon: FillPaintIcon, workspaces: ['pattern-editor', 'panel-editor'] },
-  // Panel editor: draws a handle on every gridpoint; clicking one turns the
-  // cells around it to point at it (GridLayer.jsx's joint handles).
-  { id: 'snap-gridpoint', label: 'Snap to gridpoint', Icon: SnapGridpointIcon, workspaces: ['panel-editor'] },
-]
+import { TOOLS, VALIDATION } from './toolDefs.js'
 
 // The Fill / paint tool's hover menu: wood, finish, a swatch of the resulting
 // colour, and an "apply to selected" button. Opens when the pointer is over the
@@ -126,7 +108,11 @@ export default function Toolbar() {
     viewportLocked, setViewportLocked,
     leftPanelOpen, setLeftPanelOpen,
     rightPanelOpen, setRightPanelOpen,
+    validationActive, validationPinnedId, toggleValidation,
+    helpOpen, toggleHelp, selectTool,
   } = useAppStore()
+  const validationOn = validationActive && workspace === 'panel-editor'
+  const validationPinned = validationOn && validationPinnedId != null
 
   // The rotate buttons are actions on the current selection, not tools: they
   // don't change the active tool (which would clear the selection). Empty cells
@@ -158,11 +144,6 @@ export default function Toolbar() {
   }, [])
   useEffect(() => () => clearTimeout(fillCloseTimer.current), [])
   useEffect(() => { setFillMenuOpen(false) }, [workspace])
-
-  const selectTool = (id) => {
-    setActiveTool(id)
-    if (id in TOOL_LOCK) setViewportLocked(TOOL_LOCK[id])
-  }
 
   const toggleLock = () => {
     setViewportLocked(!viewportLocked)
@@ -209,6 +190,28 @@ export default function Toolbar() {
         })}
       </div>
 
+      {/* Validation is a switch, not a tool in the group above. Clicking it makes it the
+          only active tool until a cell is clicked (that pins the highlight and hands the
+          previous tool back); the highlight then stays while it is lit, whatever tool is
+          used, until it is clicked again. It never changes the selection. */}
+      <div className="btn-group btn-group-sm" role="group" aria-label="Validation switch">
+        <button
+          type="button"
+          className={`btn ${validationOn ? 'btn-dark' : 'btn-outline-secondary'}`}
+          disabled={!VALIDATION.workspaces.includes(workspace)}
+          title={!validationOn
+            ? 'Validation — highlight the cells that match the one under the cursor'
+            : validationPinned
+              ? 'Validation on — matching cells stay highlighted. Click to turn off.'
+              : 'Validation — hover a cell to see its matches, click a cell to keep them highlighted. Click to cancel.'}
+          aria-label="Validation"
+          aria-pressed={validationOn}
+          onClick={toggleValidation}
+        >
+          <VALIDATION.Icon />
+        </button>
+      </div>
+
       <FillPaintMenu workspace={workspace} anchorRef={fillAnchorRef} menuRef={fillMenuRef} open={fillMenuOpen} onEnter={openFillMenu} onLeave={closeFillMenu} />
 
       {workspace === 'panel-editor' && (
@@ -249,6 +252,18 @@ export default function Toolbar() {
 
         <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />
 
+        {/* Help replaces the right panel's content with the tool guide until it is
+            toggled off (or the guide's Close button is used). */}
+        <button
+          type="button"
+          className={`btn btn-sm ${helpOpen ? 'btn-dark' : 'btn-outline-secondary'}`}
+          title={helpOpen ? 'Help — click to close' : 'Help — how to use the tools'}
+          aria-label="Help"
+          aria-pressed={helpOpen}
+          onClick={toggleHelp}
+        >
+          <HelpIcon />
+        </button>
         <button
           type="button"
           className={`btn btn-sm ${leftPanelOpen ? 'btn-dark' : 'btn-outline-secondary'}`}

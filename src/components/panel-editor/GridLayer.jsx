@@ -1,4 +1,6 @@
-import React, { useMemo, useEffect, useLayoutEffect, useState } from 'react'
+import React, { useMemo, useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react'
+import { matchingSpaceIds } from '../../scene/validationMatch.js'
+import { wasDragGesture } from '../../scene/gestureGuard.js'
 import { Line, Circle, Group, Shape } from 'react-konva'
 import { insetConvexPolygon } from '../../geometry/insetPolygon.js'
 import ScaleOverlay from '../shared/ScaleOverlay.jsx'
@@ -20,16 +22,27 @@ import OrientationArrow from '../shared/OrientationArrow.jsx'
 const flip = (p) => ({ x: p.x, y: -p.y })
 const BLANK_PATTERN_ID = 'builtin:blank'
 
-function Cell({ space, pattern, xform, cellWidth, gridStripWidth, patternStripWidth, patternParams, rasterSizePx, onClick, interactive, selected, selectedBorderColor, showOrientation }) {
+// The Validation tool's cue on a cell that matches the one hovered/pinned: a faint
+// tint over the cell's face. Deliberately light — it has to sit under the selected
+// cell's border and the pattern's own strips without competing with either.
+const HIGHLIGHT_FILL = 'rgba(20, 150, 140, 0.16)'
+
+// Memoized: hovering with the Validation tool changes which cells are highlighted
+// on almost every mouse move, and only those cells' props change (onCellClick and
+// onHover are stable), so only they re-render rather than the whole grid.
+const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridStripWidth, patternStripWidth, patternParams, rasterSizePx, onCellClick, onHover, hoverable, interactive, selected, highlighted, selectedBorderColor, showOrientation }) {
   const flippedVertices = useMemo(
     () => space.vertices.flatMap(v => { const f = flip(v); return [f.x, f.y] }),
     [space]
   )
   // Where the grid strips meet this cell: its outline pulled in by half a grid strip.
   const innerBorder = useMemo(
-    () => (selected ? insetConvexPolygon(flippedVertices, gridStripWidth / 2) : []),
-    [selected, flippedVertices, gridStripWidth]
+    () => (selected || highlighted ? insetConvexPolygon(flippedVertices, gridStripWidth / 2) : []),
+    [selected, highlighted, flippedVertices, gridStripWidth]
   )
+  // Cells listen while the active tool clicks them (Validation included: while it
+  // is armed, hovering a cell shows its matches and clicking one pins them).
+  const handleClick = interactive ? (e) => onCellClick(space.id, !!e?.evt?.shiftKey) : undefined
   // A 'half' space is a window onto a virtual full cell (see
   // computeGridGeometry.js): the pattern is placed on the whole triangle, as in
   // a full space, and clipped to the part that is inside the panel.
@@ -53,8 +66,10 @@ function Cell({ space, pattern, xform, cellWidth, gridStripWidth, patternStripWi
 
   return (
     <Group
-      onClick={interactive ? onClick : undefined}
-      onTap={interactive ? onClick : undefined}
+      onClick={handleClick}
+      onTap={handleClick}
+      onMouseEnter={hoverable ? () => onHover(space.id, true) : undefined}
+      onMouseLeave={hoverable ? () => onHover(space.id, false) : undefined}
       listening={interactive}
     >
       {/* Click hit-region — and the subtle fill that lets empty cells still
@@ -87,6 +102,18 @@ function Cell({ space, pattern, xform, cellWidth, gridStripWidth, patternStripWi
           />
         </Group>
       </Group>
+      {/* Validation: a faint tint over the cell's face when it matches the hovered or
+          pinned cell. A cell can be highlighted and selected at once — the tint sits
+          under the selected border below, so both read. */}
+      {highlighted && innerBorder.length > 0 && (
+        <Line
+          name="validation-highlight"
+          points={innerBorder}
+          closed
+          fill={HIGHLIGHT_FILL}
+          listening={false}
+        />
+      )}
       {/* Selected cell, base cue: the cell's inner border (the face where the grid
           strips meet it) goes darker and heavier, like the selected variant of its
           pattern strips — so empty cells read as selected too, and every cell has
@@ -114,7 +141,7 @@ function Cell({ space, pattern, xform, cellWidth, gridStripWidth, patternStripWi
       )}
     </Group>
   )
-}
+})
 
 // A clickable ring on a gridpoint (Snap to Gridpoint tool). Radius is in mm; the
 // outline stays a constant width on screen.
@@ -184,7 +211,15 @@ export default function GridLayer() {
   // Not read directly — subscribed so every cell re-renders when any pattern's
   // live overrides (strip width, wood/finish, parameters) change, since
   // getComputedPattern is a stable function that won't trigger it itself.
-  usePatternStore(s => s.patternOverrides)
+  const patternOverrides = usePatternStore(s => s.patternOverrides)
+  const userPatterns = usePatternStore(s => s.userPatterns)
+  const builtInDefaults = usePatternStore(s => s.builtInDefaults)
+  const getMatchKey = usePatternStore(s => s.getMatchKey)
+  const validationActive = useAppStore(s => s.validationActive)
+  const pinnedId = useAppStore(s => s.validationPinnedId)
+  const pinValidation = useAppStore(s => s.pinValidation)
+  const selectTool = useAppStore(s => s.selectTool)
+  const addSpacesToSelection = useSelectionStore(s => s.addSpacesToSelection)
   const activeTool = useAppStore(s => s.activeTool)
   const visibleRect = useAppStore(s => s.viewportVisibleRect)
   const selectedSpaceIds = useSelectionStore(s => s.selectedSpaceIds)
@@ -227,13 +262,66 @@ export default function GridLayer() {
     useSelectionStore.getState().setSelectableSpaces(items)
   }, [geometry.spaces])
 
-  const handleCellClick = (spaceId) => {
-    if (activeTool === 'place-pattern') setSpacePattern(spaceId, activePatternId)
-    else if (activeTool === 'selection') toggleSpaceSelection(spaceId)
-    else if (activeTool === 'multi-select') toggleSpaceMultiSelection(spaceId)
+  // Validation armed: hovering shows a cell's matches, clicking pins them. Once a
+  // cell is pinned the tool hands back the previous one, and hovering no longer
+  // changes the highlight.
+  const armed = activeTool === 'validation'
+
+  const handleCellClick = (spaceId, shift) => {
+    if (activeTool === 'validation') {
+      // Shift + click pins the highlight AND adds the highlighted cells to the selection.
+      if (shift) addSpacesToSelection([...matchesFor([spaceId])])
+      pinValidation(spaceId)
+      return
+    }
+    if (activeTool === 'selection' || activeTool === 'multi-select') {
+      if (wasDragGesture()) return // the end of a rectangle drag, not a click
+      // Shift + click on the Selection tool: on to Multi-select, adding this cell.
+      if (shift && activeTool === 'selection') { selectTool('multi-select'); addSpacesToSelection([spaceId]) }
+      else if (activeTool === 'selection') toggleSpaceSelection(spaceId)
+      else toggleSpaceMultiSelection(spaceId)
+    }
+    else if (activeTool === 'place-pattern') setSpacePattern(spaceId, activePatternId)
     else if (activeTool === 'fill-paint') paintCells([spaceId])
-    // other tools: no cell-click behavior yet
+    // other tools: no cell-click behavior (Drag select works on the stroke, see Viewport.jsx)
   }
+  // Cells get one stable click handler (so they can be memoized) that always calls
+  // the latest handleCellClick.
+  const clickRef = useRef(handleCellClick)
+  clickRef.current = handleCellClick
+  const onCellClick = useCallback((spaceId, shift) => clickRef.current(spaceId, shift), [])
+
+  // The cell under the cursor while Validation is armed (local state: it changes with
+  // every mouse move and nothing else needs it).
+  const [hoverId, setHoverId] = useState(null)
+  const onHover = useCallback((spaceId, entering) => {
+    setHoverId((h) => (entering ? spaceId : (h === spaceId ? null : h)))
+  }, [])
+  useEffect(() => { if (!armed) setHoverId(null) }, [armed])
+
+  // Every cell whose pattern has the same recipe as one of `refs`.
+  const matchesFor = (refs) => {
+    const ids = geometry.spaces.map((s) => s.id)
+    const known = new Set(ids)
+    const live = refs.filter((id) => id != null && known.has(id))
+    if (!live.length) return new Set()
+    const keys = new Map() // pattern id -> match key, worked out once per distinct pattern
+    const keyOf = (spaceId) => {
+      const patternId = spacePatterns[spaceId] ?? BLANK_PATTERN_ID
+      let key = keys.get(patternId)
+      if (key === undefined) { key = getMatchKey(patternId); keys.set(patternId, key) }
+      return key
+    }
+    return matchingSpaceIds(ids, keyOf, live)
+  }
+  // Pinned: that cell's matches, and only those. Otherwise, while armed: the hovered cell's.
+  const highlighted = useMemo(() => {
+    if (!validationActive) return null
+    const refs = pinnedId != null ? [pinnedId] : (armed ? [hoverId] : [])
+    return refs.length ? matchesFor(refs) : null
+    // userPatterns/builtInDefaults/patternOverrides change what a pattern id means.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [validationActive, armed, pinnedId, hoverId, geometry.spaces, spacePatterns, getMatchKey, patternOverrides, userPatterns, builtInDefaults])
 
   // Viewport culling — only mount Cells whose bounding box overlaps the
   // current visible world-rect (+ margin), instead of every cell in the
@@ -360,9 +448,12 @@ export default function GridLayer() {
             rasterSizePx={rasterSizePx}
             showOrientation={showOrientation}
             interactive={cellsInteractive}
+            hoverable={armed && pinnedId == null}
             selected={selectedSpaceIds.includes(space.id)}
+            highlighted={!!highlighted?.has(space.id)}
             selectedBorderColor={selectedBorderColor}
-            onClick={() => handleCellClick(space.id)}
+            onCellClick={onCellClick}
+            onHover={onHover}
           />
         )
       })}

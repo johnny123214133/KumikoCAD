@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { DEFAULT_LAYERS } from '../scene/layers.js';
 import useSelectionStore from './useSelectionStore.js';
 import { TOOL_LOCK } from '../scene/toolLock.js';
+import { keepsSelection } from '../scene/toolGroups.js';
 
 const PANEL_WIDTH_MIN = 180;
 const PANEL_WIDTH_MAX = 480;
@@ -30,7 +31,7 @@ function loadSetting(key, fallback, ok) {
 }
 function saveSetting(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* ignore */ } }
 
-const useAppStore = create((set) => ({
+const useAppStore = create((set, get) => ({
   patternSort: loadSetting('kumiko_patternSort', 'default', (v) => SORT_MODES.includes(v)),
   recentOpen: loadSetting('kumiko_recentOpen', true, (v) => typeof v === 'boolean'),
   recentHeight: loadSetting('kumiko_recentHeight', 180, (v) => Number.isFinite(v) && v >= 0),
@@ -111,8 +112,50 @@ const useAppStore = create((set) => ({
   // (useSelectionStore) — same rule as setActiveTool below.
   setWorkspace: (workspace) => {
     useSelectionStore.getState().clearSelection();
-    set({ workspace, activeTool: 'selection', viewportLocked: TOOL_LOCK.selection });
+    set({ workspace, activeTool: 'selection', viewportLocked: TOOL_LOCK.selection, validationActive: false, validationPinnedId: null, validationReturn: null });
   },
+  // The Validation tool (panel editor). Clicking its button ARMS it: it becomes the
+  // only active tool (activeTool 'validation'), hovering a cell highlights the cells
+  // that match it, and clicking a cell PINS that highlight. Pinning hands the
+  // previous tool back (validationReturn remembers it and its viewport lock) and
+  // the highlight stays, whichever tool is used, until the button is clicked again.
+  // Choosing another tool while still armed cancels it. Turning it on or off never
+  // touches the selection (see scene/toolGroups.js).
+  validationActive: false,
+  // The cell whose matches stay highlighted (a cell id, not a pattern, so the
+  // highlight follows that cell if its pattern is edited).
+  validationPinnedId: null,
+  validationReturn: null, // { tool, locked } to restore on pinning/cancelling, while armed
+  toggleValidation: () => {
+    const s = get();
+    if (s.validationActive) {
+      const back = s.activeTool === 'validation';
+      const ret = s.validationReturn;
+      set({
+        validationActive: false, validationPinnedId: null, validationReturn: null,
+        ...(back ? { activeTool: ret?.tool ?? 'selection', viewportLocked: ret?.locked ?? TOOL_LOCK.selection } : {}),
+      });
+      return;
+    }
+    set({
+      validationActive: true, validationPinnedId: null,
+      validationReturn: { tool: s.activeTool, locked: s.viewportLocked },
+      activeTool: 'validation', viewportLocked: TOOL_LOCK.validation,
+    });
+  },
+  // Armed -> pinned on this cell. Does nothing unless armed.
+  pinValidation: (spaceId) => {
+    const s = get();
+    if (!s.validationActive || s.activeTool !== 'validation') return;
+    const ret = s.validationReturn;
+    set({
+      validationPinnedId: spaceId, validationReturn: null,
+      activeTool: ret?.tool ?? 'selection', viewportLocked: ret?.locked ?? TOOL_LOCK.selection,
+    });
+  },
+  // The Help panel replaces the right panel's usual content while open.
+  helpOpen: false,
+  toggleHelp: () => set((s) => (s.helpOpen ? { helpOpen: false } : { helpOpen: true, rightPanelOpen: true })),
   setLeftPanelOpen: (open) => set({ leftPanelOpen: open }),
   setRightPanelOpen: (open) => set({ rightPanelOpen: open }),
   setLeftPanelWidth: (w) => {
@@ -126,15 +169,25 @@ const useAppStore = create((set) => ({
     set({ rightPanelWidth: width });
   },
   toggleLayer: (key) => set((s) => ({ activeLayers: { ...s.activeLayers, [key]: !s.activeLayers[key] } })),
-  // Confirmed explicitly: changing tools always clears the active selection
-  // (not just transitions specifically between Selection and Multi-select).
-  // Safe to bake in here regardless of caller (Toolbar's selectTool, the
-  // lock button, PatternLibrary's selectPattern) — unlike the lock
-  // relationship, there's no case where clearing selection on tool change
-  // should behave differently depending on who called this.
+  // Changing tools clears the active selection — except between the selecting
+  // tools, and into/out of Validation (scene/toolGroups.js). Safe to bake in
+  // regardless of caller (Toolbar's selectTool, the lock button, PatternLibrary's
+  // selectPattern). An armed Validation that is left for another tool is cancelled:
+  // it has nothing to show without a pinned cell.
   setActiveTool: (tool) => {
-    useSelectionStore.getState().clearSelection();
-    set({ activeTool: tool });
+    const s = get();
+    if (!keepsSelection(s.activeTool, tool)) useSelectionStore.getState().clearSelection();
+    const cancel = s.validationActive && s.activeTool === 'validation' && tool !== 'validation';
+    set({
+      activeTool: tool,
+      ...(cancel ? { validationActive: false, validationPinnedId: null, validationReturn: null } : {}),
+    });
+  },
+  // setActiveTool plus the tool's viewport lock (what the toolbar buttons and the
+  // Selection tool's shift+click use).
+  selectTool: (tool) => {
+    get().setActiveTool(tool);
+    if (tool in TOOL_LOCK) set({ viewportLocked: TOOL_LOCK[tool] });
   },
   setViewportLocked: (locked) => set({ viewportLocked: locked }),
   setStripsExpanded: (expanded) => set({ stripsExpanded: expanded }),
