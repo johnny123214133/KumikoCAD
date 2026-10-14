@@ -1,6 +1,6 @@
 import {
   SelectionIcon, PlacePatternIcon, MultiSelectIcon, DragSelectIcon, ValidationIcon, FillPaintIcon,
-  SnapGridpointIcon, RotateCcwIcon, LockIcon,
+  SnapGridpointIcon, RotateCcwIcon, LockIcon, PaletteIcon,
 } from './icons.jsx'
 
 // The toolbar's tools, and what the Help panel says about each — kept together so
@@ -87,6 +87,13 @@ export const ACTIONS = [
     help: () => [
       'Every tool locks the view so clicks and drags belong to the tool.',
       'Unlock it to drag the canvas to pan and scroll to zoom. Clicking the lock also switches to the Selection tool.',
+    ],
+  },
+  {
+    id: 'theme', label: 'Colour theme', Icon: PaletteIcon, workspaces: ['pattern-editor', 'panel-editor'],
+    help: () => [
+      'Opens the list of colour themes, light ones then dark ones. Click one to apply it straight away; click the palette again, press Escape, or click elsewhere to close the list.',
+      'A theme sets the colours of the whole interface and of what the canvas draws: validation highlights, joint dots, snap circles, the orientation arrow, the scale and the selection outline. Wood and finish colours are never changed. Your choice is remembered.',
     ],
   },
 ]

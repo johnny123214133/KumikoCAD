@@ -1,5 +1,6 @@
 import { renderPatternToCanvas } from './renderPattern.js';
 import { paramsKey } from './params.js';
+import { themeRasterKey } from '../theme/themeRuntime.js';
 
 // A Map used as an LRU, bounded by the pixel memory the canvases hold. Most
 // entries are small (a panel cell at the base tier is 384 x 384 px, ~0.6 MB), so
@@ -30,7 +31,10 @@ let cacheBytes = 0;
 // e.g. Goma's inset) — keyed generically so a new pattern's parameters
 // invalidate its cached images without touching this function.
 export function buildPatternCacheKey(patternId, cellWidth, gridStripWidth, patternStripWidth, patternParams, drawBoundary = false, selected = false, color = '') {
-  return `${patternId}:${cellWidth}:${gridStripWidth}:${patternStripWidth}:${paramsKey(patternParams)}:${drawBoundary ? 'b' : ''}:${selected ? 's' : ''}:${color}`;
+  // The theme only shows in the bitmaps that carry its colours (the triangle outline and
+  // the selected border); the plain ones are shared by every theme.
+  const themed = drawBoundary || selected ? themeRasterKey() : '';
+  return `${patternId}:${cellWidth}:${gridStripWidth}:${patternStripWidth}:${paramsKey(patternParams)}:${drawBoundary ? 'b' : ''}:${selected ? 's' : ''}:${color}:${themed}`;
 }
 
 /**

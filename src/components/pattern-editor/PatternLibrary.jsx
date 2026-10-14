@@ -6,6 +6,7 @@ import usePatternDelete from './usePatternDelete.jsx'
 import useApplyToSelection from './useApplyToSelection.jsx'
 import { ListViewIcon, GridViewIcon } from '../layout/icons.jsx'
 import { SORT_OPTIONS, sortPatterns, canReorderCustom } from './sortPatterns.js'
+import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 
 export default function PatternLibrary() {
   const builtInPatterns = usePatternStore(s => s.builtInPatterns)
@@ -38,7 +39,7 @@ export default function PatternLibrary() {
       'data-drop-target': overId === p.id && dragId !== p.id ? 'true' : undefined,
       style: {
         opacity: dragId === p.id ? 0.4 : 1,
-        boxShadow: overId === p.id && dragId !== p.id ? 'inset 0 2px 0 0 #0d6efd' : undefined,
+        boxShadow: overId === p.id && dragId !== p.id ? 'inset 0 2px 0 0 var(--kumiko-accent)' : undefined,
       },
     }
   }
@@ -75,16 +76,15 @@ export default function PatternLibrary() {
     <div className="d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
       <div className="d-flex align-items-center justify-content-between mb-2 gap-2">
         <div className="fw-semibold small text-uppercase text-muted" style={{ letterSpacing: '0.05em', fontSize: '11px' }}>Patterns</div>
-        <select
-          className="form-select form-select-sm ms-auto"
+        <ThemedSelect
+          className="form-select-sm ms-auto"
           style={{ width: 'auto', fontSize: '11px', padding: '1px 22px 1px 6px', minWidth: 0 }}
           value={patternSort}
-          onChange={(e) => setPatternSort(e.target.value)}
+          onChange={setPatternSort}
+          options={asOptions(SORT_OPTIONS)}
           title="Sort patterns — custom patterns are sorted the same way; the 'custom first' options list them above the built-in ones. In the Default orderings, drag custom patterns to reorder them."
           aria-label="Sort patterns"
-        >
-          {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        />
         <div className="btn-group btn-group-sm" role="group" aria-label="Pattern view">
           <button
             type="button"

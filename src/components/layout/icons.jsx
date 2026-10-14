@@ -43,6 +43,16 @@ export const ValidationIcon = () => (
   </svg>
 )
 
+// Colour theme: a painter's palette.
+export const PaletteIcon = () => (
+  <svg {...base}>
+    <path d="M12 3 C6.8 3 3 6.9 3 11.3 C3 15.6 6.6 19 10.6 19 C12.1 19 12.7 18.2 12.7 17.3 C12.7 16.2 11.9 15.8 11.9 14.7 C11.9 13.7 12.7 13 13.8 13 L16.2 13 C18.9 13 21 11.3 21 8.9 C21 5.6 17.2 3 12 3 Z" />
+    <circle cx="7.6" cy="10.6" r="1.1" fill="currentColor" stroke="none" />
+    <circle cx="11" cy="7.2" r="1.1" fill="currentColor" stroke="none" />
+    <circle cx="15.4" cy="7.6" r="1.1" fill="currentColor" stroke="none" />
+  </svg>
+)
+
 export const FillPaintIcon = () => (
   <svg {...base}>
     <path d="M4 12 L12 4 L20 12 L12 20 Z" />

@@ -4,26 +4,214 @@ html, body, #root {
   overflow: hidden;
 }
 
-/* --- Color scheme (placeholder — final scheme TBD) ---------------------- */
+/* --- Colour themes ------------------------------------------------------ */
+/* The values below are only the first-paint defaults (the Washi theme). The real ones
+   are written onto <html> by theme/applyTheme.js whenever the theme changes — see
+   theme/themes.js for the tokens and what each is for. Everything here reads them, so
+   a new theme needs no CSS. Bootstrap's own variables are set there too; the rules
+   below also restyle its components directly, because older Bootstrap 5 releases hard-code
+   their colours instead of reading variables. */
 :root {
-  --kumiko-accent: #0D6EFD;       /* matches the existing halfLap notch blue */
-  --kumiko-accent-border: #3b8eea;
-  --kumiko-hover-bg: #f8f9fa;     /* same gray Bootstrap's list-group-item-action uses on hover */
+  --kumiko-bg: #EFEBE2;
+  --kumiko-panel: #FAF8F3;
+  --kumiko-surface: #FDFCFA;
+  --kumiko-border: #D8D1C2;
+  --kumiko-border-strong: #B7B0A2;
+  --kumiko-text: #2A2621;
+  --kumiko-muted: #6B6457;
+  --kumiko-accent: #2F5D8A;
+  --kumiko-accent-border: #2A5379;
+  --kumiko-on-accent: #FFFFFF;
+  --kumiko-hover-bg: #ECE9E3;
+  --kumiko-tip-bg: #2A2621;
+  --kumiko-tip-fg: #FAF8F3;
+  --kumiko-canvas: #FBFAF6;
+  --kumiko-chevron-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232A2621' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  --kumiko-check-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23FFFFFF' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
 }
-/* Global override rather than touching every component: everywhere in the
-   app that used Bootstrap's .btn-dark for an "active" state now gets the
-   accent blue instead of near-black, and .btn-outline-secondary's hover
-   (used for inactive/idle buttons throughout the toolbar and sidebars) gets
-   the same light gray as the pattern list's hover instead of Bootstrap's
-   default darker gray. */
-.btn-dark, .btn-dark:hover, .btn-dark:focus {
+body {
+  background: var(--kumiko-bg);
+  color: var(--kumiko-text);
+}
+.kumiko-navbar {
+  background-color: var(--kumiko-panel);
+  border-bottom: 1px solid var(--kumiko-border);
+}
+.kumiko-navbar .navbar-brand { color: var(--kumiko-text); }
+.kumiko-surface { background-color: var(--kumiko-surface); }
+
+.text-muted, .form-text { color: var(--kumiko-muted) !important; }
+.border, .border-top, .border-bottom { border-color: var(--kumiko-border) !important; }
+hr { color: var(--kumiko-border); border-color: var(--kumiko-border); opacity: 1; }
+.vr { background-color: var(--kumiko-border-strong); opacity: 1; }
+
+/* Buttons. .btn-dark is the "on" state throughout the app (active tool, open panel,
+   current workspace), so it carries the theme's accent. .btn-outline-secondary is the idle
+   state; its hover is the same tint as the pattern list's. */
+.btn-dark, .btn-dark:hover, .btn-dark:focus, .btn-dark:active, .btn-dark:disabled {
   background-color: var(--kumiko-accent) !important;
   border-color: var(--kumiko-accent-border) !important;
+  color: var(--kumiko-on-accent) !important;
+}
+.btn-outline-secondary {
+  color: var(--kumiko-text);
+  border-color: var(--kumiko-border-strong);
+  background-color: transparent;
 }
 .btn-outline-secondary:hover, .btn-outline-secondary:focus {
   background-color: var(--kumiko-hover-bg) !important;
-  color: #212529 !important;
-  border-color: #ced4da !important;
+  color: var(--kumiko-text) !important;
+  border-color: var(--kumiko-border-strong) !important;
+}
+.btn-outline-secondary:disabled, .btn-outline-secondary.disabled {
+  color: var(--kumiko-muted);
+  border-color: var(--kumiko-border);
+  background-color: transparent;
+}
+.btn-outline-dark {
+  color: var(--kumiko-text);
+  border-color: var(--kumiko-text);
+}
+.btn-outline-dark:hover, .btn-outline-dark:focus {
+  background-color: var(--kumiko-text);
+  border-color: var(--kumiko-text);
+  color: var(--kumiko-panel);
+}
+
+/* The other Bootstrap button colours that appear in the app (Save as New Pattern is
+   .btn-primary, Save changes .btn-outline-primary) follow the accent as well. */
+.btn-primary, .btn-primary:focus, .btn-primary:active {
+  background-color: var(--kumiko-accent);
+  border-color: var(--kumiko-accent-border);
+  color: var(--kumiko-on-accent);
+}
+.btn-primary:hover {
+  background-color: var(--kumiko-accent-border);
+  border-color: var(--kumiko-accent-border);
+  color: var(--kumiko-on-accent);
+}
+.btn-primary:disabled, .btn-primary.disabled {
+  background-color: var(--kumiko-accent);
+  border-color: var(--kumiko-accent);
+  color: var(--kumiko-on-accent);
+  opacity: 0.45;
+}
+.btn-outline-primary {
+  color: var(--kumiko-accent);
+  border-color: var(--kumiko-accent);
+  background-color: transparent;
+}
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+  background-color: var(--kumiko-accent);
+  border-color: var(--kumiko-accent);
+  color: var(--kumiko-on-accent);
+}
+.btn-outline-primary:disabled, .btn-outline-primary.disabled {
+  color: var(--kumiko-accent);
+  border-color: var(--kumiko-accent);
+  background-color: transparent;
+  opacity: 0.45;
+}
+.btn-secondary {
+  background-color: var(--kumiko-hover-bg);
+  border-color: var(--kumiko-border-strong);
+  color: var(--kumiko-text);
+}
+.btn-secondary:hover { background-color: var(--kumiko-border); color: var(--kumiko-text); }
+/* Keyboard focus ring in the accent, instead of Bootstrap's blue. */
+.btn:focus { box-shadow: none; }
+.btn:focus-visible, .btn-check:focus-visible + .btn {
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--kumiko-accent) 40%, transparent);
+}
+
+/* The open list of components/shared/ThemedSelect.jsx (a native select's list is drawn by
+   the browser or the OS and can't be themed). */
+.kumiko-listbox {
+  z-index: 3500;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 0.25rem;
+  background-color: var(--kumiko-surface);
+  color: var(--kumiko-text);
+  border: 1px solid var(--kumiko-border-strong);
+  border-radius: 0.375rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  font-size: 0.875rem;
+}
+.kumiko-option {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.kumiko-option[data-active="true"] { background-color: var(--kumiko-hover-bg); }
+.kumiko-option[aria-selected="true"] { font-weight: 600; }
+.kumiko-option-check { width: 0.9rem; text-align: center; color: var(--kumiko-accent); }
+
+/* Form controls. */
+.form-control, .form-select, .input-group-text {
+  background-color: var(--kumiko-surface);
+  color: var(--kumiko-text);
+  border-color: var(--kumiko-border-strong);
+}
+.form-control::placeholder { color: var(--kumiko-muted); opacity: 0.8; }
+.form-control:focus, .form-select:focus {
+  background-color: var(--kumiko-surface);
+  color: var(--kumiko-text);
+  border-color: var(--kumiko-accent);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--kumiko-accent) 28%, transparent);
+}
+.form-control:disabled, .form-select:disabled, .form-control[readonly] {
+  background-color: var(--kumiko-hover-bg);
+  color: var(--kumiko-muted);
+}
+.form-select { background-image: var(--kumiko-chevron-img); }
+select option { background-color: var(--kumiko-surface); color: var(--kumiko-text); }
+.form-check-input {
+  background-color: var(--kumiko-surface);
+  border-color: var(--kumiko-border-strong);
+}
+.form-check-input:checked {
+  background-color: var(--kumiko-accent);
+  border-color: var(--kumiko-accent);
+}
+.form-check-input:checked[type="checkbox"] { background-image: var(--kumiko-check-img); }
+.form-check-input:focus {
+  border-color: var(--kumiko-accent);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--kumiko-accent) 28%, transparent);
+}
+
+/* Lists, cards, dialogs, tables. */
+.list-group-item {
+  background-color: var(--kumiko-surface);
+  color: var(--kumiko-text);
+  border-color: var(--kumiko-border);
+}
+.list-group-item-action { color: var(--kumiko-text); }
+.list-group-item-action:hover, .list-group-item-action:focus {
+  background-color: var(--kumiko-hover-bg);
+  color: var(--kumiko-text);
+}
+.list-group-item.active, .list-group-item-action.active {
+  background-color: var(--kumiko-accent);
+  border-color: var(--kumiko-accent-border);
+  color: var(--kumiko-on-accent);
+}
+.card, .modal-content {
+  background-color: var(--kumiko-surface);
+  color: var(--kumiko-text);
+  border-color: var(--kumiko-border);
+}
+.modal-header, .modal-footer { border-color: var(--kumiko-border); }
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--kumiko-text);
+  --bs-table-border-color: var(--kumiko-border);
+  color: var(--kumiko-text);
 }
 
 .app-layout {
@@ -69,14 +257,15 @@ html, body, #root {
      open and close didn't look symmetric. */
   transition: width 220ms ease, min-width 220ms ease;
   overflow: hidden;
-  background: #f8f9fa;
-  border-right: 1px solid #dee2e6;
+  background: var(--kumiko-panel);
+  color: var(--kumiko-text);
+  border-right: 1px solid var(--kumiko-border);
   display: flex;
   flex-direction: column;
 }
 .side-panel.right {
   border-right: none;
-  border-left: 1px solid #dee2e6;
+  border-left: 1px solid var(--kumiko-border);
   left: auto;
   right: 0;
 }
@@ -106,8 +295,9 @@ html, body, #root {
   top: 50%;
   transform: translateY(-50%);
   z-index: 20;
-  background: #fff;
-  border: 1px solid #dee2e6;
+  background: var(--kumiko-surface);
+  color: var(--kumiko-text);
+  border: 1px solid var(--kumiko-border);
   border-radius: 4px;
   padding: 4px 8px;
   cursor: pointer;
@@ -140,8 +330,8 @@ html, body, #root {
   justify-content: center;
   border: 0;
   border-radius: 50%;
-  background: rgba(33, 37, 41, 0.72);
-  color: #fff;
+  background: var(--kumiko-tip-bg);
+  color: var(--kumiko-tip-fg);
   font-size: 13px;
   line-height: 1;
   cursor: pointer;
@@ -155,7 +345,7 @@ html, body, #root {
   pointer-events: auto;
 }
 .pattern-card .pattern-delete:hover,
-.pattern-card .pattern-delete:focus-visible { background: #dc3545; }
+.pattern-card .pattern-delete:focus-visible { background: #dc3545; color: #fff; }
 
 /* The list view wraps each row in .pattern-card (so the delete button can sit
    in its corner), which takes the rows out from under Bootstrap's

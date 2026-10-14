@@ -10,7 +10,7 @@ function Entry({ def, words }) {
   return (
     <section className="mb-3" aria-label={label}>
       <div className="d-flex align-items-center gap-2 mb-1">
-        <span className="d-inline-flex align-items-center justify-content-center border rounded bg-white" style={{ width: 28, height: 28, flexShrink: 0 }}>
+        <span className="d-inline-flex align-items-center justify-content-center border rounded kumiko-surface" style={{ width: 28, height: 28, flexShrink: 0 }}>
           <Icon />
         </span>
         <h6 className="mb-0">{label}</h6>

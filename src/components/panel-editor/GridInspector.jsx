@@ -6,6 +6,7 @@ import { commitGridDimensions, subscribeGridCommit, isGridCommitPending } from '
 import DebouncedLengthField from './DebouncedLengthField.jsx'
 import UnitToggle from '../shared/UnitToggle.jsx'
 import Accordion from '../shared/Accordion.jsx'
+import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 import { FieldLabel } from '../shared/HelpTip.jsx'
 import ColorSwatchLine from '../shared/ColorSwatchLine.jsx'
 import OverlayControls from '../pattern-editor/OverlayControls.jsx'
@@ -145,15 +146,11 @@ export default function GridInspector() {
       <Accordion id="ge.props" title="Strip Properties">
         <div className="mb-2">
           <label className="form-label small mb-1">Wood</label>
-          <select className="form-select form-select-sm" value={material} onChange={(e) => setMaterial(e.target.value)}>
-            {WOOD_OPTIONS.map(w => <option key={w.id} value={w.id}>{w.label}</option>)}
-          </select>
+          <ThemedSelect className="form-select-sm" aria-label="Wood" value={material} onChange={setMaterial} options={asOptions(WOOD_OPTIONS)} />
         </div>
         <div>
           <label className="form-label small mb-1">Finish</label>
-          <select className="form-select form-select-sm" value={finish} onChange={(e) => setFinish(e.target.value)}>
-            {FINISH_OPTIONS.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
-          </select>
+          <ThemedSelect className="form-select-sm" aria-label="Finish" value={finish} onChange={setFinish} options={asOptions(FINISH_OPTIONS)} />
         </div>
         <ColorSwatchLine material={material} finish={finish} />
       </Accordion>

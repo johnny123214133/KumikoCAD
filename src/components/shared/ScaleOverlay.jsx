@@ -1,6 +1,7 @@
 import React from 'react'
 import { Shape } from 'react-konva'
 import useAppStore from '../../store/useAppStore.js'
+import { useTheme } from '../../store/useThemeStore.js'
 import { drawScaleAxis } from '../../scene/scaleBar.js'
 import { shapeScale } from '../../scene/drawGridStrips.js'
 
@@ -11,13 +12,14 @@ import { shapeScale } from '../../scene/drawGridStrips.js'
 //   axes: [{ origin: {x,y}, dir: {x,y}, out: {x,y}, length }]  (mm / world units)
 export default function ScaleOverlay({ axes, name = 'scale-overlay' }) {
   const unit = useAppStore((s) => s.gridUnit)
+  const color = useTheme().canvas.scale
   return (
     <Shape
       name={name}
       listening={false}
       sceneFunc={(context, shape) => {
         const scale = shapeScale(shape)
-        for (const axis of axes) drawScaleAxis(context._context, { ...axis, scale, unit })
+        for (const axis of axes) drawScaleAxis(context._context, { ...axis, scale, unit, color })
       }}
     />
   )

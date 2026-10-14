@@ -6,8 +6,10 @@ import LeftPanel from './components/layout/LeftPanel.jsx'
 import RightPanel from './components/layout/RightPanel.jsx'
 import Viewport from './components/layout/Viewport.jsx'
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx'
+import { useTheme } from './store/useThemeStore.js'
 
 export default function App() {
+  const theme = useTheme()
   return (
     <div className="app-layout">
       <Toolbar />
@@ -30,7 +32,7 @@ export default function App() {
         pauseOnHover
         draggable
         progress={undefined}
-        theme="light"
+        theme={theme.mode}
         transition={Slide}
       />
     </div>

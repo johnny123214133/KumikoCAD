@@ -9,7 +9,7 @@
 // Pure geometry, shared by the pattern editor and the panel (through
 // components/shared/OrientationArrow.jsx). Only the editors' canvases show it —
 // the pattern-library icons deliberately don't.
-export const ORIENTATION_ARROW_COLOR = '#464040';
+// The arrow's colour belongs to the theme (theme/themes.js: canvas.arrow, canvas.arrowHalo).
 
 // Proportions, as fractions of the cell's side length.
 const LENGTH = 0.22;               // tail end to tip

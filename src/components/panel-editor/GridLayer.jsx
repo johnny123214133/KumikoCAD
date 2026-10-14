@@ -18,19 +18,20 @@ import { cellRasterSizeFor, getCellRasterSizePx, setCellRasterSizePx } from '../
 import { paintCells } from '../../store/paintActions.js'
 import { paintPattern } from '../../geometry/paintPattern.js'
 import OrientationArrow from '../shared/OrientationArrow.jsx'
+import { useTheme } from '../../store/useThemeStore.js'
 
 const flip = (p) => ({ x: p.x, y: -p.y })
 const BLANK_PATTERN_ID = 'builtin:blank'
 
-// The Validation tool's cue on a cell that matches the one hovered/pinned: a faint
-// tint over the cell's face. Deliberately light — it has to sit under the selected
-// cell's border and the pattern's own strips without competing with either.
-const HIGHLIGHT_FILL = 'rgba(20, 150, 140, 0.16)'
+// The Validation tool's cue on a cell that matches the one hovered/pinned is a faint
+// tint over the cell's face (the theme's canvas.highlightFill). Deliberately light — it
+// has to sit under the selected cell's border and the pattern's own strips without
+// competing with either.
 
 // Memoized: hovering with the Validation tool changes which cells are highlighted
 // on almost every mouse move, and only those cells' props change (onCellClick and
 // onHover are stable), so only they re-render rather than the whole grid.
-const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridStripWidth, patternStripWidth, patternParams, rasterSizePx, onCellClick, onHover, hoverable, interactive, selected, highlighted, selectedBorderColor, showOrientation }) {
+const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridStripWidth, patternStripWidth, patternParams, rasterSizePx, onCellClick, onHover, hoverable, interactive, selected, highlighted, selectedBorderColor, highlightFill, showOrientation }) {
   const flippedVertices = useMemo(
     () => space.vertices.flatMap(v => { const f = flip(v); return [f.x, f.y] }),
     [space]
@@ -110,7 +111,7 @@ const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridSt
           name="validation-highlight"
           points={innerBorder}
           closed
-          fill={HIGHLIGHT_FILL}
+          fill={highlightFill}
           listening={false}
         />
       )}
@@ -147,14 +148,15 @@ const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridSt
 // outline stays a constant width on screen.
 function GridpointHandle({ x, y, radius, onSnap }) {
   const [hover, setHover] = useState(false)
+  const { snap, snapFill, snapFillHover } = useTheme().canvas
   const setCursor = (e, cursor) => { const c = e.target.getStage()?.container(); if (c) c.style.cursor = cursor }
   return (
     <Circle
       x={x}
       y={y}
       radius={radius}
-      fill={hover ? 'rgba(13, 110, 253, 0.55)' : 'rgba(13, 110, 253, 0.22)'}
-      stroke="#0d6efd"
+      fill={hover ? snapFillHover : snapFill}
+      stroke={snap}
       strokeWidth={1.5}
       strokeScaleEnabled={false}
       hitStrokeWidth={10}
@@ -391,8 +393,10 @@ export default function GridLayer() {
   // scale each time it draws, so there is no cache to remake and no re-render
   // when the zoom changes.
   const edgeColor = darkenHex(strokeColor, 0.15)
-  // The selected-cell border: the same 0.35 darkening the pattern strips' selected border uses.
-  const selectedBorderColor = darkenHex(strokeColor, 0.35)
+  // The selected-cell border: the theme's selection colour if it has one (cream on the dark
+  // themes), else the same 0.35 darkening the pattern strips' selected border uses.
+  const theme = useTheme()
+  const selectedBorderColor = theme.canvas.selection ?? darkenHex(strokeColor, 0.35)
   const flippedGridLines = useMemo(
     () => geometry.gridLines.map(([x1, y1, x2, y2]) => [x1, -y1, x2, -y2]),
     [geometry.gridLines]
@@ -452,6 +456,7 @@ export default function GridLayer() {
             selected={selectedSpaceIds.includes(space.id)}
             highlighted={!!highlighted?.has(space.id)}
             selectedBorderColor={selectedBorderColor}
+            highlightFill={theme.canvas.highlightFill}
             onCellClick={onCellClick}
             onHover={onHover}
           />

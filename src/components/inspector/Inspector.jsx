@@ -12,6 +12,7 @@ import {
 import UnitToggle from '../shared/UnitToggle.jsx'
 import OverlayControls from '../pattern-editor/OverlayControls.jsx'
 import Accordion from '../shared/Accordion.jsx'
+import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 import { FieldLabel } from '../shared/HelpTip.jsx'
 import ColorSwatchLine from '../shared/ColorSwatchLine.jsx'
 import PatternParams from './PatternParams.jsx'
@@ -295,15 +296,11 @@ export default function Inspector() {
       >
         <div className="mb-2">
           <label className="form-label small mb-1">Wood{hasStripSelection ? ' (selected strips)' : ''}</label>
-          <select className="form-select form-select-sm" value={material} onChange={(e) => onMaterialChange(e.target.value)}>
-            {WOOD_OPTIONS.map(w => <option key={w.id} value={w.id}>{w.label}</option>)}
-          </select>
+          <ThemedSelect className="form-select-sm" aria-label="Wood" value={material} onChange={onMaterialChange} options={asOptions(WOOD_OPTIONS)} />
         </div>
         <div>
           <label className="form-label small mb-1">Finish{hasStripSelection ? ' (selected strips)' : ''}</label>
-          <select className="form-select form-select-sm" value={finish} onChange={(e) => onFinishChange(e.target.value)}>
-            {FINISH_OPTIONS.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
-          </select>
+          <ThemedSelect className="form-select-sm" aria-label="Finish" value={finish} onChange={onFinishChange} options={asOptions(FINISH_OPTIONS)} />
         </div>
         <ColorSwatchLine material={material} finish={finish} />
       </Accordion>

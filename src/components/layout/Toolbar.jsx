@@ -11,6 +11,8 @@ import {
   RotateCcwIcon, RotateCwIcon, HelpIcon,
 } from './icons.jsx'
 import { TOOLS, VALIDATION } from './toolDefs.js'
+import ThemePicker from './ThemePicker.jsx'
+import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 
 // The Fill / paint tool's hover menu: wood, finish, a swatch of the resulting
 // colour, and an "apply to selected" button. Opens when the pointer is over the
@@ -55,13 +57,9 @@ function FillPaintMenu({ workspace, anchorRef, menuRef, open, onEnter, onLeave }
       onBlur={onLeave}
     >
       <label className="form-label small mb-1">Wood</label>
-      <select className="form-select form-select-sm mb-2" aria-label="Paint wood" value={paintMaterial} onChange={(e) => setPaintMaterial(e.target.value)}>
-        {WOOD_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
-      </select>
+      <ThemedSelect className="form-select-sm mb-2" aria-label="Paint wood" value={paintMaterial} onChange={setPaintMaterial} options={asOptions(WOOD_OPTIONS)} />
       <label className="form-label small mb-1">Finish</label>
-      <select className="form-select form-select-sm mb-2" aria-label="Paint finish" value={paintFinish} onChange={(e) => setPaintFinish(e.target.value)}>
-        {FINISH_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
-      </select>
+      <ThemedSelect className="form-select-sm mb-2" aria-label="Paint finish" value={paintFinish} onChange={setPaintFinish} options={asOptions(FINISH_OPTIONS)} />
       <ColorSwatchLine material={paintMaterial} finish={paintFinish} className="mb-2" />
       <button
         type="button"
@@ -129,7 +127,7 @@ export default function Toolbar() {
       // Keep it open while one of its dropdowns still has focus (the native
       // list can take the pointer away from the menu while it's open).
       const el = document.activeElement
-      if (el?.tagName === 'SELECT' && fillMenuRef.current?.contains(el)) return
+      if ((el?.tagName === 'SELECT' || el?.getAttribute?.('role') === 'combobox') && fillMenuRef.current?.contains(el)) return
       setFillMenuOpen(false)
     }, 250)
   }, [])
@@ -143,7 +141,7 @@ export default function Toolbar() {
 
   return (
     <nav
-      className="navbar navbar-light bg-white border-bottom px-3 py-2 d-flex align-items-center flex-wrap"
+      className="navbar navbar-light kumiko-navbar px-3 py-2 d-flex align-items-center flex-wrap"
       style={{ flexShrink: 0, zIndex: 100, columnGap: '0.75rem', rowGap: '0.5rem' }}
     >
       <span className="navbar-brand mb-0 h6 fw-semibold me-1">Kumiko CAD</span>
@@ -242,6 +240,9 @@ export default function Toolbar() {
         </div>
 
         <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />
+
+        {/* Colour theme: opens the list of themes; the choice applies at once. */}
+        <ThemePicker />
 
         {/* Help replaces the right panel's content with the tool guide until it is
             toggled off (or the guide's Close button is used). */}

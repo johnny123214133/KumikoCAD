@@ -1,6 +1,7 @@
 import React, { useMemo, useDeferredValue } from 'react'
 import useGridStore from '../../store/useGridStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
+import { useTheme } from '../../store/useThemeStore.js'
 import { DEFAULT_PATTERN_STRIP_WIDTH_MM } from '../../geometry/units.js'
 import { getPatternImage, buildPatternCacheKey } from '../../geometry/patternImageCache.js'
 
@@ -27,6 +28,7 @@ import { getPatternImage, buildPatternCacheKey } from '../../geometry/patternIma
 // the grid/panel right-sidebar) via a CSS transform on the img.
 export default function PatternIcon({ pattern, size = 28 }) {
   const orientation = useGridStore(s => s.orientation)
+  const theme = useTheme()
   // Deferred: when the grid's cell width / strip width change, the panel
   // updates first and the thumbnails catch up in a lower-priority render that
   // React can interrupt (and drop, if the dimensions change again meanwhile).
@@ -61,7 +63,7 @@ export default function PatternIcon({ pattern, size = 28 }) {
       return null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pattern, cellWidth, gridStripWidth, size])
+  }, [pattern, cellWidth, gridStripWidth, size, theme.id])
 
   if (!dataUrl) {
     return (
@@ -73,9 +75,9 @@ export default function PatternIcon({ pattern, size = 28 }) {
           width: size,
           height: size,
           flexShrink: 0,
-          border: '1px dashed #ced4da',
+          border: '1px dashed var(--kumiko-border-strong)',
           borderRadius: 3,
-          background: '#fff',
+          background: theme.canvas.iconBg,
         }}
       />
     )
@@ -90,9 +92,9 @@ export default function PatternIcon({ pattern, size = 28 }) {
         width: size,
         height: size,
         flexShrink: 0,
-        border: '1px solid #ced4da',
+        border: '1px solid var(--kumiko-border-strong)',
         borderRadius: 3,
-        background: '#fff',
+        background: theme.canvas.iconBg,
         transform: rotationDeg ? `rotate(${rotationDeg}deg)` : undefined,
       }}
     />

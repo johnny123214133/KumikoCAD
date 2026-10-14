@@ -5,6 +5,7 @@ import useAppStore from '../../store/useAppStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
+import useThemeStore from '../../store/useThemeStore.js'
 import { wasDragGesture } from '../../scene/gestureGuard.js'
 
 // Uses the shared computeStripRenderData (geometry/renderPattern.js) so this
@@ -53,6 +54,7 @@ function StripBody({ data, wireframe, selected, onClick }) {
 }
 
 export default function PatternStrips({ pattern, wireframe = false }) {
+  useThemeStore(s => s.themeId) // computeStripRenderData's selected border colour comes from the theme
   const stripData = computeStripRenderData(pattern)
   const activeTool = useAppStore(s => s.activeTool)
   const selectedStripIds = useSelectionStore(s => s.selectedStripIds)

@@ -7,6 +7,7 @@
 // reasoning this carries over unchanged.
 import { buildStripLocalPoints, buildCurvedStripLocalPoints } from './stripShape.js';
 import { darkenHex } from './color.js';
+import { getTheme, selectionColor } from '../theme/themeRuntime.js';
 import { DEFAULT_PATTERN_STRIP_WIDTH_MM } from './units.js';
 
 // Paint order for the strips, bottom first. Strips are normally painted in
@@ -52,7 +53,8 @@ function computeUnorderedStripRenderData(pattern) {
     // sense once strip colors vary by wood/finish choice — see the request
     // that prompted this ("we'll revisit it when we add the color mappings
     // for all the wood and finish types").
-    const borderColor = darkenHex(color, 0.35);
+    // The theme may replace it (the dark themes outline a selection in cream).
+    const borderColor = selectionColor(darkenHex(color, 0.35));
     // A much subtler always-on edge (vs. borderColor's stronger selection
     // darkening) — "a thin border to the pattern strips just a touch darker
     // than the current color of the strip... some visual indicator that
@@ -231,7 +233,7 @@ export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBound
   }
 
   if (drawBoundary) {
-    // Same boundary color as PatternLayer.jsx's live <Line stroke="#334155">.
+    // Same boundary color as PatternLayer.jsx's live boundary <Line> (the theme's patternBoundary).
     // lineWidth divided by `scale` here for the same reason Konva's
     // strokeScaleEnabled={false} exists on that live line — without it, the
     // ctx.scale(scale, scale) above would make the boundary's thickness
@@ -242,7 +244,7 @@ export function renderPatternToCanvas(pattern, sizePx, oversample = 3, drawBound
     ctx.lineTo(fB.x, fB.y);
     ctx.lineTo(fC.x, fC.y);
     ctx.closePath();
-    ctx.strokeStyle = '#334155';
+    ctx.strokeStyle = getTheme().canvas.patternBoundary;
     ctx.lineWidth = (1.5 * strokePx) / scale;
     ctx.stroke();
   }

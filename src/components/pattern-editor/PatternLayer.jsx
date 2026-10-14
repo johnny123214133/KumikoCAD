@@ -8,19 +8,10 @@ import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import { computeStripRenderData } from '../../geometry/renderPattern.js'
 import { curveSampler } from '../../geometry/curve.js'
+import { useTheme } from '../../store/useThemeStore.js'
 
-const NOTCH_COLORS = {
-  halfLap: '#4a9eff',
-  triLap:  '#6366f1',
-  dado:    '#ff6b4a',
-  star:    '#ffd700',
-  miter:   '#7bc67e',
-  taper:   '#a78bfa',
-  butt:    '#fb923c',
-  vNotch:  '#f472b6',
-  asymMiter: '#22d3ee',
-  custom:  '#aaaaaa',
-}
+// The joint dots' colour for each notch type comes from the theme (canvas.joints).
+const FALLBACK_DOT = '#aaaaaa'
 
 // Names shown in the joint-dot tooltip.
 const NOTCH_LABELS = {
@@ -68,6 +59,7 @@ export function getPatternBoundingBox(pattern, margin = 0) {
 }
 
 export default function PatternLayer({ pattern, activeLayers }) {
+  const { canvas: colors } = useTheme()
   // Joint-dot tooltip: the dot under the cursor (Konva-flipped position) and
   // the stage's scale when it was hovered, so the label can be drawn at a
   // constant on-screen size whatever the zoom.
@@ -149,7 +141,7 @@ export default function PatternLayer({ pattern, activeLayers }) {
       <Line
         points={boundaryPoints}
         closed
-        stroke="#334155"
+        stroke={colors.patternBoundary}
         strokeWidth={1}
         strokeScaleEnabled={false}
         listening={false}
@@ -179,7 +171,7 @@ export default function PatternLayer({ pattern, activeLayers }) {
           <Line
             key={`cl-${s.id}`}
             points={pts}
-            stroke="#94a3b8"
+            stroke={colors.centerline}
             strokeWidth={1}
             strokeScaleEnabled={false}
             listening={false}
@@ -195,7 +187,7 @@ export default function PatternLayer({ pattern, activeLayers }) {
             x={p.x}
             y={p.y}
             radius={0.75}
-            fill={NOTCH_COLORS[j.notchType] ?? '#aaaaaa'}
+            fill={colors.joints[j.notchType] ?? FALLBACK_DOT}
             // A fat invisible ring (14 screen px, whatever the zoom) so the
             // tiny dot is easy to hover.
             stroke="transparent"
@@ -220,8 +212,8 @@ export default function PatternLayer({ pattern, activeLayers }) {
           offsetY={30}
           listening={false}
         >
-          <Tag fill="#1f2937" cornerRadius={4} opacity={0.94} />
-          <Text text={hoveredDot.text} fontSize={12} fontFamily="sans-serif" fill="#ffffff" padding={6} />
+          <Tag fill={colors.tipBg} cornerRadius={4} opacity={0.94} />
+          <Text text={hoveredDot.text} fontSize={12} fontFamily="sans-serif" fill={colors.tipFg} padding={6} />
         </Label>
       )}
     </>

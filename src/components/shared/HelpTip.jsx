@@ -55,7 +55,7 @@ export default function HelpTip({ text, label = 'More information' }) {
           style={{
             position: 'fixed', top: anchor.y + 6, left: 0, visibility: 'hidden', zIndex: 3000,
             width: 'max-content', maxWidth: 240, padding: '6px 8px', borderRadius: 4, pointerEvents: 'none',
-            background: '#1f2937', color: '#fff', fontSize: 12, lineHeight: 1.35, boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+            background: 'var(--kumiko-tip-bg)', color: 'var(--kumiko-tip-fg)', fontSize: 12, lineHeight: 1.35, boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
           }}
         >
           {text}

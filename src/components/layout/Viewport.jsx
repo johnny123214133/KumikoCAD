@@ -4,6 +4,7 @@ import useAppStore from '../../store/useAppStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
+import { useTheme } from '../../store/useThemeStore.js'
 import PatternLayer, { getPatternBoundingBox } from '../pattern-editor/PatternLayer.jsx'
 import GridLayer from '../panel-editor/GridLayer.jsx'
 import { computeGridGeometry } from '../../geometry/grid/computeGridGeometry.js'
@@ -20,6 +21,7 @@ export default function Viewport() {
   const [size, setSize] = useState({ width: 0, height: 0 }) // drives the <Stage> element's own pixel size
   const [stageMounted, setStageMounted] = useState(false)
   const workspace = useAppStore(s => s.workspace)
+  const theme = useTheme()
   useAppStore(s => s.gridUnit) // ratio-based pattern parameters are built on the unit's rounding grid
   const activeTool = useAppStore(s => s.activeTool)
   const activeLayers = useAppStore(s => s.activeLayers)
@@ -383,7 +385,7 @@ export default function Viewport() {
           onMouseDown={handleStageMouseDown}
           onMouseMove={handleStageMouseMove}
           onMouseUp={handleStageMouseUp}
-          style={{ background: '#fafaf8' }}
+          style={{ background: theme.canvas.bg }}
         >
           <Layer>
             {workspace === 'panel-editor'
@@ -397,7 +399,7 @@ export default function Viewport() {
                   y={r.minY}
                   width={r.maxX - r.minX}
                   height={r.maxY - r.minY}
-                  stroke="rgba(13, 110, 253, 0.6)"
+                  stroke={theme.canvas.marquee}
                   strokeWidth={1}
                   strokeScaleEnabled={false}
                   listening={false}
