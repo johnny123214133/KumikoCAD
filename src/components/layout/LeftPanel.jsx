@@ -3,7 +3,6 @@ import useAppStore from '../../store/useAppStore.js'
 import PatternLibrary from '../pattern-editor/PatternLibrary.jsx'
 import RecentPatterns from '../pattern-editor/RecentPatterns.jsx'
 import CutListNote from './CutListNote.jsx'
-import ViewControls from '../pattern-editor/ViewControls.jsx'
 
 export default function LeftPanel() {
   const workspace = useAppStore((s) => s.workspace)
@@ -107,8 +106,6 @@ export default function LeftPanel() {
             <RecentPatterns />
           </div>
         </div>
-        {workspace !== 'cut-list' && <hr className="my-3 flex-shrink-0" />}
-        {workspace !== 'cut-list' && <ViewControls />}
       </div>
     </div>
   )

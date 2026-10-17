@@ -8,13 +8,15 @@ import { useTheme } from '../../store/useThemeStore.js'
 import PatternLayer, { getPatternBoundingBox } from '../pattern-editor/PatternLayer.jsx'
 import GridLayer from '../panel-editor/GridLayer.jsx'
 import { computeGridGeometry } from '../../geometry/grid/computeGridGeometry.js'
-import { computeZoomToFit, computeWheelZoom } from '../../scene/viewportMath.js'
+import { computeZoomToFit, computeWheelZoom, clampZoom } from '../../scene/viewportMath.js'
 import { PATTERN_DRAG_TYPE } from '../pattern-editor/useApplyToSelection.jsx'
 import { createPlacementStroke, sampleStepFor } from '../../scene/placementStroke.js'
 import { flagDragGesture } from '../../scene/gestureGuard.js'
 import { normalizeRect, rectTouchesPolygon } from '../../geometry/rectSelect.js'
 import { isOutsidePanel, isOutsideTriangle } from '../../scene/clickOutside.js'
 import MiniMap from './MiniMap.jsx'
+import CanvasControls from './CanvasControls.jsx'
+import useCursorStore from '../../store/useCursorStore.js'
 import CutListView from './CutListView.jsx'
 import CanvasLoader from './CanvasLoader.jsx'
 import { paintCells } from '../../store/paintActions.js'
@@ -142,6 +144,26 @@ export default function Viewport() {
     updateVisibleRect()
   }, [updateVisibleRect])
 
+  // Zooms about the middle of what is visible between the side panels (the zoom buttons).
+  const zoomBy = useCallback((factor) => {
+    const stage = stageRef.current
+    const container = containerRef.current
+    if (!stage || !container) return
+    const { leftPanelOpen, leftPanelWidth, rightPanelOpen, rightPanelWidth } = panelStateRef.current
+    const l = leftPanelOpen ? leftPanelWidth : 0
+    const r = rightPanelOpen ? rightPanelWidth : 0
+    const cx = l + (container.clientWidth - l - r) / 2
+    const cy = container.clientHeight / 2
+    const old = stage.scaleX()
+    const next = clampZoom(old * factor)
+    const wx = (cx - stage.x()) / old
+    const wy = (cy - stage.y()) / old
+    stage.scale({ x: next, y: next })
+    stage.position({ x: cx - wx * next, y: cy - wy * next })
+    stage.batchDraw()
+    updateVisibleRect()
+  }, [updateVisibleRect])
+
   const zoomToFit = useCallback(() => {
     const stage = stageRef.current
     const container = containerRef.current
@@ -241,9 +263,9 @@ export default function Viewport() {
   }, [activePatternId, zoomToFit])
 
   useEffect(() => {
-    setViewportApi({ zoomToFit, panTo })
+    setViewportApi({ zoomToFit, panTo, zoomBy })
     return () => setViewportApi(null)
-  }, [zoomToFit, panTo, setViewportApi])
+  }, [zoomToFit, panTo, zoomBy, setViewportApi])
 
   // Multi-select's click-and-drag rectangle selection. One corner anchors
   // at mousedown, the opposite corner follows the cursor, and releasing
@@ -363,9 +385,26 @@ export default function Viewport() {
   }, [activeTool, viewportLocked])
   const handleStageMouseLeave = (e) => {
     if (activeTool === 'fill-paint') e.target.getStage().container().style.cursor = ''
+    useCursorStore.getState().setPoint(null)
+  }
+
+  // The pointer's place in the work (mm, y up), for the status bar — at most once a frame.
+  const cursorRaf = useRef(0)
+  useEffect(() => () => cancelAnimationFrame(cursorRaf.current), [])
+  useEffect(() => { useCursorStore.getState().setPoint(null) }, [workspace])
+  const publishCursor = (stage) => {
+    if (cursorRaf.current) return
+    cursorRaf.current = requestAnimationFrame(() => {
+      cursorRaf.current = 0
+      const p = stage.getPointerPosition()
+      if (!p) return
+      const s = stage.scaleX(), pos = stage.position()
+      useCursorStore.getState().setPoint({ x: (p.x - pos.x) / s, y: -((p.y - pos.y) / s) })
+    })
   }
 
   const handleStageMouseMove = (e) => {
+    publishCursor(e.target.getStage())
     if (activeTool === 'fill-paint' && viewportLocked) {
       const stage = e.target.getStage()
       const over = e.target !== stage && e.target.listening?.() !== false
@@ -505,6 +544,7 @@ export default function Viewport() {
       {!ready && <CanvasLoader delayMs={200} />}
       {/* Zoomed far in: a small overview of the whole panel / pattern with the visible part boxed. */}
       {workspace !== 'cut-list' && <MiniMap workspace={workspace} pattern={pattern} />}
+      {workspace !== 'cut-list' && <CanvasControls workspace={workspace} />}
       {/* The Cut List editor has no canvas of its own yet: it covers the stage with the loader. */}
       {workspace === 'cut-list' && <CutListView />}
     </div>

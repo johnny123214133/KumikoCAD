@@ -1,6 +1,6 @@
 import { WOOD_OPTIONS, FINISH_OPTIONS } from '../geometry/materials.js';
 import {
-  MIN_CELL_WIDTH_MM, MAX_CELL_WIDTH_MM, MIN_GRID_STRIP_WIDTH_MM, MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM,
+  MAX_PANEL_CELLS, MIN_CELL_WIDTH_MM, MAX_CELL_WIDTH_MM, MIN_GRID_STRIP_WIDTH_MM, MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM,
 } from '../geometry/units.js';
 import { migrateStoredPattern, isKnownBasePattern, storedParams, paramDefsFor } from './usePatternStore.js';
 
@@ -52,7 +52,7 @@ export const FORMAT_ID = 'kumiko-cad-project';
 export const CURRENT_VERSION = 1;
 export const FILE_EXTENSION = '.kumiko.json';
 export const MAX_FILE_BYTES = 25 * 1024 * 1024;
-export const MAX_DIMENSION = 200; // cols / rows
+export const MAX_DIMENSION = MAX_PANEL_CELLS; // cols / rows (each; their product is capped too)
 const MAX_PATTERNS = 5000;
 
 // MIGRATIONS[n] turns a version-n document into a version-(n+1) one (plain JSON in, plain
@@ -154,6 +154,7 @@ function validate(doc) {
   const cols = p.cols, rows = p.rows;
   if (!Number.isInteger(cols) || cols < 1 || cols > MAX_DIMENSION) fail('The panel’s column count is invalid.');
   if (!Number.isInteger(rows) || rows < 1 || rows > MAX_DIMENSION) fail('The panel’s row count is invalid.');
+  if (cols * rows > MAX_PANEL_CELLS) fail(`The panel has ${cols * rows} cells; the limit is ${MAX_PANEL_CELLS}.`);
   if (!isNum(p.cellWidth) || p.cellWidth < MIN_CELL_WIDTH_MM || p.cellWidth > MAX_CELL_WIDTH_MM) fail('The panel’s cell width is out of range.');
   const maxStrip = p.cellWidth * MAX_STRIP_WIDTH_FRACTION + 1e-9;
   if (!isNum(p.gridStripWidth) || p.gridStripWidth < MIN_GRID_STRIP_WIDTH_MM || p.gridStripWidth > maxStrip) fail('The panel’s grid strip width is out of range.');

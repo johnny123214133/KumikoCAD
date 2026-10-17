@@ -42,21 +42,28 @@ export const KEY_BINDINGS = [
     id: 'rotate-ccw', key: 'r', shift: true, keys: 'Shift + R', group: 'Cells', label: 'Rotate the selected patterns counterclockwise', workspaces: PANEL,
     run: () => useGridStore.getState().rotateSpaces(useSelectionStore.getState().selectedSpaceIds, 1),
   },
+  {
+    id: 'rotate-reset', code: 'Digit0', keys: '0', group: 'Cells', label: 'Put the selected patterns back to their default rotation (mirroring stays)', workspaces: PANEL,
+    run: () => resetRotation(),
+  },
   { id: 'validation', key: 'v', keys: 'V', group: 'Cells', label: 'Turn Highlighter/Validation on or off', workspaces: PANEL, run: () => useAppStore.getState().toggleValidation() },
   // Not a key press: handled by the cells' click handler (GridLayer.jsx).
   { id: 'apply-pattern', keys: 'Ctrl / Cmd + click', group: 'Cells', label: 'Click a cell to apply the current pattern to the selected cells, with any tool but Snap to gridpoint', workspaces: PANEL },
   { id: 'zoom-fit', key: 'z', keys: 'Z', group: 'View', label: 'Zoom to fit', workspaces: BOTH, run: () => useAppStore.getState().viewportApi?.zoomToFit() },
-  { id: 'lock', key: 'l', keys: 'L', group: 'View', label: 'Lock or unlock the camera (not while Multi-select is active)', workspaces: BOTH, run: () => useAppStore.getState().toggleViewportLock() },
+  { id: 'lock', key: 'l', keys: 'L', group: 'View', label: 'Lock or unlock the camera (from Multi-select, switches to the Selection tool first)', workspaces: BOTH, run: () => useAppStore.getState().toggleViewportLock() },
   { id: 'overview', key: 'o', keys: 'O', group: 'View', label: 'Show or hide the overview window', workspaces: BOTH, run: () => useAppStore.getState().toggleOverview() },
   { id: 'left-panel', code: 'BracketLeft', keys: '[', group: 'View', label: 'Show or hide the left panel', workspaces: ALL, run: () => { const a = useAppStore.getState(); a.setLeftPanelOpen(!a.leftPanelOpen) } },
   { id: 'right-panel', code: 'BracketRight', keys: ']', group: 'View', label: 'Show or hide the right panel', workspaces: ALL, run: () => { const a = useAppStore.getState(); a.setRightPanelOpen(!a.rightPanelOpen) } },
   { id: 'chrome', code: 'Backslash', keys: '\\', group: 'View', label: 'Hide the left panel, right panel and overview if any is showing; show all three if none is', workspaces: ALL, run: () => useAppStore.getState().toggleAllChrome() },
   // The project shortcuts are handled in handleKeyDown (they use Ctrl/Cmd, which the table's matching ignores);
   // these rows are for Help.
+  { id: 'palette', keys: 'Ctrl / Cmd + K', group: 'View', label: 'Open the command palette: search every command, tool, theme and pattern', workspaces: ALL },
   { id: 'project-save', keys: 'Ctrl / Cmd + S', group: 'Project', label: 'Save the project', workspaces: ALL },
   { id: 'project-save-as', keys: 'Ctrl / Cmd + Shift + S', group: 'Project', label: 'Save the project under a new name or in a new place (Save As)', workspaces: ALL },
   // Handled in handleKeyDown too (Ctrl/Cmd), and not while typing in a field, where it selects the text.
   { id: 'select-all-cells', keys: 'Ctrl / Cmd + A', group: 'Selection', label: 'Select every cell (switches to Multi-select unless Drag select is active)', workspaces: PANEL },
+  { id: 'invert-cells', keys: 'Ctrl / Cmd + Shift + A', group: 'Selection', label: 'Invert the selection: select the cells that are not selected and deselect the rest', workspaces: PANEL },
+  { id: 'invert-strips', keys: 'Ctrl / Cmd + Shift + A', group: 'Selection', label: 'Invert the selection: select the strips that are not selected and deselect the rest', workspaces: ['pattern-editor'] },
   { id: 'select-all-strips', keys: 'Ctrl / Cmd + A', group: 'Selection', label: 'Select every strip of the pattern (switches to Multi-select unless Drag select is active)', workspaces: ['pattern-editor'] },
   { id: 'project-open', keys: 'Ctrl / Cmd + O', group: 'Project', label: 'Open a project file', workspaces: ALL },
   { id: 'help', key: 'h', keys: 'H', group: 'View', label: 'Open or close Help', workspaces: ALL, run: () => useAppStore.getState().toggleHelp() },
@@ -72,20 +79,39 @@ export const KEY_BINDINGS = [
   })),
 ]
 
-// Selects every strip (Pattern editor) or cell (Panel editor). The Selection tool holds one item
-// and the tools that clear the selection when chosen can't keep one, so those switch to
-// Multi-select first; Multi-select, Drag select and Highlighter/Validation stay as they are.
+// Replaces the selection with `pick(allIds, selectedIds)` in the current editor (strips in the
+// Pattern editor, cells in the Panel editor). The Selection tool holds one item and the tools that
+// clear the selection when chosen can't keep one, so those switch to Multi-select first;
+// Multi-select, Drag select and Highlighter/Validation stay as they are.
 // Returns whether it acted (false in the Cut List, or with nothing to select).
-export function selectAll() {
+function reselect(pick) {
   const app = useAppStore.getState()
   const sel = useSelectionStore.getState()
   const panel = app.workspace === 'panel-editor'
   if (!panel && app.workspace !== 'pattern-editor') return false
-  const ids = (panel ? sel.selectableSpaces : sel.selectableStrips).map((s) => s.id)
-  if (!ids.length) return false
+  const all = (panel ? sel.selectableSpaces : sel.selectableStrips).map((s) => s.id)
+  if (!all.length) return false
+  const ids = pick(all, panel ? sel.selectedSpaceIds : sel.selectedStripIds) // before the tool switch clears it
   if (!['multi-select', 'drag-select', 'validation'].includes(app.activeTool)) app.selectTool('multi-select')
   if (panel) useSelectionStore.getState().setSpaceSelection(ids)
   else useSelectionStore.getState().setStripSelection(ids)
+  return true
+}
+
+// Selects every strip (Pattern editor) or cell (Panel editor).
+export const selectAll = () => reselect((all) => all)
+
+// Selects what isn't selected and deselects what is (nothing selected = everything).
+export const invertSelection = () => reselect((all, selected) => {
+  const had = new Set(selected)
+  return all.filter((id) => !had.has(id))
+})
+
+// Puts the selected cells' patterns back to the default rotation (mirroring is left as it is).
+export function resetRotation() {
+  const ids = useSelectionStore.getState().selectedSpaceIds
+  if (!ids.length) return false
+  useGridStore.getState().setSpaceRotations(Object.fromEntries(ids.map((id) => [id, 0])))
   return true
 }
 
@@ -113,6 +139,14 @@ export function bindingFor(e, workspace) {
 
 export function handleKeyDown(e) {
   if (e.defaultPrevented || e.repeat) return
+  // The command palette opens from anywhere (even in a text field) and closes the same way.
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && !e.isComposing && e.key?.toLowerCase() === 'k') {
+    const a = useAppStore.getState()
+    if (!a.paletteOpen && document.querySelector('[aria-modal="true"]')) return
+    e.preventDefault()
+    a.setPaletteOpen(!a.paletteOpen)
+    return
+  }
   // Save / Open work from anywhere (even in a text field), except under a dialog, and keep the
   // browser's own Save Page / Open File from appearing.
   if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.isComposing && e.key && (e.key.toLowerCase() === 's' || e.key.toLowerCase() === 'o')) {
@@ -123,10 +157,10 @@ export function handleKeyDown(e) {
     return
   }
   if (typingTarget(e.target) || document.querySelector('[aria-modal="true"]')) return
-  // Select all: every strip (Pattern editor) or cell (Panel editor). Elsewhere the browser's own
+  // Select all (Ctrl/Cmd + A) and Invert selection (+ Shift): strips in the Pattern editor, cells in the Panel editor. Elsewhere the browser's own
   // Select All is left alone.
-  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && !e.isComposing && e.key?.toLowerCase() === 'a') {
-    if (selectAll()) e.preventDefault()
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.isComposing && e.key?.toLowerCase() === 'a') {
+    if (e.shiftKey ? invertSelection() : selectAll()) e.preventDefault()
     return
   }
   const binding = bindingFor(e, useAppStore.getState().workspace)

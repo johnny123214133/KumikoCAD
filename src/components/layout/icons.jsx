@@ -178,3 +178,28 @@ export const SnapGridpointIcon = () => (
     ))}
   </svg>
 )
+
+// Zoom to fit: the four corners of a frame, pulled in toward the middle.
+export const ZoomFitIcon = () => (
+  <svg {...base}>
+    <path d="M4 9 V4 H9" /><path d="M15 4 H20 V9" /><path d="M20 15 V20 H15" /><path d="M9 20 H4 V15" />
+    <rect x="9" y="9" width="6" height="6" rx="1" />
+  </svg>
+)
+
+export const ZoomInIcon = () => (
+  <svg {...base}><circle cx="11" cy="11" r="6.5" /><path d="M16 16 L20.5 20.5" /><path d="M11 8.3 V13.7 M8.3 11 H13.7" /></svg>
+)
+
+export const ZoomOutIcon = () => (
+  <svg {...base}><circle cx="11" cy="11" r="6.5" /><path d="M16 16 L20.5 20.5" /><path d="M8.3 11 H13.7" /></svg>
+)
+
+export const SearchIcon = () => (
+  <svg {...base}><circle cx="10.5" cy="10.5" r="6" /><path d="M15 15 L20 20" /></svg>
+)
+
+// Overlays: stacked sheets.
+export const LayersIcon = () => (
+  <svg {...base}><path d="M12 4 L21 9 L12 14 L3 9 Z" /><path d="M3 13 L12 18 L21 13" /></svg>
+)

@@ -1,6 +1,6 @@
 import {
   SelectionIcon, PlacePatternIcon, MultiSelectIcon, DragSelectIcon, HighlighterIcon, InspectIcon, FillPaintIcon,
-  SnapGridpointIcon, RotateCcwIcon, LockIcon, PaletteIcon, OverviewIcon,
+  SnapGridpointIcon, RotateCcwIcon, LockIcon, PaletteIcon, OverviewIcon, ZoomFitIcon, LayersIcon, SearchIcon,
 } from './icons.jsx'
 
 // The toolbar's tools, and what the Help panel says about each — kept together so
@@ -56,7 +56,7 @@ export const TOOLS = [
   {
     id: 'fill-paint', label: 'Fill / paint', Icon: FillPaintIcon, workspaces: ['pattern-editor', 'panel-editor'],
     help: (w) => [
-      'Hover the tool to choose a wood and a finish. The cursor becomes a pouring paint bucket, in that colour, over anything you can paint.',
+      'While this tool is active a Fill panel slides up at the bottom right of the canvas: choose a wood and a finish there. The cursor becomes a pouring paint bucket, in that colour, over anything you can paint.',
       w.item === 'cell'
         ? 'Click a cell, or click and drag across cells, to paint them. A painted cell holds the pattern of the same shape in that wood and finish: an existing one from the library, or a new custom pattern if there is none. Its rotation is kept. "Apply to selected patterns" paints all the selected cells.'
         : 'Click a strip, or click and drag across strips, to paint them. "Apply to selected strips" paints the selection; "Apply to whole pattern" paints every strip.',
@@ -88,6 +88,25 @@ export const ACTIONS = [
   {
     id: 'rotate', label: 'Rotate selected patterns', Icon: RotateCcwIcon, workspaces: ['panel-editor'],
     help: () => ['The two rotate buttons turn the patterns in the selected cells 120° counterclockwise or clockwise.'],
+  },
+  {
+    id: 'zoom', label: 'Zoom', Icon: ZoomFitIcon, workspaces: ['pattern-editor', 'panel-editor'],
+    help: () => [
+      'Zoom to fit (Z) frames the whole work. The zoom buttons at the bottom right of the canvas zoom out, fit and zoom in; the mouse wheel zooms too, while the viewport is unlocked.',
+      'The status bar along the bottom shows how far in you are (100% is the real size on a 96 dpi screen; click it to zoom to fit), where the pointer is, what is selected, and the unit lengths are shown in.',
+    ],
+  },
+  {
+    id: 'overlays', label: 'Overlays', Icon: LayersIcon, workspaces: ['pattern-editor', 'panel-editor'],
+    help: (w) => [
+      `The second line of the toolbar, beside the editor tabs, switches the drawing aids for this editor on and off (Shift + 1 to 5). ${w.work === 'pattern' ? 'Centerlines, joint dots (hover one to see its joint type), wireframe, the view-orientation arrow and a scale ruler.' : 'The view-orientation arrow on every cell, and a scale ruler along the panel.'}`,
+    ],
+  },
+  {
+    id: 'palette', label: 'Command palette', Icon: SearchIcon, workspaces: ['pattern-editor', 'panel-editor', 'cut-list'],
+    help: () => [
+      'Ctrl/Cmd + K opens a search over everything: commands, tools, overlays, themes and the pattern library. Typing is forgiving (letters in order, in any word order, small typos), and Enter runs the top result.',
+    ],
   },
   {
     id: 'lock', label: 'Viewport lock', Icon: LockIcon, workspaces: ['pattern-editor', 'panel-editor'],

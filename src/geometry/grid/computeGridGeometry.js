@@ -202,6 +202,35 @@ export function computeGridpoints(spaces, bounds) {
   return [...points.values()];
 }
 
+// The part of a 'half' space its pattern is shown through: space.vertices with the cut edge — the one
+// lying on the panel's edge — moved `inset` inward. The panel's border strip is centred on that edge,
+// so the pattern has to stop at the strip's inner face (inset = half the grid strip width), not at
+// its centreline, or it paints over the inner half of the border. The other two edges are
+// ordinary cell edges (the pattern is already drawn back from those) and stay where they are.
+// Returns [{x, y}, ...] in the space's own (Y-up) coordinates.
+export function halfSpaceWindow(space, inset) {
+  const v = space.vertices;
+  if (space.spaceType !== 'half' || !(inset > 0)) return v;
+  const moved = [0, 1].find((i) => Math.hypot(v[i].x - space.fullVertices[i].x, v[i].y - space.fullVertices[i].y) > 1e-6);
+  if (moved === undefined) return v;
+  const P = v[moved], Q = v[2], R = v[1 - moved];
+  const len = Math.hypot(Q.x - P.x, Q.y - P.y);
+  let nx = -(Q.y - P.y) / len, ny = (Q.x - P.x) / len;
+  if ((R.x - P.x) * nx + (R.y - P.y) * ny < 0) { nx = -nx; ny = -ny; } // point it into the cell
+  const side = (pt) => (pt.x - P.x) * nx + (pt.y - P.y) * ny - inset; // >= 0: kept
+  const out = [];
+  for (let i = 0; i < v.length; i++) {
+    const a = v[i], b = v[(i + 1) % v.length];
+    const sa = side(a), sb = side(b);
+    if (sa >= 0) out.push(a);
+    if ((sa >= 0) !== (sb >= 0)) {
+      const t = sa / (sa - sb);
+      out.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+    }
+  }
+  return out.length >= 3 ? out : v;
+}
+
 export function computeGridGeometry({ cols, rows, cellWidth, orientation = 'horizontal', cornerBehavior = 'fill' }) {
   let { spaces, width, height } = computeHorizontalSpaces(cols, rows, cellWidth, cornerBehavior);
 

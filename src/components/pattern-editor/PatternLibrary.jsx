@@ -7,23 +7,33 @@ import useApplyToSelection from './useApplyToSelection.jsx'
 import { ListViewIcon, GridViewIcon } from '../layout/icons.jsx'
 import { SORT_OPTIONS, sortPatterns, canReorderCustom } from './sortPatterns.js'
 import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
+import { searchItems } from '../../search/fuzzy.js'
+import { patternFields } from '../../search/patternSearch.js'
+import useDebouncedValue from '../../search/useDebouncedValue.js'
+import { choosePattern } from '../../store/patternActions.js'
 
 export default function PatternLibrary() {
   const builtInPatterns = usePatternStore(s => s.builtInPatterns)
   const userPatterns = usePatternStore(s => s.userPatterns)
   const activePatternId = usePatternStore(s => s.activePatternId)
-  const setActivePattern = usePatternStore(s => s.setActivePattern)
-  const workspace = useAppStore(s => s.workspace)
-  const setActiveTool = useAppStore(s => s.setActiveTool)
-  const setViewportLocked = useAppStore(s => s.setViewportLocked)
   const patternSort = useAppStore(s => s.patternSort)
   const setPatternSort = useAppStore(s => s.setPatternSort)
   const reorderUserPatterns = usePatternStore(s => s.reorderUserPatterns)
-  const all = useMemo(() => sortPatterns(builtInPatterns, userPatterns, patternSort), [builtInPatterns, userPatterns, patternSort])
+  const sorted = useMemo(() => sortPatterns(builtInPatterns, userPatterns, patternSort), [builtInPatterns, userPatterns, patternSort])
+  // The search box: fuzzy, run once typing pauses. It looks in a pattern's name, for a custom
+  // pattern the name of the built-in shape it is based on, and its wood and finish; results
+  // are ordered best match first instead of by the sort option.
+  const [query, setQuery] = useState('')
+  const debouncedQuery = useDebouncedValue(query, 150)
+  const searching = debouncedQuery.trim() !== ''
+  const all = useMemo(
+    () => (searching ? searchItems(sorted, debouncedQuery, (p) => patternFields(p, builtInPatterns)).map((r) => r.item) : sorted),
+    [sorted, searching, debouncedQuery, builtInPatterns],
+  )
   const [view, setView] = useState('list') // 'list' | 'icon'
   // Drag and drop: in the default orderings, custom patterns can be dragged onto
   // one another to put them in a new order (kept across reloads).
-  const reorderable = canReorderCustom(patternSort)
+  const reorderable = canReorderCustom(patternSort) && !searching
   const [dragId, setDragId] = useState(null)
   const [overId, setOverId] = useState(null)
   const isCustom = (p) => !p.readOnly
@@ -64,13 +74,7 @@ export default function PatternLibrary() {
   // itself was clicked (switch to that tool, and lock the viewport the same
   // way selecting that tool from the toolbar does), not just quietly change
   // which pattern is selected underneath whatever tool was already active.
-  const selectPattern = (id) => {
-    setActivePattern(id)
-    if (workspace === 'panel-editor') {
-      setActiveTool('place-pattern')
-      setViewportLocked(true)
-    }
-  }
+  const selectPattern = (id) => choosePattern(id)
 
   return (
     <div className="d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
@@ -111,9 +115,37 @@ export default function PatternLibrary() {
         </div>
       </div>
 
+      <div className="position-relative mb-2">
+        <input
+          type="text"
+          className="form-control form-control-sm"
+          style={{ paddingRight: 26 }}
+          placeholder="Search patterns…"
+          aria-label="Search patterns"
+          autoComplete="off"
+          spellCheck={false}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Escape' && query) { e.preventDefault(); e.stopPropagation(); setQuery('') } }}
+        />
+        {query && (
+          <button
+            type="button"
+            className="btn btn-link position-absolute top-50 end-0 translate-middle-y p-0 me-2 text-decoration-none text-muted"
+            style={{ fontSize: 16, lineHeight: 1 }}
+            aria-label="Clear search"
+            title="Clear search"
+            onClick={() => setQuery('')}
+          >
+            ×
+          </button>
+        )}
+      </div>
+
       {/* This is the scrollable region — header above and Recently Used /
           View sections below (rendered by LeftPanel) stay fixed in place. */}
       <div className="overflow-auto" style={{ minHeight: 0, flex: '1 1 auto' }}>
+        {searching && all.length === 0 && <div className="text-muted small px-1 py-2">No patterns match “{debouncedQuery.trim()}”.</div>}
         {view === 'list' ? (
           <div className="list-group list-group-flush">
             {all.map(p => (

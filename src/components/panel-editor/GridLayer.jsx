@@ -9,7 +9,7 @@ import useGridStore from '../../store/useGridStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import CachedPatternImage from './CachedPatternImage.jsx'
-import { computeGridGeometry, computeCellPlacement, computeGridpoints } from '../../geometry/grid/computeGridGeometry.js'
+import { computeGridGeometry, computeCellPlacement, halfSpaceWindow, computeGridpoints } from '../../geometry/grid/computeGridGeometry.js'
 import { drawGridStrips, shapeScale } from '../../scene/drawGridStrips.js'
 import { isInteractionLayerActive } from '../../scene/interactionLayers.js'
 import { getGridStripColor } from '../../scene/gridStripColor.js'
@@ -49,16 +49,19 @@ const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridSt
   // computeGridGeometry.js): the pattern is placed on the whole triangle, as in
   // a full space, and clipped to the part that is inside the panel.
   const isHalf = space.spaceType === 'half'
+  // The window stops at the border strip's inner face (half a grid strip in from the panel
+  // edge), not at the edge itself — that is the strip's centreline, and the pattern would
+  // paint over the inner half of the border.
   const clipFunc = useMemo(() => {
     if (!isHalf) return undefined
+    const pts = halfSpaceWindow(space, gridStripWidth / 2).flatMap(v => { const f = flip(v); return [f.x, f.y] })
     return (ctx) => {
       ctx.beginPath()
-      ctx.moveTo(flippedVertices[0], flippedVertices[1])
-      ctx.lineTo(flippedVertices[2], flippedVertices[3])
-      ctx.lineTo(flippedVertices[4], flippedVertices[5])
+      ctx.moveTo(pts[0], pts[1])
+      for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1])
       ctx.closePath()
     }
-  }, [isHalf, flippedVertices])
+  }, [isHalf, space, gridStripWidth])
   const rot = xform?.rot ?? 0
   const mirrored = !!xform?.flip
   const placement = useMemo(

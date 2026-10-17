@@ -8,6 +8,8 @@ import CanvasLoader from './components/layout/CanvasLoader.jsx'
 import { lazyWithMinimum } from './components/layout/lazyWithMinimum.js'
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx'
 import { useTheme } from './store/useThemeStore.js'
+import StatusBar from './components/layout/StatusBar.jsx'
+import CommandPalette from './components/layout/CommandPalette.jsx'
 import ProjectDialogs from './components/layout/ProjectDialogs.jsx'
 import { startProjectTracking } from './store/projectActions.js'
 import useKeyBindings from './components/layout/useKeyBindings.js'
@@ -28,12 +30,14 @@ export default function App() {
         <ErrorBoundary label="The viewport"><Suspense fallback={<CanvasLoader delayMs={150} />}><Viewport /></Suspense></ErrorBoundary>
         <ErrorBoundary label="The side panel"><RightPanel /></ErrorBoundary>
       </div>
+      <StatusBar />
       {/* Mounted once at the app root — any component just calls
           toast.success/error/etc. from 'react-toastify' (see Inspector.jsx's
           Save Pattern flow) and it renders here. Requires `react-toastify`
           as a dependency (npm install react-toastify) if it isn't already
           one. */}
       <ProjectDialogs />
+      <CommandPalette />
       <ToastContainer
         position="top-center"
         autoClose={3000}

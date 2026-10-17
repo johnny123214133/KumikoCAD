@@ -9,8 +9,6 @@ import {
   mmToIn, inToMm, MM_STEP, STRIP_IN_STEP, MIN_STRIP_WIDTH_MM,
   roundToMmStep, roundToStripInStep, formatLength, toUnit,
 } from '../../geometry/units.js'
-import UnitToggle from '../shared/UnitToggle.jsx'
-import OverlayControls from '../pattern-editor/OverlayControls.jsx'
 import Accordion from '../shared/Accordion.jsx'
 import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 import { FieldLabel } from '../shared/HelpTip.jsx'
@@ -251,10 +249,6 @@ export default function Inspector() {
   return (
     <div className="d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
       <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
-      <div className="d-flex justify-content-end mb-3">
-        <UnitToggle />
-      </div>
-
       {/* Strip width and whatever other parameters the active pattern's factory
           declares (e.g. Goma's inset) — each with a hover tooltip for its
           description and the range it can take right now. */}
@@ -303,10 +297,6 @@ export default function Inspector() {
           <ThemedSelect className="form-select-sm" aria-label="Finish" value={finish} onChange={onFinishChange} options={asOptions(FINISH_OPTIONS)} />
         </div>
         <ColorSwatchLine material={material} finish={finish} />
-      </Accordion>
-
-      <Accordion id="pe.overlays" title="Overlays">
-        <OverlayControls />
       </Accordion>
 
       {/* The strips' cut details. A fixed max-height box with its own scroll: the

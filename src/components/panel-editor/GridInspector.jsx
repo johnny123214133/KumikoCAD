@@ -3,26 +3,20 @@ import { toast } from 'react-toastify'
 import useGridStore from '../../store/useGridStore.js'
 import useAppStore from '../../store/useAppStore.js'
 import { commitGridDimensions, subscribeGridCommit, isGridCommitPending } from '../../store/gridDimensionsCommit.js'
+import DebouncedCountField from './DebouncedCountField.jsx'
 import DebouncedLengthField from './DebouncedLengthField.jsx'
-import UnitToggle from '../shared/UnitToggle.jsx'
 import Accordion from '../shared/Accordion.jsx'
 import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 import { FieldLabel } from '../shared/HelpTip.jsx'
 import ColorSwatchLine from '../shared/ColorSwatchLine.jsx'
-import OverlayControls from '../pattern-editor/OverlayControls.jsx'
 import { WOOD_OPTIONS, FINISH_OPTIONS } from '../../geometry/materials.js'
 import {
-  formatLength, MAX_STRIP_WIDTH_FRACTION,
+  formatLength, MAX_PANEL_CELLS, MAX_STRIP_WIDTH_FRACTION,
   MIN_CELL_WIDTH_MM, MAX_CELL_WIDTH_MM, CELL_MM_STEP, CELL_IN_STEP, snapCellWidthForUnit,
   MIN_GRID_STRIP_WIDTH_MM, GRID_STRIP_MM_STEP, GRID_STRIP_IN_STEP, snapGridStripWidthForUnit,
 } from '../../geometry/units.js'
 
 
-// The panel editor's overlays; the longer explanations are hover tooltips.
-const PANEL_LAYERS = [
-  { key: 'viewOrientation', label: 'View orientation', tip: 'Draws an arrow from the centre of every cell, and of the pattern icons, pointing toward the pattern\'s own "up". It turns and mirrors with the pattern.' },
-  { key: 'showScale', label: 'Show Scale', tip: 'Draws a ruler along the left and bottom of the panel, in the unit chosen above.' },
-]
 const SQRT3_2 = Math.sqrt(3) / 2
 
 // A pattern in the panel can't be built at the requested size (some factories
@@ -52,10 +46,6 @@ export default function GridInspector() {
   // orientation, corner type and the overlays explain themselves in hover tooltips.
   return (
     <div>
-      <div className="d-flex justify-content-end mb-3">
-        <UnitToggle />
-      </div>
-
       <Accordion
         id="ge.dims"
         title="Grid Dimensions"
@@ -78,16 +68,11 @@ export default function GridInspector() {
         <div className="mb-3">
           <label className="form-label small mb-1">Grid size (cells)</label>
           <div className="d-flex gap-2 align-items-center">
-            <div className="input-group input-group-sm">
-              <span className="input-group-text">X</span>
-              <input type="number" min="1" step="1" className="form-control" value={cols}
-                onChange={(e) => setCols(Number(e.target.value))} />
-            </div>
-            <div className="input-group input-group-sm">
-              <span className="input-group-text">Y</span>
-              <input type="number" min="1" step="1" className="form-control" value={rows}
-                onChange={(e) => setRows(Number(e.target.value))} />
-            </div>
+            <DebouncedCountField label="X" ariaLabel="Cells along X" value={cols} onCommit={setCols} />
+            <DebouncedCountField label="Y" ariaLabel="Cells along Y" value={rows} onCommit={setRows} />
+          </div>
+          <div className="form-text" style={{ fontSize: 11 }}>
+            {cols * rows} of {MAX_PANEL_CELLS} cells. If X × Y would pass {MAX_PANEL_CELLS}, the other value scales back.
           </div>
         </div>
 
@@ -153,10 +138,6 @@ export default function GridInspector() {
           <ThemedSelect className="form-select-sm" aria-label="Finish" value={finish} onChange={setFinish} options={asOptions(FINISH_OPTIONS)} />
         </div>
         <ColorSwatchLine material={material} finish={finish} />
-      </Accordion>
-
-      <Accordion id="ge.overlays" title="Overlays">
-        <OverlayControls layers={PANEL_LAYERS} />
       </Accordion>
     </div>
   )

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { clampGridDimensions, DEFAULT_CELL_WIDTH_MM, DEFAULT_GRID_STRIP_WIDTH_MM } from '../geometry/units.js';
+import { clampGridDimensions, fitCellCounts, DEFAULT_CELL_WIDTH_MM, DEFAULT_GRID_STRIP_WIDTH_MM } from '../geometry/units.js';
 import { reflectXform } from '../geometry/grid/computeGridGeometry.js';
 
 const BLANK_PATTERN_ID = 'builtin:blank';
@@ -51,8 +51,9 @@ const useGridStore = create((set, get) => ({
   paintFinish: 'natural',
   setPaintMaterial: (paintMaterial) => set({ paintMaterial }),
   setPaintFinish: (paintFinish) => set({ paintFinish }),
-  setCols: (cols) => set({ cols: Math.max(1, Math.round(cols)) }),
-  setRows: (rows) => set({ rows: Math.max(1, Math.round(rows)) }),
+  // cols × rows is capped (MAX_PANEL_CELLS): setting one past the limit scales the other back.
+  setCols: (cols) => set(fitCellCounts(get(), 'cols', cols)),
+  setRows: (rows) => set(fitCellCounts(get(), 'rows', rows)),
   // Ignores 0/negative ("don't update the render when set to 0"), caps at
   // MAX_CELL_WIDTH_MM, and — on shrink — clamps gridStripWidth down if it
   // now exceeds the new cellWidth/3, then broadcasts the same check across

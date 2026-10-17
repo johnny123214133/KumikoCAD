@@ -131,3 +131,16 @@ export function clampGridDimensions(current, requested = {}) {
   gridStripWidth = Math.min(gridStripWidth, cellWidth * MAX_STRIP_WIDTH_FRACTION);
   return { cellWidth, gridStripWidth };
 }
+
+// The most cells (X × Y) a panel can have. Past this the panel is too heavy to draw and edit.
+export const MAX_PANEL_CELLS = 2000;
+
+// Cell counts after the user sets one of them (`which` = 'cols' | 'rows') to `value`: that one is
+// rounded and kept to 1..MAX_PANEL_CELLS, and if the product would pass the limit the OTHER one is
+// scaled back (rounded down) until X × Y is at or under it.
+export function fitCellCounts(current, which, value) {
+  const other = which === 'cols' ? 'rows' : 'cols';
+  const n = Math.min(Math.max(Math.round(Number(value)) || 1, 1), MAX_PANEL_CELLS);
+  const o = current[other] * n > MAX_PANEL_CELLS ? Math.max(1, Math.floor(MAX_PANEL_CELLS / n)) : current[other];
+  return { [which]: n, [other]: o };
+}

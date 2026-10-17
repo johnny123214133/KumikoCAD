@@ -168,6 +168,9 @@ const useAppStore = create((set, get) => ({
     try { localStorage.setItem('kumiko_rightPanelWidth', String(width)); } catch { /* ignore */ }
     set({ rightPanelWidth: width });
   },
+  // The command palette (components/layout/CommandPalette.jsx).
+  paletteOpen: false,
+  setPaletteOpen: (open) => set({ paletteOpen: !!open }),
   toggleLayer: (key) => set((s) => ({ activeLayers: { ...s.activeLayers, [key]: !s.activeLayers[key] } })),
   // Changing tools clears the active selection — except between the selecting
   // tools, and into/out of Validation (scene/toolGroups.js). Safe to bake in
@@ -203,12 +206,12 @@ const useAppStore = create((set, get) => ({
     set({ leftPanelOpen: show, rightPanelOpen: show, overviewOn: show });
   },
   toggleOverview: () => set((s) => { saveSetting('kumiko_overview', !s.overviewOn); return { overviewOn: !s.overviewOn }; }),
-  // The lock button / L key: flips the lock and drops to the Selection tool. Does
-  // nothing while Multi-select is active (its button is disabled then too).
+  // The L key / palette command: flips the lock and drops to the Selection tool. The lock
+  // button is disabled while Multi-select is active, so from there this first switches to the
+  // Selection tool (which sets that tool's lock) and then flips the lock.
   toggleViewportLock: () => {
-    const s = get();
-    if (s.activeTool === 'multi-select') return;
-    get().setViewportLocked(!s.viewportLocked);
+    if (get().activeTool === 'multi-select') get().selectTool('selection');
+    get().setViewportLocked(!get().viewportLocked);
     get().setActiveTool('selection');
   },
   // Use store/unitActions.js's setUnit, which also snaps values onto the new

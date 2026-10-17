@@ -1,0 +1,77 @@
+/* The editor bar (tabs + overlays) and the status bar. Colours come from the theme tokens. */
+.kumiko-editorbar {
+  background-color: var(--kumiko-panel);
+  border-bottom: 1px solid var(--kumiko-border);
+}
+.kumiko-tab {
+  position: relative;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--kumiko-muted);
+  padding: 6px 14px;
+  font-size: 13px;
+  line-height: 1.3;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.kumiko-tab:hover { color: var(--kumiko-text); background: var(--kumiko-hover-bg); }
+.kumiko-tab[aria-selected="true"] {
+  color: var(--kumiko-text);
+  font-weight: 600;
+  border-bottom-color: var(--kumiko-accent);
+}
+.kumiko-tab:focus-visible { outline: 2px solid var(--kumiko-accent); outline-offset: -2px; }
+.kumiko-tab kbd {
+  margin-left: 6px;
+  font-family: inherit;
+  font-size: 10px;
+  padding: 0 4px;
+  border-radius: 3px;
+  border: 1px solid var(--kumiko-border-strong);
+  background: var(--kumiko-surface);
+  color: var(--kumiko-muted);
+}
+.kumiko-statusbar {
+  background-color: var(--kumiko-panel);
+  border-top: 1px solid var(--kumiko-border);
+  color: var(--kumiko-text);
+}
+.kumiko-menu {
+  position: fixed;
+  min-width: 220px;
+  padding: 4px;
+  background: var(--kumiko-surface);
+  border: 1px solid var(--kumiko-border-strong);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+}
+.kumiko-menu button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 0;
+  background: transparent;
+  color: var(--kumiko-text);
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  text-align: left;
+}
+.kumiko-menu button:hover:not(:disabled), .kumiko-menu button:focus-visible { background: var(--kumiko-hover-bg); outline: none; }
+.kumiko-menu button:disabled { opacity: 0.5; }
+.kumiko-menu kbd, .kumiko-kbd {
+  /* Bootstrap paints kbd as inverted (dark chip, light text); our muted text vanished on it in light themes. */
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 0;
+  background: transparent;
+  color: var(--kumiko-muted);
+  white-space: nowrap;
+}
+.kumiko-palette-row[aria-selected="true"] { background: var(--kumiko-hover-bg); }
