@@ -156,31 +156,39 @@ function paramDefsFor(basePatternId) {
   return FACTORY_BY_ID[basePatternId]?.paramDefs ?? [];
 }
 
+// Brings one saved custom pattern (from localStorage, or a recipe read from a project
+// file) up to the current shape. Idempotent, so it is safe to run on every load.
+export function migrateStoredPattern(p) {
+  // Goma's `spacing` parameter was renamed `inset`. Saved user patterns
+  // written before the rename carry the old key (and possibly a bare number
+  // rather than { length, unit }); carry the value over so they keep their
+  // geometry instead of silently falling back to the default.
+  // Rindo was renamed Matsuba: saved patterns built on it keep working.
+  if (p?.basePatternId === 'builtin:rindo-sixth') p = { ...p, basePatternId: 'builtin:matsuba-sixth' };
+  if (p?.patternParams && 'spacing' in p.patternParams) {
+    const { spacing, ...rest } = p.patternParams;
+    p = { ...p, patternParams: { ...rest, inset: rest.inset ?? spacing } };
+  }
+  // Inset, stub length, secondary spacing and curve length are ratios now: saved patterns
+  // written with millimetres have them converted, as if authored at the reference
+  // dimensions (50 mm cell), so they keep their look at that size and follow the cell from there.
+  if (p?.patternParams) {
+    const migrated = migrateParams(paramDefsFor(p.basePatternId ?? p.id), p.patternParams, p.stripProperties?.[0]?.width);
+    if (migrated !== p.patternParams) p = { ...p, patternParams: migrated };
+  }
+  return p;
+}
+
 function loadUserPatterns() {
   try {
     const saved = JSON.parse(localStorage.getItem('kumiko_user_patterns') || '[]');
-    // Goma's `spacing` parameter was renamed `inset`. Saved user patterns
-    // written before the rename carry the old key (and possibly a bare number
-    // rather than { length, unit }); carry the value over so they keep their
-    // geometry instead of silently falling back to the default.
-    return saved.map((p) => {
-      // Rindo was renamed Matsuba: saved patterns built on it keep working.
-      if (p?.basePatternId === 'builtin:rindo-sixth') p = { ...p, basePatternId: 'builtin:matsuba-sixth' };
-      if (p?.patternParams && 'spacing' in p.patternParams) {
-        const { spacing, ...rest } = p.patternParams;
-        p = { ...p, patternParams: { ...rest, inset: rest.inset ?? spacing } };
-      }
-      // Inset, stub length, secondary spacing and curve length are ratios now: saved patterns
-      // written with millimetres have them converted, as if authored at the reference
-      // dimensions (50 mm cell), so they keep their look at that size and follow the cell from there.
-      if (p?.patternParams) {
-        const migrated = migrateParams(paramDefsFor(p.basePatternId ?? p.id), p.patternParams, p.stripProperties?.[0]?.width);
-        if (migrated !== p.patternParams) p = { ...p, patternParams: migrated };
-      }
-      return p;
-    });
+    return saved.map(migrateStoredPattern);
   } catch { return []; }
 }
+
+// Used by the project file (store/projectFormat.js).
+export const isKnownBasePattern = (id) => typeof id === 'string' && id in FACTORY_BY_ID;
+export { recipeKey, storedParams, paramDefsFor };
 
 // (Reusing a stripProperties entry is keyed on WIDTH as well as wood/finish —
 // see applyStripColorOverrides — because a pattern like Sakura has strips of

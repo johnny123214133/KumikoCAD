@@ -13,6 +13,9 @@ import {
 import { TOOLS, VALIDATION } from './toolDefs.js'
 import { keyFor } from './keyBindings.js'
 import { EDITORS } from './editors.js'
+import ProjectName from './ProjectName.jsx'
+import useProjectStore from '../../store/useProjectStore.js'
+import { saveProject, openProject } from '../../store/projectActions.js'
 import ThemePicker from './ThemePicker.jsx'
 import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 
@@ -103,6 +106,7 @@ export default function Toolbar() {
     helpOpen, toggleHelp, selectTool,
     overviewOn, toggleOverview,
   } = useAppStore()
+  const projectBusy = useProjectStore(s => s.busy)
   const validationOn = validationActive && workspace === 'panel-editor'
   const validationPinned = validationOn && validationPinnedId != null
 
@@ -147,13 +151,17 @@ export default function Toolbar() {
       <span className="navbar-brand mb-0 h6 fw-semibold me-1">Kumiko CAD</span>
 
       <div className="btn-group btn-group-sm" role="group" aria-label="Project">
-        <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-1" title="Save project">
-          <SaveProjectIcon /><span className="d-none d-lg-inline">Save Project</span>
+        <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-1" title="Save project (Ctrl/Cmd + S)" disabled={projectBusy} onClick={() => saveProject()}>
+          <SaveProjectIcon /><span className="d-none d-lg-inline">Save</span>
         </button>
-        <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-1" title="Load project">
-          <LoadProjectIcon /><span className="d-none d-lg-inline">Load Project</span>
+        <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-1" title="Save project as… (Ctrl/Cmd + Shift + S)" disabled={projectBusy} onClick={() => saveProject({ saveAs: true })}>
+          <SaveProjectIcon /><span className="d-none d-lg-inline">Save As</span>
+        </button>
+        <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-1" title="Open project (Ctrl/Cmd + O)" disabled={projectBusy} onClick={() => openProject()}>
+          <LoadProjectIcon /><span className="d-none d-lg-inline">Open</span>
         </button>
       </div>
+      <ProjectName />
 
       <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />
 

@@ -2,6 +2,7 @@ import useAppStore from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import { EDITORS } from './editors.js'
+import { saveProject, openProject } from '../../store/projectActions.js'
 
 // The keyboard shortcuts, in one place: the key handler (useKeyBindings.js), the
 // Help panel's list and the toolbar tooltips all read this, so they can't disagree.
@@ -50,6 +51,10 @@ export const KEY_BINDINGS = [
   { id: 'left-panel', code: 'BracketLeft', keys: '[', group: 'View', label: 'Show or hide the left panel', workspaces: ALL, run: () => { const a = useAppStore.getState(); a.setLeftPanelOpen(!a.leftPanelOpen) } },
   { id: 'right-panel', code: 'BracketRight', keys: ']', group: 'View', label: 'Show or hide the right panel', workspaces: ALL, run: () => { const a = useAppStore.getState(); a.setRightPanelOpen(!a.rightPanelOpen) } },
   { id: 'chrome', code: 'Backslash', keys: '\\', group: 'View', label: 'Hide the left panel, right panel and overview if any is showing; show all three if none is', workspaces: ALL, run: () => useAppStore.getState().toggleAllChrome() },
+  // The project shortcuts are handled in handleKeyDown (they use Ctrl/Cmd, which the table's matching ignores);
+  // these rows are for Help.
+  { id: 'project-save', keys: 'Ctrl / Cmd + S', group: 'Project', label: 'Save the project (Shift as well: Save As)', workspaces: ALL },
+  { id: 'project-open', keys: 'Ctrl / Cmd + O', group: 'Project', label: 'Open a project file', workspaces: ALL },
   { id: 'help', key: 'h', keys: 'H', group: 'View', label: 'Open or close Help', workspaces: ALL, run: () => useAppStore.getState().toggleHelp() },
   layer(1, 'centerlines', 'Centerlines', ['pattern-editor']),
   layer(2, 'jointDots', 'Joint dots', ['pattern-editor']),
@@ -87,6 +92,15 @@ export function bindingFor(e, workspace) {
 
 export function handleKeyDown(e) {
   if (e.defaultPrevented || e.repeat) return
+  // Save / Open work from anywhere (even in a text field), except under a dialog, and keep the
+  // browser's own Save Page / Open File from appearing.
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.isComposing && e.key && (e.key.toLowerCase() === 's' || e.key.toLowerCase() === 'o')) {
+    if (document.querySelector('[aria-modal="true"]')) return
+    e.preventDefault()
+    if (e.key.toLowerCase() === 'o') openProject()
+    else saveProject({ saveAs: e.shiftKey })
+    return
+  }
   if (typingTarget(e.target) || document.querySelector('[aria-modal="true"]')) return
   const binding = bindingFor(e, useAppStore.getState().workspace)
   if (!binding) return

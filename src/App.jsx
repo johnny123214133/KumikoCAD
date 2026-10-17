@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { ToastContainer, Slide } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Toolbar from './components/layout/Toolbar.jsx'
@@ -8,6 +8,8 @@ import CanvasLoader from './components/layout/CanvasLoader.jsx'
 import { lazyWithMinimum } from './components/layout/lazyWithMinimum.js'
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx'
 import { useTheme } from './store/useThemeStore.js'
+import ProjectDialogs from './components/layout/ProjectDialogs.jsx'
+import { startProjectTracking } from './store/projectActions.js'
 import useKeyBindings from './components/layout/useKeyBindings.js'
 
 // The canvas (and Konva with it) loads on its own: the toolbar and side panels are usable at
@@ -17,6 +19,7 @@ const Viewport = lazyWithMinimum(() => import('./components/layout/Viewport.jsx'
 export default function App() {
   const theme = useTheme()
   useKeyBindings()
+  useEffect(() => startProjectTracking(), [])
   return (
     <div className="app-layout">
       <Toolbar />
@@ -30,6 +33,7 @@ export default function App() {
           Save Pattern flow) and it renders here. Requires `react-toastify`
           as a dependency (npm install react-toastify) if it isn't already
           one. */}
+      <ProjectDialogs />
       <ToastContainer
         position="top-center"
         autoClose={3000}
