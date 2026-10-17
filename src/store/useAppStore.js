@@ -102,16 +102,17 @@ const useAppStore = create((set, get) => ({
   // the visible rect. GridLayer uses it to pick the resolution cells are
   // rasterized at once the zoom settles.
   viewportZoom: null,
-  // Switching workspaces resets tool selection to 'selection' and its
-  // corresponding lock state (read from the same shared TOOL_LOCK the
-  // initial state above uses — not hardcoded separately, which is exactly
-  // how this went stale before) — there's only one path to a workspace
-  // switch (the toolbar's workspace buttons), so unlike activeTool this
+  // The editor the published visible rect belongs to (it is stale for a moment after a switch).
+  viewportRectWorkspace: null,
+  // Switching workspaces resets the tool to 'selection' but keeps the viewport lock as it was
+  // (so an unlocked camera stays unlocked in the other editor). There's only one path to a
+  // workspace switch (the toolbar's buttons and the number keys), so unlike activeTool this
   // side effect is safe to bake in here. Also clears the active selection
   // (useSelectionStore) — same rule as setActiveTool below.
   setWorkspace: (workspace) => {
     useSelectionStore.getState().clearSelection();
-    set({ workspace, activeTool: 'selection', viewportLocked: TOOL_LOCK.selection, validationActive: false, validationPinnedId: null, validationReturn: null });
+    // The viewport lock carries over: whatever it was stays, only the tool goes back to Selection.
+    set({ workspace, activeTool: 'selection', validationActive: false, validationPinnedId: null, validationReturn: null });
   },
   // The Validation tool (panel editor). Clicking its button ARMS it: it becomes the
   // only active tool (activeTool 'validation'), hovering a cell highlights the cells
@@ -214,7 +215,7 @@ const useAppStore = create((set, get) => ({
   // unit's step grids.
   setGridUnit: (unit) => { if (unit === 'mm' || unit === 'in') { saveSetting('kumiko_unit', unit); set({ gridUnit: unit }); } },
   setViewportApi: (api) => set({ viewportApi: api }),
-  setViewportVisibleRect: (rect, zoom) => set(zoom > 0 ? { viewportVisibleRect: rect, viewportZoom: zoom } : { viewportVisibleRect: rect }),
+  setViewportVisibleRect: (rect, zoom, workspace) => set({ viewportVisibleRect: rect, viewportRectWorkspace: workspace ?? null, ...(zoom > 0 ? { viewportZoom: zoom } : {}) }),
 }));
 
 export default useAppStore;

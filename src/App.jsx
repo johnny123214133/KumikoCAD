@@ -1,13 +1,18 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { ToastContainer, Slide } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Toolbar from './components/layout/Toolbar.jsx'
 import LeftPanel from './components/layout/LeftPanel.jsx'
 import RightPanel from './components/layout/RightPanel.jsx'
-import Viewport from './components/layout/Viewport.jsx'
+import CanvasLoader from './components/layout/CanvasLoader.jsx'
+import { lazyWithMinimum } from './components/layout/lazyWithMinimum.js'
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx'
 import { useTheme } from './store/useThemeStore.js'
 import useKeyBindings from './components/layout/useKeyBindings.js'
+
+// The canvas (and Konva with it) loads on its own: the toolbar and side panels are usable at
+// once, and only the canvas area shows the loading animation while it arrives.
+const Viewport = lazyWithMinimum(() => import('./components/layout/Viewport.jsx'))
 
 export default function App() {
   const theme = useTheme()
@@ -17,7 +22,7 @@ export default function App() {
       <Toolbar />
       <div className="app-body">
         <LeftPanel />
-        <ErrorBoundary label="The viewport"><Viewport /></ErrorBoundary>
+        <ErrorBoundary label="The viewport"><Suspense fallback={<CanvasLoader delayMs={150} />}><Viewport /></Suspense></ErrorBoundary>
         <ErrorBoundary label="The side panel"><RightPanel /></ErrorBoundary>
       </div>
       {/* Mounted once at the app root — any component just calls

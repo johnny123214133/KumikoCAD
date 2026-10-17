@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react'
 import { matchingSpaceIds } from '../../scene/validationMatch.js'
 import { wasDragGesture } from '../../scene/gestureGuard.js'
-import { Line, Circle, Group, Shape } from 'react-konva'
+import { Line, Circle, Group, Shape, Label, Tag, Text } from 'react-konva'
 import { insetConvexPolygon } from '../../geometry/insetPolygon.js'
 import ScaleOverlay from '../shared/ScaleOverlay.jsx'
 import useAppStore from '../../store/useAppStore.js'
@@ -32,7 +32,7 @@ const BLANK_PATTERN_ID = 'builtin:blank'
 // Memoized: hovering with the Validation tool changes which cells are highlighted
 // on almost every mouse move, and only those cells' props change (onCellClick and
 // onHover are stable), so only they re-render rather than the whole grid.
-const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridStripWidth, patternStripWidth, patternParams, rasterSizePx, onCellClick, onHover, hoverable, interactive, selected, highlighted, selectedBorderColor, highlightFill, showOrientation }) {
+const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridStripWidth, patternStripWidth, patternParams, rasterSizePx, onCellClick, onHover, onMove, hoverable, interactive, selected, highlighted, selectedBorderColor, highlightFill, showOrientation }) {
   const flippedVertices = useMemo(
     () => space.vertices.flatMap(v => { const f = flip(v); return [f.x, f.y] }),
     [space]
@@ -70,8 +70,9 @@ const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridSt
     <Group
       onClick={handleClick}
       onTap={handleClick}
-      onMouseEnter={hoverable ? () => onHover(space.id, true) : undefined}
-      onMouseLeave={hoverable ? () => onHover(space.id, false) : undefined}
+      onMouseEnter={hoverable ? (e) => onHover(space.id, true, e) : undefined}
+      onMouseLeave={hoverable ? (e) => onHover(space.id, false, e) : undefined}
+      onMouseMove={hoverable && onMove ? onMove : undefined}
       listening={interactive}
     >
       {/* Click hit-region — and the subtle fill that lets empty cells still
@@ -304,13 +305,33 @@ export default function GridLayer() {
   clickRef.current = handleCellClick
   const onCellClick = useCallback((spaceId, shift, applyKey) => clickRef.current(spaceId, shift, applyKey), [])
 
-  // The cell under the cursor while Validation is armed (local state: it changes with
-  // every mouse move and nothing else needs it).
+  // The cell under the cursor while Validation is armed or Inspection is active (local state:
+  // it changes with every mouse move and nothing else needs it).
+  const inspecting = activeTool === 'inspect'
   const [hoverId, setHoverId] = useState(null)
-  const onHover = useCallback((spaceId, entering) => {
+  // Inspection's tooltip: where it is (Konva-local) and the zoom it was opened at, so it stays a
+  // constant size on screen. After it opens, mouse moves reposition the node directly, with no
+  // React render per move.
+  const tipRef = useRef(null)
+  const tipAt = useRef({ x: 0, y: 0, scale: 1 })
+  const pointerLocal = (e) => {
+    const stage = e?.target?.getStage?.()
+    const p = stage?.getPointerPosition?.()
+    if (!stage || !p) return null
+    const scale = stage.scaleX()
+    return { x: (p.x - stage.x()) / scale, y: (p.y - stage.y()) / scale, scale }
+  }
+  const onHover = useCallback((spaceId, entering, e) => {
+    if (entering) { const at = pointerLocal(e); if (at) tipAt.current = at }
     setHoverId((h) => (entering ? spaceId : (h === spaceId ? null : h)))
   }, [])
-  useEffect(() => { if (!armed) setHoverId(null) }, [armed])
+  const onCellMove = useCallback((e) => {
+    const node = tipRef.current, at = pointerLocal(e)
+    if (!node || !at) return
+    node.position({ x: at.x, y: at.y })
+    node.getLayer?.()?.batchDraw?.()
+  }, [])
+  useEffect(() => { if (!armed && !inspecting) setHoverId(null) }, [armed, inspecting])
 
   // Every cell whose pattern has the same recipe as one of `refs`.
   const matchesFor = (refs) => {
@@ -461,16 +482,32 @@ export default function GridLayer() {
             rasterSizePx={rasterSizePx}
             showOrientation={showOrientation}
             interactive={cellsInteractive}
-            hoverable={armed && pinnedId == null}
+            hoverable={(armed && pinnedId == null) || inspecting}
             selected={selectedSpaceIds.includes(space.id)}
             highlighted={!!highlighted?.has(space.id)}
             selectedBorderColor={selectedBorderColor}
             highlightFill={theme.canvas.highlightFill}
             onCellClick={onCellClick}
             onHover={onHover}
+            onMove={inspecting ? onCellMove : undefined}
           />
         )
       })}
+
+      {/* Inspection: the name of the pattern in the hovered cell, by the cursor. Counter-scaled so it
+          is a constant size on screen; offset up and to the right of the pointer (screen px). */}
+      {inspecting && hoverId != null && spacePatterns[hoverId] && (() => {
+        const patterns = usePatternStore.getState()
+        const name = [...patterns.builtInPatterns, ...patterns.userPatterns].find((p) => p.id === spacePatterns[hoverId])?.name
+        if (!name) return null
+        const at = tipAt.current
+        return (
+          <Label ref={tipRef} name="inspection-tooltip" x={at.x} y={at.y} scaleX={1 / at.scale} scaleY={1 / at.scale} offsetX={-12} offsetY={34} listening={false}>
+            <Tag fill={theme.canvas.tipBg} cornerRadius={4} opacity={0.94} />
+            <Text text={name} fontSize={12} fontFamily="sans-serif" fill={theme.canvas.tipFg} padding={6} />
+          </Label>
+        )
+      })()}
 
       {/* Snap to Gridpoint: a handle on every gridpoint. Clicking one turns each
           cell around it so its pattern's "up" (the view-orientation arrow)

@@ -15,6 +15,7 @@ import { flagDragGesture } from '../../scene/gestureGuard.js'
 import { normalizeRect, rectTouchesPolygon } from '../../geometry/rectSelect.js'
 import { isOutsidePanel, isOutsideTriangle } from '../../scene/clickOutside.js'
 import MiniMap from './MiniMap.jsx'
+import CanvasLoader from './CanvasLoader.jsx'
 import { paintCells } from '../../store/paintActions.js'
 import { fillCursor } from '../../scene/fillCursor.js'
 import { getMaterialColor } from '../../geometry/woodFinishColors.js'
@@ -24,6 +25,9 @@ export default function Viewport() {
   const stageRef = useRef(null)
   const [size, setSize] = useState({ width: 0, height: 0 }) // drives the <Stage> element's own pixel size
   const [stageMounted, setStageMounted] = useState(false)
+  // False until the stage exists and has drawn its first fitted frame; until then (if that
+  // takes a moment) the canvas area shows the loading animation.
+  const [ready, setReady] = useState(false)
   const workspace = useAppStore(s => s.workspace)
   const theme = useTheme()
   useAppStore(s => s.gridUnit) // ratio-based pattern parameters are built on the unit's rounding grid
@@ -97,6 +101,8 @@ export default function Viewport() {
   // most once per animation frame via rafPendingRef — dragmove and wheel can
   // both fire far more often than that, and culling only needs "roughly
   // current", not every intermediate frame.
+  const workspaceRef = useRef(workspace)
+  useEffect(() => { workspaceRef.current = workspace }, [workspace])
   const rafPendingRef = useRef(false)
   const updateVisibleRect = useCallback(() => {
     if (rafPendingRef.current) return
@@ -113,7 +119,7 @@ export default function Viewport() {
       // the same Y-up world convention computeGridGeometry's spaces use.
       const kx0 = (0 - pos.x) / scale, kx1 = (w - pos.x) / scale
       const ky0 = (0 - pos.y) / scale, ky1 = (h - pos.y) / scale
-      setViewportVisibleRect({ minX: kx0, maxX: kx1, minY: -ky1, maxY: -ky0 }, scale)
+      setViewportVisibleRect({ minX: kx0, maxX: kx1, minY: -ky1, maxY: -ky0 }, scale, workspaceRef.current)
     })
   }, [setViewportVisibleRect])
 
@@ -218,13 +224,17 @@ export default function Viewport() {
     }
   }, [workspace, cols, rows, cellWidth, orientation, cornerBehavior, stageMounted, zoomToFit, updateVisibleRect])
 
+  useEffect(() => {
+    if (ready || !stageMounted) return undefined
+    let a = requestAnimationFrame(() => { a = requestAnimationFrame(() => setReady(true)) })
+    return () => cancelAnimationFrame(a)
+  }, [ready, stageMounted])
+
   // Separately: in pattern-editor specifically, switching which pattern is
   // open for editing SHOULD refit (you're now looking at a different shape).
   // Guarded by a ref rather than listing `workspace` as a dependency so this
   // doesn't ALSO re-fire on workspace switches — the effect above already
   // handles those.
-  const workspaceRef = useRef(workspace)
-  useEffect(() => { workspaceRef.current = workspace }, [workspace])
   useEffect(() => {
     if (workspaceRef.current === 'pattern-editor') zoomToFit()
   }, [activePatternId, zoomToFit])
@@ -491,6 +501,7 @@ export default function Viewport() {
           </Layer>
         </Stage>
       )}
+      {!ready && <CanvasLoader delayMs={200} />}
       {/* Zoomed far in: a small overview of the whole panel / pattern with the visible part boxed. */}
       <MiniMap workspace={workspace} pattern={pattern} />
     </div>

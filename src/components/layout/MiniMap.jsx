@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import useAppStore from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
@@ -14,7 +14,8 @@ import { rgba } from '../../theme/themes.js'
 // dragging, moves the camera to that point (Viewport's panTo). It can be switched off
 // (the toolbar button, O).
 const BOX_W = 190, BOX_H = 130, PAD = 8
-const SHOW_BELOW = 0.25 // shown once the view covers less than this fraction of the work's area
+const SHOW_BELOW = 0.25
+const SLIDE_MS = 240 // shown once the view covers less than this fraction of the work's area
 
 const polyPath = (pts) => `M${pts.map((p) => `${+p[0].toFixed(2)} ${+p[1].toFixed(2)}`).join('L')}Z`
 
@@ -22,6 +23,7 @@ export default function MiniMap({ workspace, pattern }) {
   const theme = useTheme()
   const visibleRect = useAppStore((s) => s.viewportVisibleRect)
   const zoom = useAppStore((s) => s.viewportZoom)
+  const rectWorkspace = useAppStore((s) => s.viewportRectWorkspace)
   const leftOpen = useAppStore((s) => s.leftPanelOpen)
   const leftWidth = useAppStore((s) => s.leftPanelWidth)
   const rightOpen = useAppStore((s) => s.rightPanelOpen)
@@ -37,6 +39,7 @@ export default function MiniMap({ workspace, pattern }) {
   const viewportApi = useAppStore((s) => s.viewportApi)
   const svgRef = useRef(null)
   const inPanel = workspace === 'panel-editor'
+  const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
 
   // The geometry that doesn't change as cells are filled: the outline of the work and the
   // path of every cell.
@@ -72,22 +75,39 @@ export default function MiniMap({ workspace, pattern }) {
     }).join('') }
   }, [inPanel, base, spacePatterns, strips])
 
-  if (!overviewOn || !visibleRect || !(zoom > 0)) return null
+  // Whether the overview should be showing now: switched on, and the view zoomed in far enough.
   const { bbox } = base
   const cw = bbox.maxX - bbox.minX, ch = bbox.maxY - bbox.minY
-  if (!(cw > 0) || !(ch > 0)) return null
-
+  // (A view rectangle published for the other editor is stale for a moment after switching.)
+  const usable = !!visibleRect && rectWorkspace === workspace && zoom > 0 && cw > 0 && ch > 0
   // What the person actually sees: the canvas is full-size under the side panels, so their
   // widths come off. (Konva space: y down, so the view's y range is the flipped world one.)
-  const view = {
+  const view = usable ? {
     x0: visibleRect.minX + (leftOpen ? leftWidth / zoom : 0),
     x1: visibleRect.maxX - (rightOpen ? rightWidth / zoom : 0),
     y0: -visibleRect.maxY, y1: -visibleRect.minY,
-  }
-  const ix0 = Math.max(view.x0, bbox.minX), ix1 = Math.min(view.x1, bbox.maxX)
-  const iy0 = Math.max(view.y0, bbox.minY), iy1 = Math.min(view.y1, bbox.maxY)
-  const covered = (Math.max(0, ix1 - ix0) * Math.max(0, iy1 - iy0)) / (cw * ch)
-  if (covered >= SHOW_BELOW) return null
+  } : null
+  const ix0 = usable ? Math.max(view.x0, bbox.minX) : 0, ix1 = usable ? Math.min(view.x1, bbox.maxX) : 0
+  const iy0 = usable ? Math.max(view.y0, bbox.minY) : 0, iy1 = usable ? Math.min(view.y1, bbox.maxY) : 0
+  const covered = usable ? (Math.max(0, ix1 - ix0) * Math.max(0, iy1 - iy0)) / (cw * ch) : 1
+  const want = overviewOn && usable && covered < SHOW_BELOW
+
+  // It slides up into the corner when it appears and back down when it goes: kept mounted for
+  // the length of the exit, then removed. `entered` is what the CSS transition follows.
+  const [mounted, setMounted] = useState(false)
+  const [entered, setEntered] = useState(false)
+  useEffect(() => {
+    if (want) {
+      setMounted(true)
+      // Two frames, so the element has been painted in its starting place before it moves.
+      let raf = requestAnimationFrame(() => { raf = requestAnimationFrame(() => setEntered(true)) })
+      return () => cancelAnimationFrame(raf)
+    }
+    setEntered(false)
+    const t = setTimeout(() => setMounted(false), SLIDE_MS)
+    return () => clearTimeout(t)
+  }, [want])
+  if (!usable || !(mounted || want)) return null
 
   const scale = Math.min((BOX_W - 2 * PAD) / cw, (BOX_H - 2 * PAD) / ch)
   const w = cw * scale + 2 * PAD, h = ch * scale + 2 * PAD
@@ -125,7 +145,12 @@ export default function MiniMap({ workspace, pattern }) {
       onPointerMove={onPointerMove}
       style={{
         position: 'absolute', bottom: 12, left: (leftOpen ? leftWidth : 0) + 12, zIndex: 5,
-        cursor: 'crosshair', touchAction: 'none', userSelect: 'none', background: ui.panel, border: `1px solid ${ui.borderStrong}`, borderRadius: 6,
+        cursor: 'crosshair', touchAction: 'none', userSelect: 'none',
+        transform: entered && want ? 'translateY(0)' : 'translateY(calc(100% + 24px))',
+        opacity: entered && want ? 1 : 0,
+        transition: reducedMotion ? 'none' : `transform ${SLIDE_MS}ms cubic-bezier(0.22, 0.8, 0.3, 1), opacity ${SLIDE_MS}ms ease`,
+        pointerEvents: entered && want ? 'auto' : 'none',
+        background: ui.panel, border: `1px solid ${ui.borderStrong}`, borderRadius: 6,
         boxShadow: '0 1px 4px rgba(0,0,0,0.25)', lineHeight: 0,
       }}
     >
