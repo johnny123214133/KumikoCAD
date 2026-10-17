@@ -76,10 +76,15 @@ function Shortcuts({ workspace }) {
       </button>
       {open && (
         <div id="help-body-shortcuts" className="small mt-2">
-          {rows.map((b) => (
-            <div key={b.id} className="d-flex align-items-baseline gap-2 mb-1" data-binding={b.id}>
-              <span className="flex-shrink-0" style={{ minWidth: 64 }}><Kbd>{b.keys}</Kbd></span>
-              <span>{b.label}</span>
+          {[...new Set(rows.map((b) => b.group))].map((group) => (
+            <div key={group} className="mb-2" data-binding-group={group}>
+              <div className="text-muted fw-semibold mb-1" style={{ fontSize: 11 }}>{group}</div>
+              {rows.filter((b) => b.group === group).map((b) => (
+                <div key={b.id} className="d-flex align-items-baseline gap-2 mb-1" data-binding={b.id}>
+                  <span className="flex-shrink-0" style={{ minWidth: 92 }}><Kbd>{b.keys}</Kbd></span>
+                  <span>{b.label}</span>
+                </div>
+              ))}
             </div>
           ))}
           <div className="text-muted mt-2">Shortcuts are ignored while you type in a field or have a dropdown open.</div>

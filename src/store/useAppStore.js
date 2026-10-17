@@ -192,6 +192,15 @@ const useAppStore = create((set, get) => ({
   // The overview window (components/layout/MiniMap.jsx): whether it may show at all. It
   // still only appears while the view is zoomed in. Remembered between visits.
   overviewOn: loadSetting('kumiko_overview', true, (v) => typeof v === 'boolean'),
+  setOverviewOn: (on) => { saveSetting('kumiko_overview', !!on); set({ overviewOn: !!on }); },
+  // Backslash: if the left panel, the right panel or the overview is on, hide all three for
+  // a clean canvas; only when all three are off does it turn all three back on.
+  toggleAllChrome: () => {
+    const s = get();
+    const show = !(s.leftPanelOpen || s.rightPanelOpen || s.overviewOn);
+    saveSetting('kumiko_overview', show);
+    set({ leftPanelOpen: show, rightPanelOpen: show, overviewOn: show });
+  },
   toggleOverview: () => set((s) => { saveSetting('kumiko_overview', !s.overviewOn); return { overviewOn: !s.overviewOn }; }),
   // The lock button / L key: flips the lock and drops to the Selection tool. Does
   // nothing while Multi-select is active (its button is disabled then too).

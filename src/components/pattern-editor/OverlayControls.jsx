@@ -1,6 +1,7 @@
 import React from 'react'
 import useAppStore from '../../store/useAppStore.js'
 import HelpTip from '../shared/HelpTip.jsx'
+import { keyFor } from '../layout/keyBindings.js'
 
 // The pattern editor's overlay toggles. (Annotations and Coordinates were
 // placeholders and are gone.)
@@ -23,7 +24,7 @@ export default function OverlayControls({ layers = PATTERN_LAYERS }) {
       {layers.map(({ key, label, tip }) => (
         <div key={key} className="form-check mb-1">
           <input className="form-check-input" type="checkbox" id={`layer-${key}`} checked={!!activeLayers[key]} onChange={() => toggleLayer(key)} />
-          <label className="form-check-label" style={{ fontSize: '13px' }} htmlFor={`layer-${key}`}>{label}</label>
+          <label className="form-check-label" style={{ fontSize: '13px' }} htmlFor={`layer-${key}`} title={keyFor(`overlay-${key}`) || undefined}>{label}</label>
           {tip && <HelpTip text={tip} />}
         </div>
       ))}

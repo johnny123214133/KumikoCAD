@@ -12,6 +12,7 @@ import {
 } from './icons.jsx'
 import { TOOLS, VALIDATION } from './toolDefs.js'
 import { keyFor } from './keyBindings.js'
+import { EDITORS } from './editors.js'
 import ThemePicker from './ThemePicker.jsx'
 import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 
@@ -245,8 +246,17 @@ export default function Toolbar() {
         </button>
 
         <div className="btn-group btn-group-sm">
-          <button className={`btn ${workspace === 'pattern-editor' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setWorkspace('pattern-editor')}>Pattern Editor</button>
-          <button className={`btn ${workspace === 'panel-editor' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setWorkspace('panel-editor')}>Panel Editor</button>
+          {EDITORS.map((ed, i) => (
+            <button
+              key={ed.id}
+              type="button"
+              className={`btn ${workspace === ed.id ? 'btn-dark' : 'btn-outline-secondary'}`}
+              title={`${ed.label} (${i + 1})`}
+              onClick={() => setWorkspace(ed.id)}
+            >
+              {ed.label}
+            </button>
+          ))}
         </div>
 
         <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />
@@ -269,7 +279,7 @@ export default function Toolbar() {
         <button
           type="button"
           className={`btn btn-sm ${leftPanelOpen ? 'btn-dark' : 'btn-outline-secondary'}`}
-          title="Toggle left panel"
+          title="Toggle left panel ([)"
           aria-label="Toggle left panel"
           aria-pressed={leftPanelOpen}
           onClick={() => setLeftPanelOpen(!leftPanelOpen)}
@@ -279,7 +289,7 @@ export default function Toolbar() {
         <button
           type="button"
           className={`btn btn-sm ${rightPanelOpen ? 'btn-dark' : 'btn-outline-secondary'}`}
-          title="Toggle right panel"
+          title="Toggle right panel (])"
           aria-label="Toggle right panel"
           aria-pressed={rightPanelOpen}
           onClick={() => setRightPanelOpen(!rightPanelOpen)}

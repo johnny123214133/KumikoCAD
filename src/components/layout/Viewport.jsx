@@ -187,9 +187,36 @@ export default function Viewport() {
   // above), so this must not re-fire just because a different pattern was
   // picked in the placement tool while sitting in panel-editor. stageMounted
   // is what fixes the original "ran once before the Stage existed" bug.
+  //
+  // The panel editor's camera (zoom and position) is remembered while you are in the
+  // pattern editor and put back when you return, so a close-up of one part of a big
+  // panel isn't thrown away each time. It is only put back if the panel's layout is the
+  // same as when you left (changing the grid's size, cell width, orientation or corner
+  // type re-fits it as before), and zoomToFit (the Z key, the View button) refits as usual.
+  const panelKeyRef = useRef('')
+  const panelCameraRef = useRef(null) // { key, scale, x, y } | null
+  const prevWorkspaceRef = useRef(null)
   useEffect(() => {
-    zoomToFit()
-  }, [workspace, cols, rows, cellWidth, orientation, cornerBehavior, stageMounted, zoomToFit])
+    const stage = stageRef.current
+    const switched = prevWorkspaceRef.current !== workspace
+    const key = `${cols}|${rows}|${cellWidth}|${orientation}|${cornerBehavior}`
+    // Leaving the panel editor: the stage still holds its camera, so take it now.
+    if (switched && prevWorkspaceRef.current === 'panel-editor' && stage) {
+      const pos = stage.position()
+      panelCameraRef.current = { key: panelKeyRef.current, scale: stage.scaleX(), x: pos.x, y: pos.y }
+    }
+    prevWorkspaceRef.current = workspace
+    panelKeyRef.current = key
+    const saved = panelCameraRef.current
+    if (switched && workspace === 'panel-editor' && stage && saved && saved.key === key) {
+      stage.scale({ x: saved.scale, y: saved.scale })
+      stage.position({ x: saved.x, y: saved.y })
+      stage.batchDraw()
+      updateVisibleRect()
+    } else {
+      zoomToFit()
+    }
+  }, [workspace, cols, rows, cellWidth, orientation, cornerBehavior, stageMounted, zoomToFit, updateVisibleRect])
 
   // Separately: in pattern-editor specifically, switching which pattern is
   // open for editing SHOULD refit (you're now looking at a different shape).
