@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { toast } from 'react-toastify'
 import useAppStore from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
@@ -14,6 +15,22 @@ import useSelectionStore from '../../store/useSelectionStore.js'
 const CLOSE_DELAY_MS = 180
 // dataTransfer type for a library card being dragged onto the panel (Viewport.jsx).
 export const PATTERN_DRAG_TYPE = 'application/x-kumiko-pattern'
+
+// Alt / Ctrl / Cmd + click on a pattern card (panel editor): puts that pattern in every
+// selected cell, as the hover menu's "Apply to Current Selection" does, without
+// changing the tool or the active pattern. Returns true if the click was one of
+// these (so the caller skips its usual "pick this pattern"), false for a plain click.
+export function applyPatternToSelection(e, patternId) {
+  if (!(e.altKey || e.ctrlKey || e.metaKey)) return false
+  if (useAppStore.getState().workspace !== 'panel-editor') return false
+  const ids = useSelectionStore.getState().selectedSpaceIds
+  if (!ids.length) {
+    toast.info('Select one or more cells first, then Alt / Ctrl / Cmd + click a pattern to apply it.', { toastId: 'apply-needs-selection' })
+    return true
+  }
+  useGridStore.getState().setSpacesPattern(ids, patternId)
+  return true
+}
 
 export default function useApplyToSelection() {
   const workspace = useAppStore((s) => s.workspace)

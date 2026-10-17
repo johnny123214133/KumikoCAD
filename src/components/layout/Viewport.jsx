@@ -14,6 +14,9 @@ import { createPlacementStroke, sampleStepFor } from '../../scene/placementStrok
 import { flagDragGesture } from '../../scene/gestureGuard.js'
 import { normalizeRect, rectTouchesPolygon } from '../../geometry/rectSelect.js'
 import { isOutsidePanel, isOutsideTriangle } from '../../scene/clickOutside.js'
+import { paintCells } from '../../store/paintActions.js'
+import { fillCursor } from '../../scene/fillCursor.js'
+import { getMaterialColor } from '../../geometry/woodFinishColors.js'
 
 export default function Viewport() {
   const containerRef = useRef(null)
@@ -24,6 +27,8 @@ export default function Viewport() {
   const theme = useTheme()
   useAppStore(s => s.gridUnit) // ratio-based pattern parameters are built on the unit's rounding grid
   const activeTool = useAppStore(s => s.activeTool)
+  const paintMaterial = useGridStore(s => s.paintMaterial)
+  const paintFinish = useGridStore(s => s.paintFinish)
   const activeLayers = useAppStore(s => s.activeLayers)
   const setViewportApi = useAppStore(s => s.setViewportApi)
   const setViewportVisibleRect = useAppStore(s => s.setViewportVisibleRect)
@@ -235,9 +240,18 @@ export default function Viewport() {
     const apply = tool === 'place-pattern'
       // Place Pattern: the active pattern goes into the cells.
       ? (ids) => useGridStore.getState().setSpacesPattern(ids, usePatternStore.getState().activePatternId)
-      : (ids) => (inPanel ? select().addSpacesToSelection(ids) : select().addStripsToSelection(ids))
+      : tool === 'fill-paint'
+        // Fill / paint: the brush's wood and finish go onto the cells (or strips).
+        ? (ids) => {
+            if (inPanel) return paintCells(ids)
+            const { paintMaterial, paintFinish } = useGridStore.getState()
+            const { activePatternId, paintStrips } = usePatternStore.getState()
+            paintStrips(activePatternId, ids, paintMaterial, paintFinish)
+          }
+        : (ids) => (inPanel ? select().addSpacesToSelection(ids) : select().addStripsToSelection(ids))
     const stroke = createPlacementStroke({
       getCells,
+      topOnly: tool === 'fill-paint',
       // Cells are sampled a sixth of a cell apart; strips are a couple of mm wide,
       // so they need a step matched to the thinnest one.
       getStep: () => (inPanel ? useGridStore.getState().cellWidth / 6 : sampleStepFor(getCells())),
@@ -263,7 +277,7 @@ export default function Viewport() {
   }
 
   const handleStageMouseDown = (e) => {
-    if (viewportLocked && ((activeTool === 'place-pattern' && workspace === 'panel-editor') || activeTool === 'drag-select')) {
+    if (viewportLocked && ((activeTool === 'place-pattern' && workspace === 'panel-editor') || activeTool === 'drag-select' || activeTool === 'fill-paint')) {
       return startStroke(e, activeTool)
     }
     if (activeTool !== 'selection' && activeTool !== 'multi-select') return
@@ -278,7 +292,25 @@ export default function Viewport() {
     setDragRectState({ x1: world.x, y1: world.y, x2: world.x, y2: world.y })
   }
 
+  // Fill / paint: over a cell or strip the cursor is a pouring paint bucket in the
+  // brush's colour. Over empty canvas it is the normal arrow.
+  // Leaving Fill / paint, or the canvas, puts the cursor back.
+  useEffect(() => {
+    if (activeTool === 'fill-paint' && viewportLocked) return undefined
+    const c = stageRef.current?.container?.()
+    if (c) c.style.cursor = ''
+    return undefined
+  }, [activeTool, viewportLocked])
+  const handleStageMouseLeave = (e) => {
+    if (activeTool === 'fill-paint') e.target.getStage().container().style.cursor = ''
+  }
+
   const handleStageMouseMove = (e) => {
+    if (activeTool === 'fill-paint' && viewportLocked) {
+      const stage = e.target.getStage()
+      const over = e.target !== stage && e.target.listening?.() !== false
+      stage.container().style.cursor = over ? fillCursor(getMaterialColor(paintMaterial, paintFinish)) : ''
+    }
     if (strokeRef.current) {
       const stage = e.target.getStage()
       const pointer = stage.getPointerPosition()
@@ -384,6 +416,7 @@ export default function Viewport() {
           onDragMove={updateVisibleRect}
           onMouseDown={handleStageMouseDown}
           onMouseMove={handleStageMouseMove}
+          onMouseLeave={handleStageMouseLeave}
           onMouseUp={handleStageMouseUp}
           style={{ background: theme.canvas.bg }}
         >

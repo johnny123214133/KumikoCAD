@@ -31,9 +31,9 @@ let cacheBytes = 0;
 // e.g. Goma's inset) — keyed generically so a new pattern's parameters
 // invalidate its cached images without touching this function.
 export function buildPatternCacheKey(patternId, cellWidth, gridStripWidth, patternStripWidth, patternParams, drawBoundary = false, selected = false, color = '') {
-  // The theme only shows in the bitmaps that carry its colours (the triangle outline and
-  // the selected border); the plain ones are shared by every theme.
-  const themed = drawBoundary || selected ? themeRasterKey() : '';
+  // Every bitmap carries theme colours: the selected border, the triangle outline, and the
+  // edge round each strip (light on a dark theme where the wood would otherwise vanish).
+  const themed = themeRasterKey();
   return `${patternId}:${cellWidth}:${gridStripWidth}:${patternStripWidth}:${paramsKey(patternParams)}:${drawBoundary ? 'b' : ''}:${selected ? 's' : ''}:${color}:${themed}`;
 }
 

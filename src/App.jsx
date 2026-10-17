@@ -7,9 +7,11 @@ import RightPanel from './components/layout/RightPanel.jsx'
 import Viewport from './components/layout/Viewport.jsx'
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx'
 import { useTheme } from './store/useThemeStore.js'
+import useKeyBindings from './components/layout/useKeyBindings.js'
 
 export default function App() {
   const theme = useTheme()
+  useKeyBindings()
   return (
     <div className="app-layout">
       <Toolbar />

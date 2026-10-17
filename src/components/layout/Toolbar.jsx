@@ -11,6 +11,7 @@ import {
   RotateCcwIcon, RotateCwIcon, HelpIcon,
 } from './icons.jsx'
 import { TOOLS, VALIDATION } from './toolDefs.js'
+import { keyFor } from './keyBindings.js'
 import ThemePicker from './ThemePicker.jsx'
 import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 
@@ -134,10 +135,7 @@ export default function Toolbar() {
   useEffect(() => () => clearTimeout(fillCloseTimer.current), [])
   useEffect(() => { setFillMenuOpen(false) }, [workspace])
 
-  const toggleLock = () => {
-    setViewportLocked(!viewportLocked)
-    setActiveTool('selection')
-  }
+  const toggleLock = () => useAppStore.getState().toggleViewportLock()
 
   return (
     <nav
@@ -158,16 +156,15 @@ export default function Toolbar() {
       <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />
 
       <div className="btn-group btn-group-sm" role="group" aria-label="Tools">
-        {TOOLS.map(({ id, label, Icon, workspaces }) => {
-          const enabled = workspaces.includes(workspace)
-          const active = enabled && activeTool === id
+        {/* Only the tools that work in this editor are shown. */}
+        {TOOLS.filter(({ workspaces }) => workspaces.includes(workspace)).map(({ id, label, Icon }) => {
+          const active = activeTool === id
           return (
             <button
               key={id}
               type="button"
               className={`btn ${active ? 'btn-dark' : 'btn-outline-secondary'}`}
-              disabled={!enabled}
-              title={label}
+              title={keyFor(id) ? `${label} (${keyFor(id)})` : label}
               aria-label={label}
               aria-pressed={active}
               onClick={() => selectTool(id)}
@@ -183,23 +180,24 @@ export default function Toolbar() {
           only active tool until a cell is clicked (that pins the highlight and hands the
           previous tool back); the highlight then stays while it is lit, whatever tool is
           used, until it is clicked again. It never changes the selection. */}
-      <div className="btn-group btn-group-sm" role="group" aria-label="Validation switch">
-        <button
-          type="button"
-          className={`btn ${validationOn ? 'btn-dark' : 'btn-outline-secondary'}`}
-          disabled={!VALIDATION.workspaces.includes(workspace)}
-          title={!validationOn
-            ? 'Validation — highlight the cells that match the one under the cursor'
-            : validationPinned
-              ? 'Validation on — matching cells stay highlighted. Click to turn off.'
-              : 'Validation — hover a cell to see its matches, click a cell to keep them highlighted. Click to cancel.'}
-          aria-label="Validation"
-          aria-pressed={validationOn}
-          onClick={toggleValidation}
-        >
-          <VALIDATION.Icon />
-        </button>
-      </div>
+      {VALIDATION.workspaces.includes(workspace) && (
+        <div className="btn-group btn-group-sm" role="group" aria-label="Highlighter/Validation switch">
+          <button
+            type="button"
+            className={`btn ${validationOn ? 'btn-dark' : 'btn-outline-secondary'}`}
+            title={!validationOn
+              ? 'Highlighter/Validation (V) — highlight the cells that match the one under the cursor'
+              : validationPinned
+                ? 'Highlighter/Validation on — matching cells stay highlighted. Click to turn off.'
+                : 'Highlighter/Validation — hover a cell to see its matches, click a cell to keep them highlighted. Click to cancel.'}
+            aria-label="Highlighter/Validation"
+            aria-pressed={validationOn}
+            onClick={toggleValidation}
+          >
+            <VALIDATION.Icon />
+          </button>
+        </div>
+      )}
 
       <FillPaintMenu workspace={workspace} anchorRef={fillAnchorRef} menuRef={fillMenuRef} open={fillMenuOpen} onEnter={openFillMenu} onLeave={closeFillMenu} />
 
@@ -211,7 +209,7 @@ export default function Toolbar() {
               type="button"
               className="btn btn-outline-secondary"
               disabled={!canRotate}
-              title={label}
+              title={`${label} (${steps === 1 ? 'Shift + R' : 'R'})`}
               aria-label={label}
               onClick={() => rotateSpaces(useSelectionStore.getState().selectedSpaceIds, steps)}
             >
@@ -225,7 +223,7 @@ export default function Toolbar() {
         <button
           type="button"
           className={`btn btn-sm ${viewportLocked ? 'btn-dark' : 'btn-outline-secondary'}`}
-          title={activeTool === 'multi-select' ? 'Viewport locked while Multi-select is active' : (viewportLocked ? 'Viewport locked — click to unlock' : 'Viewport unlocked — click to lock')}
+          title={activeTool === 'multi-select' ? 'Viewport locked while Multi-select is active' : (viewportLocked ? 'Viewport locked — click to unlock (L)' : 'Viewport unlocked — click to lock (L)')}
           aria-label="Toggle viewport lock"
           aria-pressed={viewportLocked}
           disabled={activeTool === 'multi-select'}
@@ -249,7 +247,7 @@ export default function Toolbar() {
         <button
           type="button"
           className={`btn btn-sm ${helpOpen ? 'btn-dark' : 'btn-outline-secondary'}`}
-          title={helpOpen ? 'Help — click to close' : 'Help — how to use the tools'}
+          title={helpOpen ? 'Help — click to close (H)' : 'Help — how to use the tools (H)'}
           aria-label="Help"
           aria-pressed={helpOpen}
           onClick={toggleHelp}

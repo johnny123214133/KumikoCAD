@@ -189,6 +189,14 @@ const useAppStore = create((set, get) => ({
     if (tool in TOOL_LOCK) set({ viewportLocked: TOOL_LOCK[tool] });
   },
   setViewportLocked: (locked) => set({ viewportLocked: locked }),
+  // The lock button / L key: flips the lock and drops to the Selection tool. Does
+  // nothing while Multi-select is active (its button is disabled then too).
+  toggleViewportLock: () => {
+    const s = get();
+    if (s.activeTool === 'multi-select') return;
+    get().setViewportLocked(!s.viewportLocked);
+    get().setActiveTool('selection');
+  },
   // Use store/unitActions.js's setUnit, which also snaps values onto the new
   // unit's step grids.
   setGridUnit: (unit) => { if (unit === 'mm' || unit === 'in') { saveSetting('kumiko_unit', unit); set({ gridUnit: unit }); } },

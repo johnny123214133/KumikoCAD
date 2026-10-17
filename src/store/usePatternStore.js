@@ -977,10 +977,22 @@ const usePatternStore = create((set, get) => ({
   },
   // Fill / paint, panel editor: the library gets a pattern in this pattern's
   // shape painted all one wood and finish.
+  // Returns the id of the library pattern a cell holding `patternId` should hold once
+  // painted this wood and finish: the pattern itself if it already is that, else any
+  // existing pattern with exactly that recipe, else a new custom one (named by the
+  // library's usual rules). null for the blank pattern.
   ensurePaintedPattern: (patternId, material, finish) => {
-    const recipe = get().getCurrentRecipe(patternId);
+    const state = get();
+    const recipe = state.getCurrentRecipe(patternId);
     if (!recipe || recipe.basePatternId === 'blank' || patternId === 'builtin:blank') return null;
-    return get().ensureRecipePattern({ ...recipe, material, finish, stripMaterials: {} });
+    const painted = { ...recipe, material, finish, stripMaterials: {} };
+    const key = recipeKey(painted);
+    const all = [...state.builtInPatterns, ...state.userPatterns];
+    const own = all.find((p) => p.id === patternId);
+    if (own && recipeKey(state.getTemplateRecipe(own)) === key) return patternId;
+    const same = all.find((p) => recipeKey(state.getTemplateRecipe(p)) === key);
+    if (same) return same.id;
+    return state.ensureRecipePattern(painted, { material, finish });
   },
   // Fill / paint, pattern editor: set these strips of the pattern to a wood and
   // finish. Only a live edit — saving it as a pattern is the Save Pattern button's job.

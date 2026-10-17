@@ -86,14 +86,18 @@ export function sampleStepFor(cells) {
 // Ids of the shapes along the segment a -> b, in order, each once. The segment is
 // sampled every `step` units (keep it well under a shape's inradius so none the
 // line crosses is skipped).
-export function cellsAlongPath(cells, a, b, step) {
+// With `topOnly`, only the topmost shape at each sampled point counts (the last one in
+// the list is drawn last): for painting, so crossing the overlap of two strips paints
+// the one on top rather than also the one hidden beneath.
+export function cellsAlongPath(cells, a, b, step, topOnly = false) {
   const len = Math.hypot(b.x - a.x, b.y - a.y);
   const n = step > 0 ? Math.max(1, Math.ceil(len / step)) : 1;
   const out = [];
   const seen = new Set();
   for (let i = 0; i <= n; i++) {
     const t = i / n;
-    for (const id of cellsAtPoint(cells, a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)) {
+    const here = cellsAtPoint(cells, a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+    for (const id of topOnly ? here.slice(-1) : here) {
       if (!seen.has(id)) { seen.add(id); out.push(id); }
     }
   }
@@ -105,7 +109,7 @@ export const PLACEMENT_DRAG_DELAY_MS = 40;
 // getCells(): current [{id, polygon}]; getStep(): sample spacing; apply(ids): place
 // the pattern in those cells. `schedule`/`cancel` default to setTimeout/clearTimeout.
 export function createPlacementStroke({
-  getCells, getStep, apply, delayMs = PLACEMENT_DRAG_DELAY_MS,
+  getCells, getStep, apply, topOnly = false, delayMs = PLACEMENT_DRAG_DELAY_MS,
   schedule = setTimeout, cancel = clearTimeout,
 }) {
   const done = new Set(); // cells already placed in this stroke
@@ -117,7 +121,7 @@ export function createPlacementStroke({
     timer = null;
     if (!latest) return;
     const from = last ?? latest;
-    const fresh = cellsAlongPath(getCells(), from, latest, getStep()).filter((id) => !done.has(id));
+    const fresh = cellsAlongPath(getCells(), from, latest, getStep(), topOnly).filter((id) => !done.has(id));
     last = latest;
     if (!fresh.length) return;
     for (const id of fresh) done.add(id);

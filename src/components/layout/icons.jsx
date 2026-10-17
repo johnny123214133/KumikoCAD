@@ -33,13 +33,20 @@ export const HelpIcon = () => (
   </svg>
 )
 
-// Validation: a check over a row of cells — two matching (filled) and one that isn't.
-export const ValidationIcon = () => (
+// Highlighter / Validation: a highlighter pen laying down a band of colour.
+export const HighlighterIcon = () => (
   <svg {...base}>
-    <path d="M5 8.5 L9 12.5 L18 4" />
-    <path d="M2.5 20 L7.5 20 L5 14.5 Z" fill="currentColor" fillOpacity="0.35" />
-    <path d="M9.5 20 L14.5 20 L12 14.5 Z" fill="currentColor" fillOpacity="0.35" />
-    <path d="M16.5 20 L21.5 20 L19 14.5 Z" />
+    <path d="M14.8 3.2 L20.8 9.2 L12.6 17.4 L6.6 11.4 Z" />
+    <path d="M6.6 11.4 L4.8 16.6 L7.4 19.2 L12.6 17.4" />
+    <path d="M3 21.4 L12.5 21.4" strokeWidth="3.2" strokeOpacity="0.4" />
+  </svg>
+)
+
+// Inspection: a magnifying glass.
+export const InspectIcon = () => (
+  <svg {...base}>
+    <circle cx="10.5" cy="10.5" r="6.5" />
+    <path d="M15.4 15.4 L21 21" />
   </svg>
 )
 

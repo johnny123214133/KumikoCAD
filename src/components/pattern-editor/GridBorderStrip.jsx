@@ -1,4 +1,6 @@
 import React, { useMemo } from 'react'
+import { useTheme } from '../../store/useThemeStore.js'
+import { stripEdgeColor } from '../../theme/themeRuntime.js'
 import { Line, Shape } from 'react-konva'
 import { centroidOf, inradius, scaleFromCentroid, dist } from '../../geometry/factories/_shared.js'
 import { getGridStripColor, getGridStripColorRgb } from '../../scene/gridStripColor.js'
@@ -54,7 +56,8 @@ export default function GridBorderStrip({ pattern, gridStripWidth, wireframe }) 
   const finish = useGridStore(s => s.finish)
   const strokeColor = `rgba(${getGridStripColorRgb(material, finish)})`
   const fillColor = getGridStripColor(material, finish)
-  const edgeColor = darkenHex(fillColor, 0.15)
+  useTheme() // the edge colour depends on the theme
+  const edgeColor = stripEdgeColor(fillColor, darkenHex(fillColor, 0.15))
   const { A, B, C } = pattern.vertices
   const G = useMemo(() => centroidOf(A, B, C), [A, B, C])
 

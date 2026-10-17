@@ -2,7 +2,7 @@ import React from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
 import useAppStore from '../../store/useAppStore.js'
 import PatternIcon from './PatternIcon.jsx'
-import useApplyToSelection from './useApplyToSelection.jsx'
+import useApplyToSelection, { applyPatternToSelection } from './useApplyToSelection.jsx'
 import usePatternDelete from './usePatternDelete.jsx'
 import { AccordionHeader } from '../shared/Accordion.jsx'
 
@@ -50,7 +50,7 @@ export default function RecentPatterns() {
             <button
               className={`list-group-item list-group-item-action py-2 px-2 d-flex align-items-center gap-2 ${activePatternId === p.id ? 'active' : ''}`}
               style={{ fontSize: '13px' }}
-              onClick={() => selectPattern(p.id)}
+              onClick={(e) => { if (!applyPatternToSelection(e, p.id)) selectPattern(p.id) }}
             >
               <PatternIcon pattern={p} size={24} />
               <div className="fw-medium text-truncate">{p.name}</div>

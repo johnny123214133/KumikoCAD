@@ -19,6 +19,7 @@ import { paintCells } from '../../store/paintActions.js'
 import { paintPattern } from '../../geometry/paintPattern.js'
 import OrientationArrow from '../shared/OrientationArrow.jsx'
 import { useTheme } from '../../store/useThemeStore.js'
+import { stripEdgeColor } from '../../theme/themeRuntime.js'
 
 const flip = (p) => ({ x: p.x, y: -p.y })
 const BLANK_PATTERN_ID = 'builtin:blank'
@@ -284,6 +285,13 @@ export default function GridLayer() {
       else toggleSpaceMultiSelection(spaceId)
     }
     else if (activeTool === 'place-pattern') setSpacePattern(spaceId, activePatternId)
+    else if (activeTool === 'inspect') {
+      // Open the cell's pattern in the pattern editor (an empty cell has none to open).
+      const id = spacePatterns[spaceId]
+      if (!id || id === BLANK_PATTERN_ID) return
+      usePatternStore.getState().setActivePattern(id) // while still in the panel editor: nothing to discard
+      useAppStore.getState().setWorkspace('pattern-editor')
+    }
     else if (activeTool === 'fill-paint') paintCells([spaceId])
     // other tools: no cell-click behavior (Drag select works on the stroke, see Viewport.jsx)
   }
@@ -392,10 +400,10 @@ export default function GridLayer() {
   // Shape (scene/drawGridStrips.js) that works the edge out from the current
   // scale each time it draws, so there is no cache to remake and no re-render
   // when the zoom changes.
-  const edgeColor = darkenHex(strokeColor, 0.15)
+  const theme = useTheme()
+  const edgeColor = stripEdgeColor(strokeColor, darkenHex(strokeColor, 0.15))
   // The selected-cell border: the theme's selection colour if it has one (cream on the dark
   // themes), else the same 0.35 darkening the pattern strips' selected border uses.
-  const theme = useTheme()
   const selectedBorderColor = theme.canvas.selection ?? darkenHex(strokeColor, 0.35)
   const flippedGridLines = useMemo(
     () => geometry.gridLines.map(([x1, y1, x2, y2]) => [x1, -y1, x2, -y2]),

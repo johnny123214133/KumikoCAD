@@ -7,7 +7,7 @@
 // reasoning this carries over unchanged.
 import { buildStripLocalPoints, buildCurvedStripLocalPoints } from './stripShape.js';
 import { darkenHex } from './color.js';
-import { getTheme, selectionColor } from '../theme/themeRuntime.js';
+import { getTheme, selectionColor, stripEdgeColor } from '../theme/themeRuntime.js';
 import { DEFAULT_PATTERN_STRIP_WIDTH_MM } from './units.js';
 
 // Paint order for the strips, bottom first. Strips are normally painted in
@@ -61,7 +61,7 @@ function computeUnorderedStripRenderData(pattern) {
     // shows the strips are separate entities." Derived from the strip's own
     // (possibly per-strip-overridden) color the same way borderColor is, so
     // it moves with wood/finish changes too, just far less aggressively.
-    const edgeColor = darkenHex(color, 0.15);
+    const edgeColor = stripEdgeColor(color, darkenHex(color, 0.15));
 
     const dx = strip.end.x - strip.start.x;
     const dy = strip.end.y - strip.start.y;

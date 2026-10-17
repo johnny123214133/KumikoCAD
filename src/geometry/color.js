@@ -3,6 +3,17 @@
 // material (strip colors will vary once real wood/finish color mappings
 // exist — see the request that prompted this: "we'll revisit it when we
 // add the color mappings for all the wood and finish types").
+// WCAG relative luminance (0..1) and contrast ratio (1..21) of hex colours.
+export function luminance(hex) {
+  const h = hex.replace('#', '');
+  const f = (i) => { const c = parseInt(h.substring(i, i + 2), 16) / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  return 0.2126 * f(0) + 0.7152 * f(2) + 0.0722 * f(4);
+}
+export function contrastRatio(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
 export function darkenHex(hex, amount = 0.35) {
   const h = hex.replace('#', '');
   const r = parseInt(h.substring(0, 2), 16);

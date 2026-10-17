@@ -14,4 +14,4 @@
 // as a micro-drag (pan) and suppress the shape's onClick entirely. Drag
 // select locks for a further reason — its drag is the gesture, so it can't
 // also pan.
-export const TOOL_LOCK = { selection: true, 'place-pattern': true, 'multi-select': true, 'drag-select': true, validation: true, 'snap-gridpoint': true, 'fill-paint': true };
+export const TOOL_LOCK = { selection: true, 'place-pattern': true, 'multi-select': true, 'drag-select': true, validation: true, inspect: true, 'snap-gridpoint': true, 'fill-paint': true };

@@ -15,6 +15,7 @@ export const INTERACTION_LAYERS_BY_TOOL = {
   'multi-select': ['cellHitRegions'],
   'drag-select': ['cellHitRegions'],
   validation: ['cellHitRegions'],
+  inspect: ['cellHitRegions'],
   'fill-paint': ['cellHitRegions'],
   // Snap to Gridpoint: the cells aren't clickable; the grid's joints are (the
   // 'jointHandles' layer, drawn by GridLayer.jsx).

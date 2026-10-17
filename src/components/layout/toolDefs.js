@@ -1,5 +1,5 @@
 import {
-  SelectionIcon, PlacePatternIcon, MultiSelectIcon, DragSelectIcon, ValidationIcon, FillPaintIcon,
+  SelectionIcon, PlacePatternIcon, MultiSelectIcon, DragSelectIcon, HighlighterIcon, InspectIcon, FillPaintIcon,
   SnapGridpointIcon, RotateCcwIcon, LockIcon, PaletteIcon,
 } from './icons.jsx'
 
@@ -24,7 +24,7 @@ export const TOOLS = [
   {
     id: 'place-pattern', label: 'Place Pattern', Icon: PlacePatternIcon, workspaces: ['panel-editor'],
     help: () => [
-      'Pick a pattern in the library, then click a cell to place it.',
+      'Pick a pattern in the library, then click a cell to place it. Alt, Ctrl or Cmd + click a pattern instead to put it straight into the selected cells.',
       'Click and drag to paint the pattern into every cell the cursor passes through.',
       'You can also drag a pattern from the library onto the panel to place it in all the selected cells.',
     ],
@@ -47,12 +47,19 @@ export const TOOLS = [
     ],
   },
   {
+    id: 'inspect', label: 'Inspection', Icon: InspectIcon, workspaces: ['panel-editor'],
+    help: () => [
+      'Click a cell to open its pattern in the pattern editor. A painted cell opens its painted pattern.',
+      'Empty cells do nothing. Going back to the panel editor puts you on the Selection tool.',
+    ],
+  },
+  {
     id: 'fill-paint', label: 'Fill / paint', Icon: FillPaintIcon, workspaces: ['pattern-editor', 'panel-editor'],
     help: (w) => [
-      'Hover the tool to choose a wood and a finish.',
+      'Hover the tool to choose a wood and a finish. The cursor becomes a pouring paint bucket, in that colour, over anything you can paint.',
       w.item === 'cell'
-        ? 'Click a cell to paint every strip of its pattern. "Apply to selected patterns" paints all the selected cells.'
-        : 'Click a strip to paint it. "Apply to selected strips" paints the selection; "Apply to whole pattern" paints every strip.',
+        ? 'Click a cell, or click and drag across cells, to paint them. A painted cell holds the pattern of the same shape in that wood and finish: an existing one from the library, or a new custom pattern if there is none. Its rotation is kept. "Apply to selected patterns" paints all the selected cells.'
+        : 'Click a strip, or click and drag across strips, to paint them. "Apply to selected strips" paints the selection; "Apply to whole pattern" paints every strip.',
     ],
   },
   {
@@ -67,12 +74,12 @@ export const TOOLS = [
 // Switches sit beside the tools rather than in the tool group: they don't replace
 // the active tool.
 export const VALIDATION = {
-  id: 'validation', label: 'Validation', Icon: ValidationIcon, workspaces: ['panel-editor'],
+  id: 'validation', label: 'Highlighter/Validation', Icon: HighlighterIcon, workspaces: ['panel-editor'],
   help: () => [
-    'Click Validation, then hover a cell: every cell with matching parameters is highlighted. Matching means the same pattern recipe — strip widths, wood, finish and parameters. Rotation and a cell\'s own paint are ignored; empty cells match each other.',
-    'Click a cell to pin the highlight. The other tools work again, and the highlight stays until you click Validation again.',
+    'Click Highlighter/Validation, then hover a cell: every cell with matching parameters is highlighted. Matching means the same pattern recipe — strip widths, wood, finish and parameters. Rotation is ignored; empty cells match each other.',
+    'Click a cell to pin the highlight. The other tools work again, and the highlight stays until you click Highlighter/Validation again.',
     'Shift + click pins the highlight and also adds the highlighted cells to the selection.',
-    'Turning Validation on or off never changes the selection. Choosing another tool before you click a cell cancels it.',
+    'Turning Highlighter/Validation on or off never changes the selection. Choosing another tool before you click a cell cancels it.',
   ],
 }
 
@@ -99,7 +106,7 @@ export const ACTIONS = [
 ]
 
 export const SELECTION_NOTE =
-  'The selection is shared: switching between Selection, Multi-select and Drag select keeps it, as does turning Validation on or off. Choosing any other tool clears it.'
+  'The selection is shared: switching between Selection, Multi-select and Drag select keeps it, as does turning Highlighter/Validation on or off. Choosing any other tool clears it.'
 
 export const WORKSPACE_WORDS = {
   'panel-editor': { title: 'Panel editor', item: 'cell', items: 'cells', work: 'panel' },
