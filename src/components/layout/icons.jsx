@@ -128,6 +128,14 @@ export const PlacePatternIcon = () => (
   </svg>
 )
 
+// Overview window: the whole work, with the part being looked at boxed.
+export const OverviewIcon = () => (
+  <svg {...base}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <rect x="12" y="11" width="6" height="5" rx="0.8" />
+  </svg>
+)
+
 export const LockIcon = () => (
   <svg {...base}>
     <rect x="5" y="11" width="14" height="10" rx="1.5" />

@@ -16,7 +16,7 @@ import { getGridStripColor } from '../../scene/gridStripColor.js'
 import { darkenHex } from '../../geometry/color.js'
 import { cellRasterSizeFor, getCellRasterSizePx, setCellRasterSizePx } from '../../geometry/patternImageCache.js'
 import { paintCells } from '../../store/paintActions.js'
-import { paintPattern } from '../../geometry/paintPattern.js'
+import { applyPatternToSelection } from '../../store/applyPattern.js'
 import OrientationArrow from '../shared/OrientationArrow.jsx'
 import { useTheme } from '../../store/useThemeStore.js'
 import { stripEdgeColor } from '../../theme/themeRuntime.js'
@@ -44,7 +44,7 @@ const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridSt
   )
   // Cells listen while the active tool clicks them (Validation included: while it
   // is armed, hovering a cell shows its matches and clicking one pins them).
-  const handleClick = interactive ? (e) => onCellClick(space.id, !!e?.evt?.shiftKey) : undefined
+  const handleClick = interactive ? (e) => onCellClick(space.id, !!e?.evt?.shiftKey, !!(e?.evt?.ctrlKey || e?.evt?.metaKey)) : undefined
   // A 'half' space is a window onto a virtual full cell (see
   // computeGridGeometry.js): the pattern is placed on the whole triangle, as in
   // a full space, and clipped to the part that is inside the panel.
@@ -207,7 +207,7 @@ function useSettledZoom() {
 const CULL_MARGIN_CELLS = 2
 
 export default function GridLayer() {
-  const { cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior, spacePatterns, spaceXforms, spaceFills, setSpacePattern, material, finish } = useGridStore()
+  const { cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior, spacePatterns, spaceXforms, setSpacePattern, material, finish } = useGridStore()
   const getComputedPattern = usePatternStore(s => s.getComputedPattern)
   const getEffectiveStripWidth = usePatternStore(s => s.getEffectiveStripWidth)
   const activePatternId = usePatternStore(s => s.activePatternId)
@@ -270,7 +270,10 @@ export default function GridLayer() {
   // changes the highlight.
   const armed = activeTool === 'validation'
 
-  const handleCellClick = (spaceId, shift) => {
+  const handleCellClick = (spaceId, shift, applyKey) => {
+    // Ctrl (Cmd on a Mac) + click, with any tool: the current pattern goes into every selected
+    // cell. The click itself selects nothing and does nothing else.
+    if (applyKey) { applyPatternToSelection(); return }
     if (activeTool === 'validation') {
       // Shift + click pins the highlight AND adds the highlighted cells to the selection.
       if (shift) addSpacesToSelection([...matchesFor([spaceId])])
@@ -299,7 +302,7 @@ export default function GridLayer() {
   // the latest handleCellClick.
   const clickRef = useRef(handleCellClick)
   clickRef.current = handleCellClick
-  const onCellClick = useCallback((spaceId, shift) => clickRef.current(spaceId, shift), [])
+  const onCellClick = useCallback((spaceId, shift, applyKey) => clickRef.current(spaceId, shift, applyKey), [])
 
   // The cell under the cursor while Validation is armed (local state: it changes with
   // every mouse move and nothing else needs it).
@@ -444,9 +447,7 @@ export default function GridLayer() {
       {visibleSpaces.map(space => {
         const patternId = spacePatterns[space.id] ?? BLANK_PATTERN_ID
         const resolved = resolvePattern(patternId)
-        const fill = spacePatterns[space.id] ? spaceFills[space.id] : undefined
-        const pattern = fill ? paintPattern(resolved.pattern, fill.material, fill.finish) : resolved.pattern
-        const { patternStripWidth } = resolved
+        const { pattern, patternStripWidth } = resolved
         return (
           <Cell
             key={space.id}

@@ -1,6 +1,6 @@
 import {
   SelectionIcon, PlacePatternIcon, MultiSelectIcon, DragSelectIcon, HighlighterIcon, InspectIcon, FillPaintIcon,
-  SnapGridpointIcon, RotateCcwIcon, LockIcon, PaletteIcon,
+  SnapGridpointIcon, RotateCcwIcon, LockIcon, PaletteIcon, OverviewIcon,
 } from './icons.jsx'
 
 // The toolbar's tools, and what the Help panel says about each — kept together so
@@ -24,7 +24,7 @@ export const TOOLS = [
   {
     id: 'place-pattern', label: 'Place Pattern', Icon: PlacePatternIcon, workspaces: ['panel-editor'],
     help: () => [
-      'Pick a pattern in the library, then click a cell to place it. Alt, Ctrl or Cmd + click a pattern instead to put it straight into the selected cells.',
+      'Pick a pattern in the library, then click a cell to place it. Ctrl (Cmd on a Mac) + click any cell, with any tool but Snap to gridpoint, to put the current pattern into all the selected cells.',
       'Click and drag to paint the pattern into every cell the cursor passes through.',
       'You can also drag a pattern from the library onto the panel to place it in all the selected cells.',
     ],
@@ -94,6 +94,13 @@ export const ACTIONS = [
     help: () => [
       'Every tool locks the view so clicks and drags belong to the tool.',
       'Unlock it to drag the canvas to pan and scroll to zoom. Clicking the lock also switches to the Selection tool.',
+    ],
+  },
+  {
+    id: 'overview', label: 'Overview window', Icon: OverviewIcon, workspaces: ['pattern-editor', 'panel-editor'],
+    help: (w) => [
+      `Toggles a small window in the bottom-left corner that appears when you are zoomed far in on the ${w.work}. It shows the whole ${w.work} with a box around the part you are looking at.`,
+      'Click anywhere in it, or click and drag, to move the view there. This works even while the viewport is locked.',
     ],
   },
   {

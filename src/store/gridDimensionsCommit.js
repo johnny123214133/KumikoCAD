@@ -3,7 +3,6 @@ import usePatternStore from './usePatternStore.js';
 import useSelectionStore from './useSelectionStore.js';
 import { clampGridDimensions } from '../geometry/units.js';
 import { getPanelCellImage } from '../geometry/patternImageCache.js';
-import { paintPattern } from '../geometry/paintPattern.js';
 import { spaceIdInGrid } from '../geometry/grid/computeGridGeometry.js';
 
 // Applying a new cell width / grid strip width to the panel, as ONE visual
@@ -130,7 +129,6 @@ function snapshot() {
   const patterns = usePatternStore.getState();
   return [
     useGridStore.getState().spacePatterns,
-    useGridStore.getState().spaceFills,
     useGridStore.getState().cols,
     useGridStore.getState().rows,
     useSelectionStore.getState().selectedSpaceIds,
@@ -147,19 +145,11 @@ const isSame = (a, b) => a.every((v, i) => v === b[i]);
 // built (the Viewport asks for it on every render, and it's the placement
 // brush) but only rasterized if it's actually placed.
 function panelWork() {
-  const { spacePatterns, spaceFills, cols, rows } = useGridStore.getState();
+  const { spacePatterns, cols, rows } = useGridStore.getState();
   const work = new Map();
   const mark = (id, flags) => work.set(id, { ...work.get(id), ...flags });
   mark(BLANK_PATTERN_ID, { raster: true });
-  // Painted cells draw a recoloured copy of their pattern, which is its own
-  // cache entry — prepared too, keyed by pattern + wood + finish.
-  const markCell = (spaceId, flags) => {
-    const id = spacePatterns[spaceId] ?? BLANK_PATTERN_ID;
-    const fill = spacePatterns[spaceId] ? spaceFills[spaceId] : undefined;
-    if (!fill) return mark(id, flags);
-    const key = `${id}|${fill.material}|${fill.finish}`;
-    work.set(key, { ...work.get(key), id, fill, ...flags });
-  };
+  const markCell = (spaceId, flags) => mark(spacePatterns[spaceId] ?? BLANK_PATTERN_ID, flags);
   // Only the placements on the grid as it is now — parked ones (see
   // useGridStore) aren't drawn, so they aren't worth preparing.
   for (const spaceId of Object.keys(spacePatterns)) if (spaceIdInGrid(spaceId, cols, rows)) markCell(spaceId, { raster: true });
@@ -172,10 +162,9 @@ function panelWork() {
 }
 
 function prepare([key, flags], ctx) {
-  const id = flags.id ?? key;
+  const id = key;
   const patterns = usePatternStore.getState();
-  const built = patterns.getComputedPattern(id, ctx);
-  const pattern = flags.fill ? paintPattern(built, flags.fill.material, flags.fill.finish) : built;
+  const pattern = patterns.getComputedPattern(id, ctx);
   if (!flags.raster) return;
   const image = {
     cellWidth: ctx.cellWidth,

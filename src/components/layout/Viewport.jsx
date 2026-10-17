@@ -14,6 +14,7 @@ import { createPlacementStroke, sampleStepFor } from '../../scene/placementStrok
 import { flagDragGesture } from '../../scene/gestureGuard.js'
 import { normalizeRect, rectTouchesPolygon } from '../../geometry/rectSelect.js'
 import { isOutsidePanel, isOutsideTriangle } from '../../scene/clickOutside.js'
+import MiniMap from './MiniMap.jsx'
 import { paintCells } from '../../store/paintActions.js'
 import { fillCursor } from '../../scene/fillCursor.js'
 import { getMaterialColor } from '../../geometry/woodFinishColors.js'
@@ -116,6 +117,24 @@ export default function Viewport() {
     })
   }, [setViewportVisibleRect])
 
+  // Moves the camera so the point (Konva-local coordinates) is in the middle of what is
+  // visible between the side panels, keeping the zoom. Used by the overview window; it works
+  // whatever the viewport lock says (the lock is about dragging the canvas).
+  const panTo = useCallback((x, y) => {
+    const stage = stageRef.current
+    const container = containerRef.current
+    if (!stage || !container) return
+    const { leftPanelOpen, leftPanelWidth, rightPanelOpen, rightPanelWidth } = panelStateRef.current
+    const l = leftPanelOpen ? leftPanelWidth : 0
+    const r = rightPanelOpen ? rightPanelWidth : 0
+    const cx = l + (container.clientWidth - l - r) / 2
+    const cy = container.clientHeight / 2
+    const s = stage.scaleX()
+    stage.position({ x: cx - x * s, y: cy - y * s })
+    stage.batchDraw()
+    updateVisibleRect()
+  }, [updateVisibleRect])
+
   const zoomToFit = useCallback(() => {
     const stage = stageRef.current
     const container = containerRef.current
@@ -184,9 +203,9 @@ export default function Viewport() {
   }, [activePatternId, zoomToFit])
 
   useEffect(() => {
-    setViewportApi({ zoomToFit })
+    setViewportApi({ zoomToFit, panTo })
     return () => setViewportApi(null)
-  }, [zoomToFit, setViewportApi])
+  }, [zoomToFit, panTo, setViewportApi])
 
   // Multi-select's click-and-drag rectangle selection. One corner anchors
   // at mousedown, the opposite corner follows the cursor, and releasing
@@ -277,6 +296,9 @@ export default function Viewport() {
   }
 
   const handleStageMouseDown = (e) => {
+    // Ctrl / Cmd + click on the panel applies the current pattern to the selection (GridLayer):
+    // it isn't the start of a stroke, a drag rectangle or a click on empty canvas.
+    if (workspace === 'panel-editor' && (e.evt?.ctrlKey || e.evt?.metaKey)) return
     if (viewportLocked && ((activeTool === 'place-pattern' && workspace === 'panel-editor') || activeTool === 'drag-select' || activeTool === 'fill-paint')) {
       return startStroke(e, activeTool)
     }
@@ -442,6 +464,8 @@ export default function Viewport() {
           </Layer>
         </Stage>
       )}
+      {/* Zoomed far in: a small overview of the whole panel / pattern with the visible part boxed. */}
+      <MiniMap workspace={workspace} pattern={pattern} />
     </div>
   )
 }

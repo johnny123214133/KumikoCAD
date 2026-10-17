@@ -8,7 +8,7 @@ import { WOOD_OPTIONS, FINISH_OPTIONS } from '../../geometry/materials.js'
 import ColorSwatchLine from '../shared/ColorSwatchLine.jsx'
 import {
   LeftPanelIcon, RightPanelIcon, SaveProjectIcon, LoadProjectIcon, LockIcon, UnlockIcon,
-  RotateCcwIcon, RotateCwIcon, HelpIcon,
+  RotateCcwIcon, RotateCwIcon, HelpIcon, OverviewIcon,
 } from './icons.jsx'
 import { TOOLS, VALIDATION } from './toolDefs.js'
 import { keyFor } from './keyBindings.js'
@@ -100,6 +100,7 @@ export default function Toolbar() {
     rightPanelOpen, setRightPanelOpen,
     validationActive, validationPinnedId, toggleValidation,
     helpOpen, toggleHelp, selectTool,
+    overviewOn, toggleOverview,
   } = useAppStore()
   const validationOn = validationActive && workspace === 'panel-editor'
   const validationPinned = validationOn && validationPinnedId != null
@@ -230,6 +231,17 @@ export default function Toolbar() {
           onClick={toggleLock}
         >
           {viewportLocked ? <LockIcon /> : <UnlockIcon />}
+        </button>
+
+        <button
+          type="button"
+          className={`btn btn-sm ${overviewOn ? 'btn-dark' : 'btn-outline-secondary'}`}
+          title={overviewOn ? 'Overview window on — shown when zoomed in (O)' : 'Overview window off (O)'}
+          aria-label="Toggle overview window"
+          aria-pressed={overviewOn}
+          onClick={toggleOverview}
+        >
+          <OverviewIcon />
         </button>
 
         <div className="btn-group btn-group-sm">

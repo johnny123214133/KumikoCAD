@@ -3,7 +3,7 @@ import usePatternStore from '../../store/usePatternStore.js'
 import useAppStore from '../../store/useAppStore.js'
 import PatternIcon from './PatternIcon.jsx'
 import usePatternDelete from './usePatternDelete.jsx'
-import useApplyToSelection, { applyPatternToSelection } from './useApplyToSelection.jsx'
+import useApplyToSelection from './useApplyToSelection.jsx'
 import { ListViewIcon, GridViewIcon } from '../layout/icons.jsx'
 import { SORT_OPTIONS, sortPatterns, canReorderCustom } from './sortPatterns.js'
 import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
@@ -121,7 +121,7 @@ export default function PatternLibrary() {
                 <button
                   className={`list-group-item list-group-item-action py-2 px-2 d-flex align-items-center gap-2 ${activePatternId === p.id ? 'active' : ''}`}
                   style={{ fontSize: '13px' }}
-                  onClick={(e) => { if (!applyPatternToSelection(e, p.id)) selectPattern(p.id) }}
+                  onClick={() => selectPattern(p.id)}
                 >
                   <PatternIcon pattern={p} size={28} />
                   <div className="fw-medium text-truncate">{p.name}</div>
@@ -140,7 +140,7 @@ export default function PatternLibrary() {
               <div key={p.id} className="pattern-card" {...cardProps(p)} {...hoverProps(p)}>
                 <button
                   title={p.name}
-                  onClick={(e) => { if (!applyPatternToSelection(e, p.id)) selectPattern(p.id) }}
+                  onClick={() => selectPattern(p.id)}
                   className={`btn w-100 p-1 d-flex flex-column align-items-center gap-1 ${activePatternId === p.id ? 'btn-dark' : 'btn-outline-secondary'}`}
                   style={{ fontSize: '10px', lineHeight: 1.1 }}
                 >

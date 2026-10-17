@@ -46,35 +46,11 @@ const useGridStore = create((set, get) => ({
   // reflects every placed pattern (setCornerBehavior), so a fresh placement
   // has to be mirrored the same amount to sit consistently beside them.
   placementFlip: false,
-  // Per-cell paint from the Fill / paint tool: { [spaceId]: { material, finish } }.
-  // A painted cell shows all of its pattern's strips in that wood and finish
-  // (geometry/paintPattern.js); other cells holding the same pattern are
-  // unaffected. Only cells holding a pattern are ever painted. Cleared with the
-  // placement; kept when another pattern is stamped over the cell (like xforms).
-  spaceFills: {},
   // The wood and finish the Fill / paint tool applies.
   paintMaterial: 'hinoki',
   paintFinish: 'natural',
   setPaintMaterial: (paintMaterial) => set({ paintMaterial }),
   setPaintFinish: (paintFinish) => set({ paintFinish }),
-  // Paints every cell in `spaceIds` that holds a pattern with the current brush.
-  // Returns how many cells were painted.
-  paintSpaces: (spaceIds) => {
-    const s = get();
-    const targets = [...new Set(spaceIds)].filter((id) => s.spacePatterns[id]);
-    if (!targets.length) return 0;
-    const fill = { material: s.paintMaterial, finish: s.paintFinish };
-    const spaceFills = { ...s.spaceFills };
-    let changed = false;
-    for (const id of targets) {
-      const cur = spaceFills[id];
-      if (cur && cur.material === fill.material && cur.finish === fill.finish) continue;
-      spaceFills[id] = fill;
-      changed = true;
-    }
-    if (changed) set({ spaceFills });
-    return targets.length;
-  },
   setCols: (cols) => set({ cols: Math.max(1, Math.round(cols)) }),
   setRows: (rows) => set({ rows: Math.max(1, Math.round(rows)) }),
   // Ignores 0/negative ("don't update the render when set to 0"), caps at
@@ -131,14 +107,9 @@ const useGridStore = create((set, get) => ({
     if (!patternId || patternId === BLANK_PATTERN_ID) {
       const { [spaceId]: _p, ...spacePatterns } = s.spacePatterns;
       const { [spaceId]: _x, ...spaceXforms } = s.spaceXforms;
-      const { [spaceId]: _f, ...spaceFills } = s.spaceFills;
-      return { spacePatterns, spaceXforms, spaceFills };
+      return { spacePatterns, spaceXforms };
     }
-    // Placing a pattern replaces whatever paint the cell had: the new pattern
-    // shows in its own wood and finish.
-    const { [spaceId]: _f, ...spaceFills } = s.spaceFills;
     return {
-      spaceFills,
       spacePatterns: { ...s.spacePatterns, [spaceId]: patternId },
       spaceXforms: s.spacePatterns[spaceId] ? s.spaceXforms : { ...s.spaceXforms, [spaceId]: { rot: 0, flip: s.placementFlip } },
     };
@@ -146,21 +117,19 @@ const useGridStore = create((set, get) => ({
   // setSpacePattern for many cells at once (the library's "Apply to Current
   // Selection"): one store update, same rules per cell — a fresh placement
   // starts at rotation 0 with the panel's mirroring, an occupied cell keeps its
-  // turn, paint is replaced, the blank pattern empties the cell.
+  // turn, the blank pattern empties the cell.
   setSpacesPattern: (spaceIds, patternId) => set((s) => {
     const ids = [...new Set(spaceIds)];
     if (!ids.length) return {};
     const spacePatterns = { ...s.spacePatterns };
     const spaceXforms = { ...s.spaceXforms };
-    const spaceFills = { ...s.spaceFills };
     const blank = !patternId || patternId === BLANK_PATTERN_ID;
     for (const id of ids) {
-      delete spaceFills[id];
       if (blank) { delete spacePatterns[id]; delete spaceXforms[id]; continue; }
       if (!spacePatterns[id]) spaceXforms[id] = { rot: 0, flip: s.placementFlip };
       spacePatterns[id] = patternId;
     }
-    return { spacePatterns, spaceXforms, spaceFills };
+    return { spacePatterns, spaceXforms };
   }),
   // Turns the patterns in `spaceIds` a third of a turn per step about their
   // cells' centres: +1 = 120° counterclockwise, -1 = 120° clockwise (as seen on
@@ -213,8 +182,7 @@ const useGridStore = create((set, get) => ({
       set((s) => {
         const spacePatterns = Object.fromEntries(Object.entries(s.spacePatterns).filter(([, id]) => id !== patternId));
         const spaceXforms = Object.fromEntries(Object.entries(s.spaceXforms).filter(([id]) => id in spacePatterns));
-        const spaceFills = Object.fromEntries(Object.entries(s.spaceFills).filter(([id]) => id in spacePatterns));
-        return { spacePatterns, spaceXforms, spaceFills };
+        return { spacePatterns, spaceXforms };
       });
     }
     return count;

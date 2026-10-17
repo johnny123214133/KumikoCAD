@@ -189,6 +189,10 @@ const useAppStore = create((set, get) => ({
     if (tool in TOOL_LOCK) set({ viewportLocked: TOOL_LOCK[tool] });
   },
   setViewportLocked: (locked) => set({ viewportLocked: locked }),
+  // The overview window (components/layout/MiniMap.jsx): whether it may show at all. It
+  // still only appears while the view is zoomed in. Remembered between visits.
+  overviewOn: loadSetting('kumiko_overview', true, (v) => typeof v === 'boolean'),
+  toggleOverview: () => set((s) => { saveSetting('kumiko_overview', !s.overviewOn); return { overviewOn: !s.overviewOn }; }),
   // The lock button / L key: flips the lock and drops to the Selection tool. Does
   // nothing while Multi-select is active (its button is disabled then too).
   toggleViewportLock: () => {

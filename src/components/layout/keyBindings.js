@@ -18,6 +18,8 @@ export const KEY_BINDINGS = [
   { id: 'selection', key: 's', keys: 'S', label: 'Selection tool', workspaces: BOTH, run: tool('selection') },
   { id: 'place-pattern', key: 'p', keys: 'P', label: 'Place Pattern tool', workspaces: PANEL, run: tool('place-pattern') },
   { id: 'multi-select', key: 'm', keys: 'M', label: 'Multi-select tool', workspaces: BOTH, run: tool('multi-select') },
+  { id: 'drag-select', key: 'd', keys: 'D', label: 'Drag select tool', workspaces: BOTH, run: tool('drag-select') },
+  { id: 'inspect', key: 'i', keys: 'I', label: 'Inspection tool', workspaces: PANEL, run: tool('inspect') },
   { id: 'fill-paint', key: 'f', keys: 'F', label: 'Fill / paint tool', workspaces: BOTH, run: tool('fill-paint') },
   { id: 'snap-gridpoint', key: 'a', keys: 'A', label: 'Snap to gridpoint tool', workspaces: PANEL, run: tool('snap-gridpoint') },
   {
@@ -31,8 +33,9 @@ export const KEY_BINDINGS = [
   { id: 'validation', key: 'v', keys: 'V', label: 'Turn Highlighter/Validation on or off', workspaces: PANEL, run: () => useAppStore.getState().toggleValidation() },
   { id: 'help', key: 'h', keys: 'H', label: 'Open or close Help', workspaces: BOTH, run: () => useAppStore.getState().toggleHelp() },
   { id: 'lock', key: 'l', keys: 'L', label: 'Lock or unlock the camera (not while Multi-select is active)', workspaces: BOTH, run: () => useAppStore.getState().toggleViewportLock() },
-  // Not a key press: handled by the pattern library (applyPatternToSelection).
-  { id: 'apply-pattern', keys: 'Alt / Ctrl / Cmd + click', label: 'Click a pattern in the library to apply it to the selected cells, without changing tool', workspaces: PANEL },
+  { id: 'overview', key: 'o', keys: 'O', label: 'Show or hide the overview window', workspaces: BOTH, run: () => useAppStore.getState().toggleOverview() },
+  // Not a key press: handled by the cells' click handler (GridLayer.jsx).
+  { id: 'apply-pattern', keys: 'Ctrl / Cmd + click', label: 'Click a cell to apply the current pattern to the selected cells, with any tool but Snap to gridpoint', workspaces: PANEL },
 ]
 
 // The key written for tool/action `id`, for tooltips ('' if it has none).
