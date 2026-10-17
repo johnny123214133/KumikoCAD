@@ -103,12 +103,13 @@ export default function HelpPanel() {
     <div className="d-flex flex-column flex-grow-1" style={{ minHeight: 0 }} role="region" aria-label="Help">
       <div className="mb-2">
         <h5 className="mb-0">Help</h5>
-        <div className="small text-muted">{words.title} tools</div>
+        <div className="small text-muted">{words.title}{TOOLS.some(here) ? ' tools' : ''}</div>
       </div>
       <div className="flex-grow-1 overflow-auto pe-1" style={{ minHeight: 0 }}>
         {TOOLS.filter(here).map(def => <Entry key={def.id} def={def} words={words} />)}
         {here(VALIDATION) && <Entry def={VALIDATION} words={words} />}
-        <p className="small text-muted mt-3 mb-3">{SELECTION_NOTE}</p>
+        {TOOLS.some(here) && <p className="small text-muted mt-3 mb-3">{SELECTION_NOTE}</p>}
+        {!TOOLS.some(here) && <p className="small text-muted mb-3">The Cut List will list every strip needed to build the panel — wood, finish and cuts — with a 3D view of the selected piece. It is not built yet, so it shows a loading screen for now.</p>}
         <Shortcuts workspace={workspace} />
         <h6 className="text-uppercase small text-muted mb-2">Other controls</h6>
         {ACTIONS.filter(here).map(def => <Entry key={def.id} def={def} words={words} />)}

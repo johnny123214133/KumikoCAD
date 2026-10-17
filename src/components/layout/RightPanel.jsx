@@ -3,6 +3,7 @@ import useAppStore from '../../store/useAppStore.js'
 import Inspector from '../inspector/Inspector.jsx'
 import GridInspector from '../panel-editor/GridInspector.jsx'
 import HelpPanel from './HelpPanel.jsx'
+import CutListNote from './CutListNote.jsx'
 
 export default function RightPanel() {
   const { workspace, rightPanelOpen, setRightPanelOpen, rightPanelWidth, setRightPanelWidth, helpOpen } = useAppStore()
@@ -48,7 +49,7 @@ export default function RightPanel() {
         {/* The Help tool swaps the usual content for the help text. The usual content
             stays mounted, just not displayed, so half-typed fields survive. */}
         <div style={{ display: helpOpen ? 'none' : 'contents' }}>
-          {workspace === 'panel-editor' ? <GridInspector /> : <Inspector />}
+          {workspace === 'panel-editor' ? <GridInspector /> : workspace === 'cut-list' ? <CutListNote text="Details of the selected piece will appear here." /> : <Inspector />}
         </div>
         {helpOpen && <HelpPanel />}
       </div>

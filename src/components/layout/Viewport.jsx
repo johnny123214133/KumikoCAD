@@ -15,6 +15,7 @@ import { flagDragGesture } from '../../scene/gestureGuard.js'
 import { normalizeRect, rectTouchesPolygon } from '../../geometry/rectSelect.js'
 import { isOutsidePanel, isOutsideTriangle } from '../../scene/clickOutside.js'
 import MiniMap from './MiniMap.jsx'
+import CutListView from './CutListView.jsx'
 import CanvasLoader from './CanvasLoader.jsx'
 import { paintCells } from '../../store/paintActions.js'
 import { fillCursor } from '../../scene/fillCursor.js'
@@ -482,7 +483,7 @@ export default function Viewport() {
           <Layer>
             {workspace === 'panel-editor'
               ? <GridLayer />
-              : <PatternLayer pattern={pattern} activeLayers={activeLayers} />}
+              : workspace === 'pattern-editor' && <PatternLayer pattern={pattern} activeLayers={activeLayers} />}
             {dragRectState && (() => {
               const r = normalizeRect(dragRectState.x1, dragRectState.y1, dragRectState.x2, dragRectState.y2)
               return (
@@ -503,7 +504,9 @@ export default function Viewport() {
       )}
       {!ready && <CanvasLoader delayMs={200} />}
       {/* Zoomed far in: a small overview of the whole panel / pattern with the visible part boxed. */}
-      <MiniMap workspace={workspace} pattern={pattern} />
+      {workspace !== 'cut-list' && <MiniMap workspace={workspace} pattern={pattern} />}
+      {/* The Cut List editor has no canvas of its own yet: it covers the stage with the loader. */}
+      {workspace === 'cut-list' && <CutListView />}
     </div>
   )
 }

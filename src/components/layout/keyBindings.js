@@ -16,6 +16,8 @@ import { EDITORS } from './editors.js'
 //   workspaces  where it applies
 const BOTH = ['pattern-editor', 'panel-editor']
 const PANEL = ['panel-editor']
+// Every editor, the Cut List (no canvas tools, camera or overlays) included.
+const ALL = ['pattern-editor', 'panel-editor', 'cut-list']
 const tool = (id) => () => useAppStore.getState().selectTool(id)
 
 const layer = (n, key, label, workspaces) => ({
@@ -45,10 +47,10 @@ export const KEY_BINDINGS = [
   { id: 'zoom-fit', key: 'z', keys: 'Z', group: 'View', label: 'Zoom to fit', workspaces: BOTH, run: () => useAppStore.getState().viewportApi?.zoomToFit() },
   { id: 'lock', key: 'l', keys: 'L', group: 'View', label: 'Lock or unlock the camera (not while Multi-select is active)', workspaces: BOTH, run: () => useAppStore.getState().toggleViewportLock() },
   { id: 'overview', key: 'o', keys: 'O', group: 'View', label: 'Show or hide the overview window', workspaces: BOTH, run: () => useAppStore.getState().toggleOverview() },
-  { id: 'left-panel', code: 'BracketLeft', keys: '[', group: 'View', label: 'Show or hide the left panel', workspaces: BOTH, run: () => { const a = useAppStore.getState(); a.setLeftPanelOpen(!a.leftPanelOpen) } },
-  { id: 'right-panel', code: 'BracketRight', keys: ']', group: 'View', label: 'Show or hide the right panel', workspaces: BOTH, run: () => { const a = useAppStore.getState(); a.setRightPanelOpen(!a.rightPanelOpen) } },
-  { id: 'chrome', code: 'Backslash', keys: '\\', group: 'View', label: 'Hide the left panel, right panel and overview if any is showing; show all three if none is', workspaces: BOTH, run: () => useAppStore.getState().toggleAllChrome() },
-  { id: 'help', key: 'h', keys: 'H', group: 'View', label: 'Open or close Help', workspaces: BOTH, run: () => useAppStore.getState().toggleHelp() },
+  { id: 'left-panel', code: 'BracketLeft', keys: '[', group: 'View', label: 'Show or hide the left panel', workspaces: ALL, run: () => { const a = useAppStore.getState(); a.setLeftPanelOpen(!a.leftPanelOpen) } },
+  { id: 'right-panel', code: 'BracketRight', keys: ']', group: 'View', label: 'Show or hide the right panel', workspaces: ALL, run: () => { const a = useAppStore.getState(); a.setRightPanelOpen(!a.rightPanelOpen) } },
+  { id: 'chrome', code: 'Backslash', keys: '\\', group: 'View', label: 'Hide the left panel, right panel and overview if any is showing; show all three if none is', workspaces: ALL, run: () => useAppStore.getState().toggleAllChrome() },
+  { id: 'help', key: 'h', keys: 'H', group: 'View', label: 'Open or close Help', workspaces: ALL, run: () => useAppStore.getState().toggleHelp() },
   layer(1, 'centerlines', 'Centerlines', ['pattern-editor']),
   layer(2, 'jointDots', 'Joint dots', ['pattern-editor']),
   layer(3, 'wireframe', 'Wireframe', ['pattern-editor']),
@@ -56,7 +58,7 @@ export const KEY_BINDINGS = [
   layer(5, 'showScale', 'Show Scale', BOTH),
   // One per editor, in toolbar order: 1 = the first editor, 2 = the second, ...
   ...EDITORS.map((ed, i) => ({
-    id: `editor-${ed.id}`, code: `Digit${i + 1}`, keys: String(i + 1), group: 'Editors', label: `Switch to the ${ed.label}`, workspaces: BOTH,
+    id: `editor-${ed.id}`, code: `Digit${i + 1}`, keys: String(i + 1), group: 'Editors', label: `Switch to the ${ed.label}`, workspaces: ALL,
     run: () => { const a = useAppStore.getState(); if (a.workspace !== ed.id) a.setWorkspace(ed.id) },
   })),
 ]

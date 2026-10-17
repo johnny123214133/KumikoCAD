@@ -2,9 +2,11 @@ import React, { useRef, useCallback, useState, useEffect } from 'react'
 import useAppStore from '../../store/useAppStore.js'
 import PatternLibrary from '../pattern-editor/PatternLibrary.jsx'
 import RecentPatterns from '../pattern-editor/RecentPatterns.jsx'
+import CutListNote from './CutListNote.jsx'
 import ViewControls from '../pattern-editor/ViewControls.jsx'
 
 export default function LeftPanel() {
+  const workspace = useAppStore((s) => s.workspace)
   const { leftPanelOpen, setLeftPanelOpen, leftPanelWidth, setLeftPanelWidth } = useAppStore()
   const dragRef = useRef(null)
   const handleRef = useRef(null)
@@ -83,7 +85,8 @@ export default function LeftPanel() {
           .side-panel comment for why: this is what makes close animate the
           same way open does, instead of content vanishing instantly. */}
       <div className="p-3 d-flex flex-column flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
-        <div ref={splitRef} className="d-flex flex-column flex-grow-1" style={{ minHeight: 200 }}>
+        {workspace === 'cut-list' && <CutListNote text="The list of strips will appear here." />}
+        <div ref={splitRef} className="d-flex flex-column flex-grow-1" style={workspace === 'cut-list' ? { display: 'none' } : { minHeight: 200 }}>
           <PatternLibrary />
           {recentOpen ? (
             <div
@@ -104,8 +107,8 @@ export default function LeftPanel() {
             <RecentPatterns />
           </div>
         </div>
-        <hr className="my-3 flex-shrink-0" />
-        <ViewControls />
+        {workspace !== 'cut-list' && <hr className="my-3 flex-shrink-0" />}
+        {workspace !== 'cut-list' && <ViewControls />}
       </div>
     </div>
   )

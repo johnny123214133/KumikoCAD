@@ -4,4 +4,5 @@
 export const EDITORS = [
   { id: 'pattern-editor', label: 'Pattern Editor' },
   { id: 'panel-editor', label: 'Panel Editor' },
+  { id: 'cut-list', label: 'Cut List' },
 ]

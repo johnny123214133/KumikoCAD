@@ -157,7 +157,7 @@ export default function Toolbar() {
 
       <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />
 
-      <div className="btn-group btn-group-sm" role="group" aria-label="Tools">
+      {workspace !== 'cut-list' && <div className="btn-group btn-group-sm" role="group" aria-label="Tools">
         {/* Only the tools that work in this editor are shown. */}
         {TOOLS.filter(({ workspaces }) => workspaces.includes(workspace)).map(({ id, label, Icon }) => {
           const active = activeTool === id
@@ -176,7 +176,7 @@ export default function Toolbar() {
             </button>
           )
         })}
-      </div>
+      </div>}
 
       {/* Validation is a switch, not a tool in the group above. Clicking it makes it the
           only active tool until a cell is clicked (that pins the highlight and hands the
@@ -222,6 +222,7 @@ export default function Toolbar() {
       )}
 
       <div className="ms-auto d-flex align-items-center" style={{ gap: '0.375rem' }}>
+        {workspace !== 'cut-list' && (<>
         <button
           type="button"
           className={`btn btn-sm ${viewportLocked ? 'btn-dark' : 'btn-outline-secondary'}`}
@@ -244,6 +245,8 @@ export default function Toolbar() {
         >
           <OverviewIcon />
         </button>
+
+        </>)}
 
         <div className="btn-group btn-group-sm">
           {EDITORS.map((ed, i) => (
