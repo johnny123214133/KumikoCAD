@@ -53,7 +53,11 @@ export const KEY_BINDINGS = [
   { id: 'chrome', code: 'Backslash', keys: '\\', group: 'View', label: 'Hide the left panel, right panel and overview if any is showing; show all three if none is', workspaces: ALL, run: () => useAppStore.getState().toggleAllChrome() },
   // The project shortcuts are handled in handleKeyDown (they use Ctrl/Cmd, which the table's matching ignores);
   // these rows are for Help.
-  { id: 'project-save', keys: 'Ctrl / Cmd + S', group: 'Project', label: 'Save the project (Shift as well: Save As)', workspaces: ALL },
+  { id: 'project-save', keys: 'Ctrl / Cmd + S', group: 'Project', label: 'Save the project', workspaces: ALL },
+  { id: 'project-save-as', keys: 'Ctrl / Cmd + Shift + S', group: 'Project', label: 'Save the project under a new name or in a new place (Save As)', workspaces: ALL },
+  // Handled in handleKeyDown too (Ctrl/Cmd), and not while typing in a field, where it selects the text.
+  { id: 'select-all-cells', keys: 'Ctrl / Cmd + A', group: 'Selection', label: 'Select every cell (switches to Multi-select unless Drag select is active)', workspaces: PANEL },
+  { id: 'select-all-strips', keys: 'Ctrl / Cmd + A', group: 'Selection', label: 'Select every strip of the pattern (switches to Multi-select unless Drag select is active)', workspaces: ['pattern-editor'] },
   { id: 'project-open', keys: 'Ctrl / Cmd + O', group: 'Project', label: 'Open a project file', workspaces: ALL },
   { id: 'help', key: 'h', keys: 'H', group: 'View', label: 'Open or close Help', workspaces: ALL, run: () => useAppStore.getState().toggleHelp() },
   layer(1, 'centerlines', 'Centerlines', ['pattern-editor']),
@@ -67,6 +71,23 @@ export const KEY_BINDINGS = [
     run: () => { const a = useAppStore.getState(); if (a.workspace !== ed.id) a.setWorkspace(ed.id) },
   })),
 ]
+
+// Selects every strip (Pattern editor) or cell (Panel editor). The Selection tool holds one item
+// and the tools that clear the selection when chosen can't keep one, so those switch to
+// Multi-select first; Multi-select, Drag select and Highlighter/Validation stay as they are.
+// Returns whether it acted (false in the Cut List, or with nothing to select).
+export function selectAll() {
+  const app = useAppStore.getState()
+  const sel = useSelectionStore.getState()
+  const panel = app.workspace === 'panel-editor'
+  if (!panel && app.workspace !== 'pattern-editor') return false
+  const ids = (panel ? sel.selectableSpaces : sel.selectableStrips).map((s) => s.id)
+  if (!ids.length) return false
+  if (!['multi-select', 'drag-select', 'validation'].includes(app.activeTool)) app.selectTool('multi-select')
+  if (panel) useSelectionStore.getState().setSpaceSelection(ids)
+  else useSelectionStore.getState().setStripSelection(ids)
+  return true
+}
 
 // The key written for tool/action `id`, for tooltips ('' if it has none).
 export const keyFor = (id) => KEY_BINDINGS.find((b) => b.id === id && (b.key || b.code))?.keys ?? ''
@@ -102,6 +123,12 @@ export function handleKeyDown(e) {
     return
   }
   if (typingTarget(e.target) || document.querySelector('[aria-modal="true"]')) return
+  // Select all: every strip (Pattern editor) or cell (Panel editor). Elsewhere the browser's own
+  // Select All is left alone.
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && !e.isComposing && e.key?.toLowerCase() === 'a') {
+    if (selectAll()) e.preventDefault()
+    return
+  }
   const binding = bindingFor(e, useAppStore.getState().workspace)
   if (!binding) return
   e.preventDefault()
