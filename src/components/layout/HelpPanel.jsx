@@ -109,7 +109,7 @@ export default function HelpPanel() {
         {TOOLS.filter(here).map(def => <Entry key={def.id} def={def} words={words} />)}
         {here(VALIDATION) && <Entry def={VALIDATION} words={words} />}
         {TOOLS.some(here) && <p className="small text-muted mt-3 mb-3">{SELECTION_NOTE}</p>}
-        {!TOOLS.some(here) && <p className="small text-muted mb-3">The Cut List will list every strip needed to build the panel — wood, finish and cuts — with a 3D view of the selected piece. It is not built yet, so it shows a loading screen for now.</p>}
+        {!TOOLS.some(here) && <p className="small text-muted mb-3">The Parts List counts every piece of wood the panel is made of — the border, the grid strips and the strips of each pattern — with its length, width, wood, finish and the cuts at its ends and along it. It is for information only: nothing in it can be edited. Click a piece in the list to see its Top, Right side, Bottom and Left side profiles in the middle of the screen, and its details on the right. Where a cut face can be seen from a view it is drawn a touch darker. The Joint dots and Show Scale overlays work here too.</p>}
         <Shortcuts workspace={workspace} />
         <h6 className="text-uppercase small text-muted mb-2">Other controls</h6>
         {ACTIONS.filter(here).map(def => <Entry key={def.id} def={def} words={words} />)}

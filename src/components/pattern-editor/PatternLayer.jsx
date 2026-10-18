@@ -26,7 +26,7 @@ const NOTCH_LABELS = {
   asymMiter: 'Asymmetric taper',
   custom: 'Custom',
 }
-const notchLabel = (t) => NOTCH_LABELS[t] ?? t
+export const notchLabel = (t) => NOTCH_LABELS[t] ?? t
 
 // Joints whose dots sit on top of each other (several strip ends meeting at
 // one point) are reported together, so the tooltip never hides one of them.

@@ -19,7 +19,7 @@ import { keyFor, selectAll, invertSelection, resetRotation } from './keyBindings
 const app = () => useAppStore.getState()
 
 export function buildCommands(workspace) {
-  const canvas = workspace !== 'cut-list'
+  const canvas = workspace !== 'parts-list'
   const editing = workspace === 'pattern-editor' || workspace === 'panel-editor'
   const list = []
   const add = (c) => list.push(c)
@@ -56,11 +56,11 @@ export function buildCommands(workspace) {
     add({ id: 'rotate-reset', title: 'Reset rotation of selected patterns', section: 'Cells', keys: keyFor('rotate-reset'), keywords: 'default turn zero original', run: () => resetRotation() })
   }
 
-  if (canvas) {
+  {
     add({ id: 'zoom-fit', title: 'Zoom to fit', section: 'View', keys: keyFor('zoom-fit'), keywords: 'frame all reset view', run: () => app().viewportApi?.zoomToFit() })
     add({ id: 'zoom-in', title: 'Zoom in', section: 'View', keywords: 'closer magnify', run: () => app().viewportApi?.zoomBy(1.25) })
     add({ id: 'zoom-out', title: 'Zoom out', section: 'View', keywords: 'farther', run: () => app().viewportApi?.zoomBy(1 / 1.25) })
-    add({ id: 'lock', title: 'Lock or unlock the camera', section: 'View', keys: keyFor('lock'), keywords: 'pan viewport', run: () => app().toggleViewportLock() })
+    if (canvas) add({ id: 'lock', title: 'Lock or unlock the camera', section: 'View', keys: keyFor('lock'), keywords: 'pan viewport', run: () => app().toggleViewportLock() })
     add({ id: 'overview', title: 'Show or hide the overview window', section: 'View', keys: keyFor('overview'), keywords: 'minimap', run: () => app().toggleOverview() })
   }
   add({ id: 'left-panel', title: 'Show or hide the left panel', section: 'View', keys: '[', keywords: 'sidebar patterns', run: () => app().setLeftPanelOpen(!app().leftPanelOpen) })

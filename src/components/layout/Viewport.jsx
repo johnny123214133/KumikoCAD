@@ -15,9 +15,12 @@ import { flagDragGesture } from '../../scene/gestureGuard.js'
 import { normalizeRect, rectTouchesPolygon } from '../../geometry/rectSelect.js'
 import { isOutsidePanel, isOutsideTriangle } from '../../scene/clickOutside.js'
 import MiniMap from './MiniMap.jsx'
+import PartsOverview from '../parts/PartsOverview.jsx'
 import CanvasControls from './CanvasControls.jsx'
 import useCursorStore from '../../store/useCursorStore.js'
-import CutListView from './CutListView.jsx'
+import PartsListView from './PartsListView.jsx'
+import PartsProfileLayer, { useSelectedProfile } from '../parts/PartsProfileLayer.jsx'
+import usePartsStore from '../../store/usePartsStore.js'
 import CanvasLoader from './CanvasLoader.jsx'
 import { paintCells } from '../../store/paintActions.js'
 import { fillCursor } from '../../scene/fillCursor.js'
@@ -87,7 +90,12 @@ export default function Viewport() {
   // chain at the source rather than special-casing the workspace check.
   const patternRef = useRef(pattern)
   useEffect(() => { patternRef.current = pattern }, [pattern])
-  const { cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior } = useGridStore()
+  // The Parts List's selected piece, laid out in its three views (zoom to fit frames them).
+  const { layout: profileLayoutNow } = useSelectedProfile()
+  const profileRef = useRef(profileLayoutNow)
+  useEffect(() => { profileRef.current = profileLayoutNow }, [profileLayoutNow])
+  const selectedPartKey = usePartsStore((s) => s.selectedKey)
+  const { cols, rows, cellWidth, gridStripWidth, borderWidth, orientation, cornerBehavior } = useGridStore()
 
   // Stage only mounts once size is known (see the conditional render below), so
   // stageRef.current is still null on the very first render pass — a plain ref
@@ -174,12 +182,19 @@ export default function Viewport() {
     // canvas.clientWidth/clientHeight directly rather than relying on React state.
     const w = container.clientWidth, h = container.clientHeight
     if (!w || !h) return
-    let bbox = workspace === 'panel-editor'
-      ? (() => {
-          const { width, height } = computeGridGeometry({ cols, rows, cellWidth, orientation, cornerBehavior }).bounds
-          return { minX: 0, maxX: width, minY: 0, maxY: height }
-        })()
-      : getPatternBoundingBox(patternRef.current, gridStripWidth)
+    let bbox
+    if (workspace === 'parts-list') {
+      const lay = profileRef.current
+      if (!lay) return
+      // (the layout is y down; the fit works in y up) with room to the left for the views' names
+      const room = Math.max(8, lay.length * 0.08)
+      bbox = { minX: lay.bounds.minX - room, maxX: lay.bounds.maxX, minY: -lay.bounds.maxY, maxY: -lay.bounds.minY }
+    } else if (workspace === 'panel-editor') {
+      const { width, height } = computeGridGeometry({ cols, rows, cellWidth, orientation, cornerBehavior }).bounds
+      bbox = { minX: 0, maxX: width, minY: 0, maxY: height }
+    } else {
+      bbox = getPatternBoundingBox(patternRef.current, gridStripWidth)
+    }
     // Show Scale puts a ruler below (and, in the panel, left of) the work: leave room.
     if (useAppStore.getState().activeLayers.showScale) {
       const room = 0.12 * Math.max(bbox.maxX - bbox.minX, bbox.maxY - bbox.minY)
@@ -261,6 +276,10 @@ export default function Viewport() {
   useEffect(() => {
     if (workspaceRef.current === 'pattern-editor') zoomToFit()
   }, [activePatternId, zoomToFit])
+  // The Parts List: choosing another kind of piece shows it fitted, too.
+  useEffect(() => {
+    if (workspaceRef.current === 'parts-list') zoomToFit()
+  }, [selectedPartKey, zoomToFit])
 
   useEffect(() => {
     setViewportApi({ zoomToFit, panTo, zoomBy })
@@ -349,16 +368,25 @@ export default function Viewport() {
   const pressRef = useRef(null) // { screenX, screenY, outside } | null
   const isOutsideWork = (world) => {
     if (workspace === 'panel-editor') {
-      return isOutsidePanel(useSelectionStore.getState().selectableSpaces, gridStripWidth / 2, world.x, world.y)
+      // the border's outer face is the edge of the work (it can stand well out from the nominal edge)
+      return isOutsidePanel(useSelectionStore.getState().selectableSpaces, Math.max(gridStripWidth / 2, borderWidth - gridStripWidth / 2), world.x, world.y)
     }
     const { A, B, C } = pattern.vertices
     return isOutsideTriangle([A.x, -A.y, B.x, -B.y, C.x, -C.y], gridStripWidth / 2, world.x, world.y)
   }
 
   const handleStageMouseDown = (e) => {
+    if (workspace === 'parts-list') return // nothing to select or draw on in the Parts List
     // Ctrl / Cmd + click on the panel applies the current pattern to the selection (GridLayer):
     // it isn't the start of a stroke, a drag rectangle or a click on empty canvas.
     if (workspace === 'panel-editor' && (e.evt?.ctrlKey || e.evt?.metaKey)) return
+    // Fill / paint: a click that is not on a cell or strip (where the bucket cursor is not showing)
+    // hands the canvas back to the Selection tool instead of painting nothing.
+    if (activeTool === 'fill-paint' && viewportLocked) {
+      const stage = e.target.getStage()
+      const over = e.target !== stage && e.target.listening?.() !== false
+      if (!over) { stage.container().style.cursor = ''; useAppStore.getState().selectTool('selection'); return }
+    }
     if (viewportLocked && ((activeTool === 'place-pattern' && workspace === 'panel-editor') || activeTool === 'drag-select' || activeTool === 'fill-paint')) {
       return startStroke(e, activeTool)
     }
@@ -404,6 +432,7 @@ export default function Viewport() {
   }
 
   const handleStageMouseMove = (e) => {
+    if (workspace === 'parts-list') return
     publishCursor(e.target.getStage())
     if (activeTool === 'fill-paint' && viewportLocked) {
       const stage = e.target.getStage()
@@ -426,6 +455,7 @@ export default function Viewport() {
   }
 
   const handleStageMouseUp = (e) => {
+    if (workspace === 'parts-list') return
     if (strokeRef.current) return endStroke()
     const press = pressRef.current
     pressRef.current = null
@@ -510,8 +540,8 @@ export default function Viewport() {
           ref={setStageRef}
           width={size.width}
           height={size.height}
-          draggable={!viewportLocked}
-          onWheel={viewportLocked ? (e) => e.evt.preventDefault() : handleWheel}
+          draggable={workspace === 'parts-list' || !viewportLocked}
+          onWheel={viewportLocked && workspace !== 'parts-list' ? (e) => e.evt.preventDefault() : handleWheel}
           onDragMove={updateVisibleRect}
           onMouseDown={handleStageMouseDown}
           onMouseMove={handleStageMouseMove}
@@ -522,7 +552,8 @@ export default function Viewport() {
           <Layer>
             {workspace === 'panel-editor'
               ? <GridLayer />
-              : workspace === 'pattern-editor' && <PatternLayer pattern={pattern} activeLayers={activeLayers} />}
+              : workspace === 'parts-list' ? <PartsProfileLayer />
+              : <PatternLayer pattern={pattern} activeLayers={activeLayers} />}
             {dragRectState && (() => {
               const r = normalizeRect(dragRectState.x1, dragRectState.y1, dragRectState.x2, dragRectState.y2)
               return (
@@ -543,10 +574,10 @@ export default function Viewport() {
       )}
       {!ready && <CanvasLoader delayMs={200} />}
       {/* Zoomed far in: a small overview of the whole panel / pattern with the visible part boxed. */}
-      {workspace !== 'cut-list' && <MiniMap workspace={workspace} pattern={pattern} />}
-      {workspace !== 'cut-list' && <CanvasControls workspace={workspace} />}
-      {/* The Cut List editor has no canvas of its own yet: it covers the stage with the loader. */}
-      {workspace === 'cut-list' && <CutListView />}
+      {workspace !== 'parts-list' ? <MiniMap workspace={workspace} pattern={pattern} /> : <PartsOverview />}
+      <CanvasControls workspace={workspace} />
+      {/* The Parts List's canvas draws the selected piece's profiles; until one is picked it says so. */}
+      {workspace === 'parts-list' && <PartsListView />}
     </div>
   )
 }

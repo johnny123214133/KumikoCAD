@@ -90,20 +90,20 @@ export const ACTIONS = [
     help: () => ['The two rotate buttons turn the patterns in the selected cells 120° counterclockwise or clockwise.'],
   },
   {
-    id: 'zoom', label: 'Zoom', Icon: ZoomFitIcon, workspaces: ['pattern-editor', 'panel-editor'],
+    id: 'zoom', label: 'Zoom', Icon: ZoomFitIcon, workspaces: ['pattern-editor', 'panel-editor', 'parts-list'],
     help: () => [
-      'Zoom to fit (Z) frames the whole work. The zoom buttons at the bottom right of the canvas zoom out, fit and zoom in; the mouse wheel zooms too, while the viewport is unlocked.',
+      'Zoom to fit (Z) frames the whole work. The zoom buttons at the bottom right of the canvas zoom out, fit and zoom in; the mouse wheel zooms too (in the Parts List always; in the editors while the viewport is unlocked).',
       'The status bar along the bottom shows how far in you are (100% is the real size on a 96 dpi screen; click it to zoom to fit), where the pointer is, what is selected, and the unit lengths are shown in.',
     ],
   },
   {
-    id: 'overlays', label: 'Overlays', Icon: LayersIcon, workspaces: ['pattern-editor', 'panel-editor'],
+    id: 'overlays', label: 'Overlays', Icon: LayersIcon, workspaces: ['pattern-editor', 'panel-editor', 'parts-list'],
     help: (w) => [
-      `The second line of the toolbar, beside the editor tabs, switches the drawing aids for this editor on and off (Shift + 1 to 5). ${w.work === 'pattern' ? 'Centerlines, joint dots (hover one to see its joint type), wireframe, the view-orientation arrow and a scale ruler.' : 'The view-orientation arrow on every cell, and a scale ruler along the panel.'}`,
+      `The second line of the toolbar, beside the editor tabs, switches the drawing aids for this editor on and off (Shift + 1 to 5). ${w.work === 'pattern' ? 'Centerlines, joint dots (hover one to see its joint type), wireframe, the view-orientation arrow and a scale ruler.' : w.work === 'piece' ? 'Joint dots where the selected piece is cut (hover one to see what it is), and a scale ruler under its profiles.' : 'The view-orientation arrow on every cell, and a scale ruler along the panel.'}`,
     ],
   },
   {
-    id: 'palette', label: 'Command palette', Icon: SearchIcon, workspaces: ['pattern-editor', 'panel-editor', 'cut-list'],
+    id: 'palette', label: 'Command palette', Icon: SearchIcon, workspaces: ['pattern-editor', 'panel-editor', 'parts-list'],
     help: () => [
       'Ctrl/Cmd + K opens a search over everything: commands, tools, overlays, themes and the pattern library. Typing is forgiving (letters in order, in any word order, small typos), and Enter runs the top result.',
     ],
@@ -116,14 +116,16 @@ export const ACTIONS = [
     ],
   },
   {
-    id: 'overview', label: 'Overview window', Icon: OverviewIcon, workspaces: ['pattern-editor', 'panel-editor'],
-    help: (w) => [
+    id: 'overview', label: 'Overview window', Icon: OverviewIcon, workspaces: ['pattern-editor', 'panel-editor', 'parts-list'],
+    help: (w) => w.work === 'piece' ? [
+      'Toggles a small window in the bottom-left corner showing the whole panel, with every cell and every border or grid strip that uses the selected piece highlighted. It appears once a piece is picked in the list.',
+    ] : [
       `Toggles a small window in the bottom-left corner that appears when you are zoomed far in on the ${w.work}. It shows the whole ${w.work} with a box around the part you are looking at.`,
       'Click anywhere in it, or click and drag, to move the view there. This works even while the viewport is locked.',
     ],
   },
   {
-    id: 'theme', label: 'Colour theme', Icon: PaletteIcon, workspaces: ['pattern-editor', 'panel-editor', 'cut-list'],
+    id: 'theme', label: 'Colour theme', Icon: PaletteIcon, workspaces: ['pattern-editor', 'panel-editor', 'parts-list'],
     help: () => [
       'Opens the list of colour themes, light ones then dark ones. Click one to apply it straight away; click the palette again, press Escape, or click elsewhere to close the list.',
       'A theme sets the colours of the whole interface and of what the canvas draws: validation highlights, joint dots, snap circles, the orientation arrow, the scale and the selection outline. Wood and finish colours are never changed. Your choice is remembered.',
@@ -137,5 +139,5 @@ export const SELECTION_NOTE =
 export const WORKSPACE_WORDS = {
   'panel-editor': { title: 'Panel editor', item: 'cell', items: 'cells', work: 'panel' },
   'pattern-editor': { title: 'Pattern editor', item: 'strip', items: 'strips', work: 'pattern' },
-  'cut-list': { title: 'Cut list', item: 'strip', items: 'strips', work: 'panel' },
+  'parts-list': { title: 'Parts list', item: 'piece', items: 'pieces', work: 'piece' },
 }

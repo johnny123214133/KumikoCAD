@@ -17,8 +17,8 @@ import { saveProject, openProject } from '../../store/projectActions.js'
 //   workspaces  where it applies
 const BOTH = ['pattern-editor', 'panel-editor']
 const PANEL = ['panel-editor']
-// Every editor, the Cut List (no canvas tools, camera or overlays) included.
-const ALL = ['pattern-editor', 'panel-editor', 'cut-list']
+// Every editor, the Parts List (no canvas tools, camera or overlays) included.
+const ALL = ['pattern-editor', 'panel-editor', 'parts-list']
 const tool = (id) => () => useAppStore.getState().selectTool(id)
 
 const layer = (n, key, label, workspaces) => ({
@@ -49,9 +49,9 @@ export const KEY_BINDINGS = [
   { id: 'validation', key: 'v', keys: 'V', group: 'Cells', label: 'Turn Highlighter/Validation on or off', workspaces: PANEL, run: () => useAppStore.getState().toggleValidation() },
   // Not a key press: handled by the cells' click handler (GridLayer.jsx).
   { id: 'apply-pattern', keys: 'Ctrl / Cmd + click', group: 'Cells', label: 'Click a cell to apply the current pattern to the selected cells, with any tool but Snap to gridpoint', workspaces: PANEL },
-  { id: 'zoom-fit', key: 'z', keys: 'Z', group: 'View', label: 'Zoom to fit', workspaces: BOTH, run: () => useAppStore.getState().viewportApi?.zoomToFit() },
+  { id: 'zoom-fit', key: 'z', keys: 'Z', group: 'View', label: 'Zoom to fit', workspaces: ALL, run: () => useAppStore.getState().viewportApi?.zoomToFit() },
   { id: 'lock', key: 'l', keys: 'L', group: 'View', label: 'Lock or unlock the camera (from Multi-select, switches to the Selection tool first)', workspaces: BOTH, run: () => useAppStore.getState().toggleViewportLock() },
-  { id: 'overview', key: 'o', keys: 'O', group: 'View', label: 'Show or hide the overview window', workspaces: BOTH, run: () => useAppStore.getState().toggleOverview() },
+  { id: 'overview', key: 'o', keys: 'O', group: 'View', label: 'Show or hide the overview window', workspaces: ALL, run: () => useAppStore.getState().toggleOverview() },
   { id: 'left-panel', code: 'BracketLeft', keys: '[', group: 'View', label: 'Show or hide the left panel', workspaces: ALL, run: () => { const a = useAppStore.getState(); a.setLeftPanelOpen(!a.leftPanelOpen) } },
   { id: 'right-panel', code: 'BracketRight', keys: ']', group: 'View', label: 'Show or hide the right panel', workspaces: ALL, run: () => { const a = useAppStore.getState(); a.setRightPanelOpen(!a.rightPanelOpen) } },
   { id: 'chrome', code: 'Backslash', keys: '\\', group: 'View', label: 'Hide the left panel, right panel and overview if any is showing; show all three if none is', workspaces: ALL, run: () => useAppStore.getState().toggleAllChrome() },
@@ -68,10 +68,10 @@ export const KEY_BINDINGS = [
   { id: 'project-open', keys: 'Ctrl / Cmd + O', group: 'Project', label: 'Open a project file', workspaces: ALL },
   { id: 'help', key: 'h', keys: 'H', group: 'View', label: 'Open or close Help', workspaces: ALL, run: () => useAppStore.getState().toggleHelp() },
   layer(1, 'centerlines', 'Centerlines', ['pattern-editor']),
-  layer(2, 'jointDots', 'Joint dots', ['pattern-editor']),
+  layer(2, 'jointDots', 'Joint dots', ['pattern-editor', 'parts-list']),
   layer(3, 'wireframe', 'Wireframe', ['pattern-editor']),
   layer(4, 'viewOrientation', 'View orientation', BOTH),
-  layer(5, 'showScale', 'Show Scale', BOTH),
+  layer(5, 'showScale', 'Show Scale', ALL),
   // One per editor, in toolbar order: 1 = the first editor, 2 = the second, ...
   ...EDITORS.map((ed, i) => ({
     id: `editor-${ed.id}`, code: `Digit${i + 1}`, keys: String(i + 1), group: 'Editors', label: `Switch to the ${ed.label}`, workspaces: ALL,
@@ -83,7 +83,7 @@ export const KEY_BINDINGS = [
 // Pattern editor, cells in the Panel editor). The Selection tool holds one item and the tools that
 // clear the selection when chosen can't keep one, so those switch to Multi-select first;
 // Multi-select, Drag select and Highlighter/Validation stay as they are.
-// Returns whether it acted (false in the Cut List, or with nothing to select).
+// Returns whether it acted (false in the Parts List, or with nothing to select).
 function reselect(pick) {
   const app = useAppStore.getState()
   const sel = useSelectionStore.getState()

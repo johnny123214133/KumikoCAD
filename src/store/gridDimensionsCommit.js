@@ -1,7 +1,7 @@
 import useGridStore from './useGridStore.js';
 import usePatternStore from './usePatternStore.js';
 import useSelectionStore from './useSelectionStore.js';
-import { clampGridDimensions } from '../geometry/units.js';
+import { clampGridDimensions, clampBorderWidth } from '../geometry/units.js';
 import { getPanelCellImage } from '../geometry/patternImageCache.js';
 import { spaceIdInGrid } from '../geometry/grid/computeGridGeometry.js';
 
@@ -181,7 +181,7 @@ function prepare([key, flags], ctx) {
 // from the last prepare pass, so they always match the state being applied to.
 function apply(next) {
   const plan = usePatternStore.getState().planStripWidthClamp(next.cellWidth, next.gridStripWidth);
-  useGridStore.setState({ cellWidth: next.cellWidth, gridStripWidth: next.gridStripWidth });
+  useGridStore.setState((s) => ({ cellWidth: next.cellWidth, gridStripWidth: next.gridStripWidth, borderWidth: clampBorderWidth(s.borderWidth, next.gridStripWidth) }));
   if (plan.changed) usePatternStore.setState({ patternOverrides: plan.patternOverrides });
   requested = null;
   setPending(false);

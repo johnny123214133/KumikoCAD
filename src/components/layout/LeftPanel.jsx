@@ -2,7 +2,7 @@ import React, { useRef, useCallback, useState, useEffect } from 'react'
 import useAppStore from '../../store/useAppStore.js'
 import PatternLibrary from '../pattern-editor/PatternLibrary.jsx'
 import RecentPatterns from '../pattern-editor/RecentPatterns.jsx'
-import CutListNote from './CutListNote.jsx'
+import PartsListPanel from '../parts/PartsListPanel.jsx'
 
 export default function LeftPanel() {
   const workspace = useAppStore((s) => s.workspace)
@@ -25,7 +25,7 @@ export default function LeftPanel() {
     ro.observe(el)
     setSplitH(el.clientHeight)
     return () => ro.disconnect()
-  }, [])
+  }, [workspace]) // the split only exists outside the Parts List
   const RECENT_MIN = 56, PATTERNS_MIN = 120
   const maxRecent = Math.max(RECENT_MIN, splitH - PATTERNS_MIN - 12)
   const shownRecent = Math.min(Math.max(recentHeight, RECENT_MIN), maxRecent)
@@ -84,8 +84,10 @@ export default function LeftPanel() {
           .side-panel comment for why: this is what makes close animate the
           same way open does, instead of content vanishing instantly. */}
       <div className="p-3 d-flex flex-column flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
-        {workspace === 'cut-list' && <CutListNote text="The list of strips will appear here." />}
-        <div ref={splitRef} className="d-flex flex-column flex-grow-1" style={workspace === 'cut-list' ? { display: 'none' } : { minHeight: 200 }}>
+        {workspace === 'parts-list' && <PartsListPanel />}
+        {/* The pattern library and Recently Used belong to the pattern and panel editors only. */}
+        {workspace !== 'parts-list' && (
+        <div ref={splitRef} className="d-flex flex-column flex-grow-1" style={{ minHeight: 200 }}>
           <PatternLibrary />
           {recentOpen ? (
             <div
@@ -106,6 +108,7 @@ export default function LeftPanel() {
             <RecentPatterns />
           </div>
         </div>
+        )}
       </div>
     </div>
   )

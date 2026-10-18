@@ -40,7 +40,7 @@ export default function StatusBar() {
   const zoom = useAppStore((s) => s.viewportZoom)
   const rectWorkspace = useAppStore((s) => s.viewportRectWorkspace)
   const api = useAppStore((s) => s.viewportApi)
-  const canvas = workspace !== 'cut-list'
+  const canvas = workspace !== 'parts-list'
   const pct = zoom > 0 && rectWorkspace === workspace ? Math.round((zoom / PX_PER_MM_AT_100) * 100) : null
   return (
     <footer
@@ -48,7 +48,7 @@ export default function StatusBar() {
       style={{ flexShrink: 0, minHeight: 28, fontSize: 12, zIndex: 100, columnGap: '1.25rem', overflow: 'hidden' }}
     >
       {canvas && <Cursor unit={unit} />}
-      {canvas && (
+      {(
         <button
           type="button"
           className="btn btn-link p-0 text-decoration-none"

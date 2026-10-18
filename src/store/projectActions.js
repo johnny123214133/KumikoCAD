@@ -50,7 +50,7 @@ export function buildProjectDocument() {
   return {
     panel: {
       cols: grid.cols, rows: grid.rows, cellWidth: grid.cellWidth, gridStripWidth: grid.gridStripWidth,
-      orientation: grid.orientation, cornerBehavior: grid.cornerBehavior, material: grid.material, finish: grid.finish,
+      borderWidth: grid.borderWidth, borderCorner: grid.borderCorner, panelDepth: grid.panelDepth, orientation: grid.orientation, cornerBehavior: grid.cornerBehavior, material: grid.material, finish: grid.finish,
       placementFlip: !!grid.placementFlip, cells,
     },
     patterns,
@@ -86,7 +86,7 @@ export function applyProjectDocument({ panel, patterns }) {
   useAppStore.setState({ validationActive: false, validationPinnedId: null, validationReturn: null });
   useGridStore.setState({
     cols: panel.cols, rows: panel.rows, cellWidth: panel.cellWidth, gridStripWidth: panel.gridStripWidth,
-    orientation: panel.orientation, cornerBehavior: panel.cornerBehavior, material: panel.material, finish: panel.finish,
+    borderWidth: panel.borderWidth, borderCorner: panel.borderCorner, panelDepth: panel.panelDepth, orientation: panel.orientation, cornerBehavior: panel.cornerBehavior, material: panel.material, finish: panel.finish,
     placementFlip: panel.placementFlip, spacePatterns, spaceXforms,
   });
   usePatternStore.getState().clampAllStripWidths();

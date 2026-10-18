@@ -14,6 +14,8 @@ import {
   formatLength, MAX_PANEL_CELLS, MAX_STRIP_WIDTH_FRACTION,
   MIN_CELL_WIDTH_MM, MAX_CELL_WIDTH_MM, CELL_MM_STEP, CELL_IN_STEP, snapCellWidthForUnit,
   MIN_GRID_STRIP_WIDTH_MM, GRID_STRIP_MM_STEP, GRID_STRIP_IN_STEP, snapGridStripWidthForUnit,
+  BORDER_WIDTH_MM_STEP, BORDER_WIDTH_IN_STEP, MAX_BORDER_WIDTH_MM, minBorderWidthMm, snapBorderWidthForUnit,
+  MIN_PANEL_DEPTH_MM, MAX_PANEL_DEPTH_MM, PANEL_DEPTH_MM_STEP, PANEL_DEPTH_IN_STEP, snapPanelDepthForUnit,
 } from '../../geometry/units.js'
 
 
@@ -26,8 +28,8 @@ const notifyRejected = ({ patternName }) =>
 
 export default function GridInspector() {
   const {
-    cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior, material, finish,
-    setCols, setRows, setOrientation, setCornerBehavior, setMaterial, setFinish,
+    cols, rows, cellWidth, gridStripWidth, borderWidth, borderCorner, panelDepth, orientation, cornerBehavior, material, finish,
+    setCols, setRows, setOrientation, setCornerBehavior, setMaterial, setFinish, setBorderWidth, setBorderCorner, setPanelDepth,
   } = useGridStore()
   const unit = useAppStore(s => s.gridUnit)
   // True from the moment a cell/strip width edit is handed off until the panel
@@ -91,6 +93,49 @@ export default function GridInspector() {
           snap={snapGridStripWidthForUnit}
           busy={applying}
           onCommit={(mm) => commitGridDimensions({ gridStripWidth: mm }, { onReject: notifyRejected })}
+        />
+
+        {/* The border's inner face stays where the grid strips put it, so only its OUTSIDE
+            moves with this: a border wider than a grid strip grows outward. Not a grid
+            dimension (no pattern has to be rebuilt), so it is applied straight to the store. */}
+        <DebouncedLengthField
+          label="Border width"
+          help="Width of the four strips framing the panel. The inside face stays half a grid strip in from the panel edge, so extra width is added to the outside only. At least half the grid strip width."
+          valueMm={borderWidth}
+          unit={unit}
+          minMm={minBorderWidthMm(gridStripWidth)}
+          maxMm={MAX_BORDER_WIDTH_MM}
+          stepMm={BORDER_WIDTH_MM_STEP}
+          stepIn={BORDER_WIDTH_IN_STEP}
+          snap={(mm, u) => snapBorderWidthForUnit(mm, u, gridStripWidth)}
+          busy={applying}
+          onCommit={setBorderWidth}
+        />
+
+        <div className="mb-3">
+          <FieldLabel label="Border corners" tip="How the border strips meet at the panel's corners: mitred at 45°, or half-lapped with the strips parallel to the cell's base edge on top. A corner that lands on a grid vertex also joins the grid strip running into it." />
+          <div className="btn-group btn-group-sm w-100" role="group">
+            <button type="button" className={`btn ${borderCorner === 'miter' ? 'btn-dark' : 'btn-outline-secondary'}`}
+              onClick={() => setBorderCorner('miter')}>Mitered</button>
+            <button type="button" className={`btn ${borderCorner === 'halfLap' ? 'btn-dark' : 'btn-outline-secondary'}`}
+              onClick={() => setBorderCorner('halfLap')}>Half lap</button>
+          </div>
+        </div>
+
+        {/* How far the panel stands off the wall. Nothing on the canvas changes with it: it is how deep
+            the panel's own strips are, which the half laps and three-strip laps cut into. */}
+        <DebouncedLengthField
+          label="Panel depth"
+          help="How far the panel stands off the wall it is mounted on. Nothing changes on screen, but it is how deep the grid and border strips are, which sets what the half laps and three-strip laps cut away. At least 10 mm."
+          valueMm={panelDepth}
+          unit={unit}
+          minMm={MIN_PANEL_DEPTH_MM}
+          maxMm={MAX_PANEL_DEPTH_MM}
+          stepMm={PANEL_DEPTH_MM_STEP}
+          stepIn={PANEL_DEPTH_IN_STEP}
+          snap={snapPanelDepthForUnit}
+          busy={applying}
+          onCommit={setPanelDepth}
         />
 
         <DebouncedLengthField

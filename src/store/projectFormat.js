@@ -1,6 +1,7 @@
 import { WOOD_OPTIONS, FINISH_OPTIONS } from '../geometry/materials.js';
 import {
   MAX_PANEL_CELLS, MIN_CELL_WIDTH_MM, MAX_CELL_WIDTH_MM, MIN_GRID_STRIP_WIDTH_MM, MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM,
+  MAX_BORDER_WIDTH_MM, minBorderWidthMm, MIN_PANEL_DEPTH_MM, MAX_PANEL_DEPTH_MM, DEFAULT_PANEL_DEPTH_MM,
 } from '../geometry/units.js';
 import { migrateStoredPattern, isKnownBasePattern, storedParams, paramDefsFor } from './usePatternStore.js';
 
@@ -12,8 +13,8 @@ import { migrateStoredPattern, isKnownBasePattern, storedParams, paramDefsFor } 
 //     format: 'kumiko-cad-project',
 //     formatVersion: 1,
 //     savedAt: '2026-10-17T…Z',
-//     panel:    { cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior,
-//                 material, finish, placementFlip,
+//     panel:    { cols, rows, cellWidth, gridStripWidth, borderWidth, borderCorner, panelDepth, orientation,
+//                 cornerBehavior, material, finish, placementFlip,
 //                 cells: { 'r0-c3': { pattern: 'p1', rot: 0, flip: false }, … } },
 //     patterns: { p1: { name, recipe: { basePatternId, patternStripWidth, material, finish,
 //                                      params, stripMaterials } }, … }
@@ -158,6 +159,15 @@ function validate(doc) {
   if (!isNum(p.cellWidth) || p.cellWidth < MIN_CELL_WIDTH_MM || p.cellWidth > MAX_CELL_WIDTH_MM) fail('The panel’s cell width is out of range.');
   const maxStrip = p.cellWidth * MAX_STRIP_WIDTH_FRACTION + 1e-9;
   if (!isNum(p.gridStripWidth) || p.gridStripWidth < MIN_GRID_STRIP_WIDTH_MM || p.gridStripWidth > maxStrip) fail('The panel’s grid strip width is out of range.');
+  // borderWidth and borderCorner came later than format 1: a file without them is a panel whose border
+  // was as wide as a grid strip with mitred corners (optional fields never need a version bump).
+  const borderWidth = p.borderWidth === undefined ? p.gridStripWidth : p.borderWidth;
+  if (!isNum(borderWidth) || borderWidth < minBorderWidthMm(p.gridStripWidth) - 1e-9 || borderWidth > MAX_BORDER_WIDTH_MM) fail('The panel’s border width is out of range.');
+  const borderCorner = p.borderCorner === undefined ? 'miter' : p.borderCorner;
+  if (borderCorner !== 'miter' && borderCorner !== 'halfLap') fail('The panel’s border corner type is invalid.');
+  // panelDepth (how far the panel stands off the wall) is optional too: an older file gets the default.
+  const panelDepth = p.panelDepth === undefined ? DEFAULT_PANEL_DEPTH_MM : p.panelDepth;
+  if (!isNum(panelDepth) || panelDepth < MIN_PANEL_DEPTH_MM - 1e-9 || panelDepth > MAX_PANEL_DEPTH_MM) fail('The panel’s depth is out of range.');
   if (p.orientation !== 'horizontal' && p.orientation !== 'vertical') fail('The panel’s orientation is invalid.');
   if (p.cornerBehavior !== 'taper' && p.cornerBehavior !== 'fill') fail('The panel’s corner type is invalid.');
   if (!WOODS.has(p.material)) fail('The panel’s wood is not one this version has.');
@@ -188,7 +198,7 @@ function validate(doc) {
 
   return {
     panel: {
-      cols, rows, cellWidth: p.cellWidth, gridStripWidth: p.gridStripWidth, orientation: p.orientation,
+      cols, rows, cellWidth: p.cellWidth, gridStripWidth: p.gridStripWidth, borderWidth, borderCorner, panelDepth, orientation: p.orientation,
       cornerBehavior: p.cornerBehavior, material: p.material, finish: p.finish, placementFlip: p.placementFlip, cells,
     },
     patterns,

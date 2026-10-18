@@ -20,26 +20,44 @@ export function gridEdgeWidth(scale, stripWidth) {
 }
 
 // ctx: a CanvasRenderingContext2D already in world units.
-//   boundary: flat [x, y, x, y, ...] closed polygon (or empty)
+//   boundary: flat [x, y, x, y, ...] closed polygon (or empty) — the border's CENTRELINE
+//   boundaryWidth: the border's width (defaults to the strip width)
 //   segments: [[x1, y1, x2, y2], ...] open interior lines
 //   joints:   [{ x, y }] where 2+ segments meet (round patches fill the gaps)
-export function drawGridStrips(ctx, { scale, stripWidth, fillColor, edgeColor, boundary = [], segments = [], joints = [] }) {
+//   latticeClip: [x0, y0, x1, y1] — the border's outer face; the interior lines (whose ends are
+//     cut square across the panel's nominal edge) are kept inside it, one edge width short, so a
+//     slanted end can't poke out past a narrow border or break its outline
+export function drawGridStrips(ctx, { scale, stripWidth, boundaryWidth = stripWidth, fillColor, edgeColor, boundary = [], segments = [], joints = [], latticeClip = null }) {
   if (!(stripWidth > 0)) return;
-  const edge = gridEdgeWidth(scale, stripWidth);
+  const edge = gridEdgeWidth(scale, Math.min(stripWidth, boundaryWidth));
   ctx.save();
   ctx.lineCap = 'butt';
   ctx.lineJoin = 'miter';
-  for (const [color, width] of [[edgeColor, stripWidth + edge], [fillColor, Math.max(0, stripWidth - edge)]]) {
-    if (!(width > 0)) continue;
+  for (const [color, grow] of [[edgeColor, edge], [fillColor, -edge]]) {
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    if (boundary.length >= 4) {
+    // The border band
+    const bw = boundaryWidth + grow;
+    if (bw > 0 && boundary.length >= 4) {
+      ctx.lineWidth = bw;
+      ctx.beginPath();
       ctx.moveTo(boundary[0], boundary[1]);
       for (let i = 2; i < boundary.length; i += 2) ctx.lineTo(boundary[i], boundary[i + 1]);
       ctx.closePath();
+      ctx.stroke();
     }
+    // The interior lines and their junction patches
+    const width = stripWidth + grow;
+    if (!(width > 0) || (!segments.length && !joints.length)) continue;
+    ctx.save();
+    if (latticeClip) {
+      const [x0, y0, x1, y1] = latticeClip;
+      ctx.beginPath();
+      ctx.rect(x0 + edge, y0 + edge, Math.max(0, x1 - x0 - 2 * edge), Math.max(0, y1 - y0 - 2 * edge));
+      ctx.clip();
+    }
+    ctx.lineWidth = width;
+    ctx.beginPath();
     for (const [x1, y1, x2, y2] of segments) { ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); }
     ctx.stroke();
     if (joints.length) {
@@ -48,6 +66,7 @@ export function drawGridStrips(ctx, { scale, stripWidth, fillColor, edgeColor, b
       for (const p of joints) { ctx.moveTo(p.x + r, p.y); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); }
       ctx.fill();
     }
+    ctx.restore();
   }
   ctx.restore();
 }

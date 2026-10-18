@@ -130,7 +130,7 @@ export default function CanvasControls({ workspace }) {
   const right = useRightOffset()
   return (
     <>
-      <FillPanel right={right} workspace={workspace} />
+      {workspace !== 'parts-list' && <FillPanel right={right} workspace={workspace} />}
       <ZoomCluster right={right} />
     </>
   )

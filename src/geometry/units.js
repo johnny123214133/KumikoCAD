@@ -115,6 +115,51 @@ export function snapGridStripWidthForUnit(mm, unit) {
   return inToMm(Math.max(ceilTo(mmToIn(mm), GRID_STRIP_IN_STEP), ceilTo(mmToIn(MIN_GRID_STRIP_WIDTH_MM), GRID_STRIP_IN_STEP)));
 }
 
+// Border width: the width of the panel's four border strips (the frame round the grid).
+// The border's INNER face never moves: it sits half a grid strip in from the panel's
+// nominal edge, exactly where the grid strips stop the patterns beside them, so the
+// border cells keep their shape whatever the border width. Whatever the border has beyond
+// that (width - half a grid strip) lies outside the nominal edge. Steps by half a mm (or
+// 1/16" in imperial, like the grid strip width). Its minimum is half the grid strip width
+// rounded UP to the next half mm, which keeps the border's outer face at or beyond the
+// nominal edge.
+export const BORDER_WIDTH_MM_STEP = 0.5;
+export const BORDER_WIDTH_IN_STEP = 1 / 16;
+export const MAX_BORDER_WIDTH_MM = 100;
+export const DEFAULT_BORDER_WIDTH_MM = DEFAULT_GRID_STRIP_WIDTH_MM;
+export const minBorderWidthMm = (gridStripWidth) => ceilTo(gridStripWidth / 2, BORDER_WIDTH_MM_STEP);
+// A border width held between its minimum (which follows the grid strip width) and maximum.
+export const clampBorderWidth = (borderWidth, gridStripWidth) =>
+  Math.min(Math.max(Number.isFinite(borderWidth) ? borderWidth : DEFAULT_BORDER_WIDTH_MM, minBorderWidthMm(gridStripWidth)), MAX_BORDER_WIDTH_MM);
+// Same direction rules as the grid strip width on a unit switch: down to a half mm, up to a 1/16".
+export function snapBorderWidthForUnit(mm, unit, gridStripWidth) {
+  const min = minBorderWidthMm(gridStripWidth);
+  if (unit === 'mm') return Math.min(Math.max(floorTo(mm, BORDER_WIDTH_MM_STEP), min), MAX_BORDER_WIDTH_MM);
+  const inches = Math.max(ceilTo(mmToIn(mm), BORDER_WIDTH_IN_STEP), ceilTo(mmToIn(min), BORDER_WIDTH_IN_STEP));
+  return Math.min(inToMm(inches), MAX_BORDER_WIDTH_MM);
+}
+
+// Panel depth: how far the panel as a whole stands off the wall it is mounted on. It draws
+// nothing, but it is how deep the panel's own strips (grid and border) are, so it sets what the
+// half laps and three-strip laps cut away, and the dimensions of those strips. At least 10 mm,
+// which also keeps it deeper than the pattern strips (6 mm), which sit in the middle of it.
+export const MIN_PANEL_DEPTH_MM = 10;
+export const DEFAULT_PANEL_DEPTH_MM = 12;
+export const MAX_PANEL_DEPTH_MM = 100;
+export const PANEL_DEPTH_MM_STEP = 0.5;
+export const PANEL_DEPTH_IN_STEP = 1 / 16;
+export const clampPanelDepth = (depth) =>
+  Math.min(Math.max(Number.isFinite(depth) ? depth : DEFAULT_PANEL_DEPTH_MM, MIN_PANEL_DEPTH_MM), MAX_PANEL_DEPTH_MM);
+// Same direction rules as the strip widths on a unit switch: down to a half mm, up to a 1/16".
+export function snapPanelDepthForUnit(mm, unit) {
+  if (unit === 'mm') return clampPanelDepth(floorTo(mm, PANEL_DEPTH_MM_STEP));
+  const inches = Math.max(ceilTo(mmToIn(mm), PANEL_DEPTH_IN_STEP), ceilTo(mmToIn(MIN_PANEL_DEPTH_MM), PANEL_DEPTH_IN_STEP));
+  return Math.min(inToMm(inches), MAX_PANEL_DEPTH_MM);
+}
+
+// The thickness a pattern's strips have when their own settings say nothing.
+export const PANEL_STRIP_THICKNESS_MM = 6;
+
 // The one place the grid's dimension rules live, shared by the store's
 // immediate setters (useGridStore) and the debounced commit used by the Grid
 // inspector (store/gridDimensionsCommit.js). `current` is { cellWidth,

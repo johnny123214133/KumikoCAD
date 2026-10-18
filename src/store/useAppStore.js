@@ -33,6 +33,9 @@ function saveSetting(key, v) { try { localStorage.setItem(key, JSON.stringify(v)
 
 const useAppStore = create((set, get) => ({
   patternSort: loadSetting('kumiko_patternSort', 'default', (v) => SORT_MODES.includes(v)),
+  // How the Parts List groups the patterns' pieces: 'default' (identical pieces counted together) or 'pattern'.
+  partsSort: loadSetting('kumiko_partsSort', 'default', (v) => v === 'default' || v === 'pattern'),
+  setPartsSort: (mode) => { if (mode === 'default' || mode === 'pattern') { saveSetting('kumiko_partsSort', mode); set({ partsSort: mode }); } },
   recentOpen: loadSetting('kumiko_recentOpen', true, (v) => typeof v === 'boolean'),
   recentHeight: loadSetting('kumiko_recentHeight', 180, (v) => Number.isFinite(v) && v >= 0),
   setPatternSort: (mode) => { if (SORT_MODES.includes(mode)) { saveSetting('kumiko_patternSort', mode); set({ patternSort: mode }); } },

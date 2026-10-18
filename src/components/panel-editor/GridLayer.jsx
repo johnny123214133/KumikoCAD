@@ -10,6 +10,7 @@ import usePatternStore from '../../store/usePatternStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import CachedPatternImage from './CachedPatternImage.jsx'
 import { computeGridGeometry, computeCellPlacement, halfSpaceWindow, computeGridpoints } from '../../geometry/grid/computeGridGeometry.js'
+import { panelBorderRects } from '../../geometry/grid/gridStrips.js'
 import { drawGridStrips, shapeScale } from '../../scene/drawGridStrips.js'
 import { isInteractionLayerActive } from '../../scene/interactionLayers.js'
 import { getGridStripColor } from '../../scene/gridStripColor.js'
@@ -211,7 +212,7 @@ function useSettledZoom() {
 const CULL_MARGIN_CELLS = 2
 
 export default function GridLayer() {
-  const { cols, rows, cellWidth, gridStripWidth, orientation, cornerBehavior, spacePatterns, spaceXforms, setSpacePattern, material, finish } = useGridStore()
+  const { cols, rows, cellWidth, gridStripWidth, borderWidth, orientation, cornerBehavior, spacePatterns, spaceXforms, setSpacePattern, material, finish } = useGridStore()
   const getComputedPattern = usePatternStore(s => s.getComputedPattern)
   const getEffectiveStripWidth = usePatternStore(s => s.getEffectiveStripWidth)
   const activePatternId = usePatternStore(s => s.activePatternId)
@@ -387,24 +388,33 @@ export default function GridLayer() {
     [snapActive, geometry]
   )
 
+  // The border: a closed band along its centreline (borderWidth wide), whose inner face is half
+  // a grid strip inside the panel's nominal edge and whose outer face is `borderWidth - half a
+  // grid strip` outside it (geometry/grid/gridStrips.js, panelBorderRects).
+  const borderRects = useMemo(
+    () => panelBorderRects({ ...geometry.bounds, gridStripWidth, borderWidth }),
+    [geometry.bounds, gridStripWidth, borderWidth]
+  )
   const boundaryPoints = useMemo(() => {
-    const { width, height } = geometry.bounds
-    const corners = [
-      { x: 0, y: 0 }, { x: width, y: 0 }, { x: width, y: height }, { x: 0, y: height },
-    ]
-    return corners.flatMap(c => { const f = flip(c); return [f.x, f.y] })
-  }, [geometry.bounds])
+    const { x0, y0, x1, y1 } = borderRects.centre
+    return [{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }].flatMap(c => { const f = flip(c); return [f.x, f.y] })
+  }, [borderRects])
+  const latticeClip = useMemo(() => {
+    const { x0, y0, x1, y1 } = borderRects.outer
+    return [x0, -y1, x1, -y0]
+  }, [borderRects])
 
   // Show Scale: a vertical ruler left of the panel and a horizontal one under it,
   // both counting from the bottom-left corner (Konva space: y down, bottom is y = 0).
+  // They stand clear of the border's outer face.
   const scaleAxes = useMemo(() => {
     const { width, height } = geometry.bounds
-    const half = gridStripWidth / 2
+    const half = Math.max(gridStripWidth / 2, borderWidth - gridStripWidth / 2)
     return [
       { origin: { x: 0, y: half }, dir: { x: 1, y: 0 }, out: { x: 0, y: 1 }, length: width, gapPx: 14 },
       { origin: { x: -half, y: 0 }, dir: { x: 0, y: -1 }, out: { x: -1, y: 0 }, length: height, gapPx: 14 },
     ]
-  }, [geometry.bounds, gridStripWidth])
+  }, [geometry.bounds, gridStripWidth, borderWidth])
 
   const flippedJointPoints = useMemo(
     () => geometry.jointPoints.map(flip),
@@ -458,9 +468,11 @@ export default function GridLayer() {
         sceneFunc={(context, shape) => drawGridStrips(context._context, {
           scale: shapeScale(shape),
           stripWidth: gridStripWidth,
+          boundaryWidth: borderWidth,
           fillColor: strokeColor,
           edgeColor,
           boundary: boundaryPoints,
+          latticeClip,
           segments: flippedGridLines,
           joints: flippedJointPoints,
         })}

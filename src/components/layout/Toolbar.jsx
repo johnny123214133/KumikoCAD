@@ -34,7 +34,7 @@ export default function Toolbar() {
   } = useAppStore()
   const validationOn = validationActive && workspace === 'panel-editor'
   const validationPinned = validationOn && validationPinnedId != null
-  const canvas = workspace !== 'cut-list'
+  const canvas = workspace !== 'parts-list'
 
   // The rotate buttons are actions on the current selection, not tools: they
   // don't change the active tool (which would clear the selection). Empty cells
@@ -123,7 +123,7 @@ export default function Toolbar() {
         )}
 
         <div className="ms-auto d-flex align-items-center flex-wrap" style={{ gap: '0.375rem' }}>
-          {canvas && (
+          {(
             <div className="btn-group btn-group-sm" role="group" aria-label="View">
               <button
                 type="button"
@@ -135,7 +135,7 @@ export default function Toolbar() {
               >
                 <ZoomFitIcon />
               </button>
-              <button
+              {canvas && <button
                 type="button"
                 className={`btn ${viewportLocked ? 'btn-dark' : 'btn-outline-secondary'}`}
                 title={activeTool === 'multi-select' ? 'Viewport locked while Multi-select is active' : (viewportLocked ? 'Viewport locked — click to unlock (L)' : 'Viewport unlocked — click to lock (L)')}
@@ -145,11 +145,11 @@ export default function Toolbar() {
                 onClick={toggleLock}
               >
                 {viewportLocked ? <LockIcon /> : <UnlockIcon />}
-              </button>
+              </button>}
               <button
                 type="button"
                 className={`btn ${overviewOn ? 'btn-dark' : 'btn-outline-secondary'}`}
-                title={overviewOn ? 'Overview window on — shown when zoomed in (O)' : 'Overview window off (O)'}
+                title={overviewOn ? (canvas ? 'Overview window on — shown when zoomed in (O)' : 'Overview window on — shows where the selected piece is used (O)') : 'Overview window off (O)'}
                 aria-label="Toggle overview window"
                 aria-pressed={overviewOn}
                 onClick={toggleOverview}
@@ -159,7 +159,7 @@ export default function Toolbar() {
             </div>
           )}
 
-          {canvas && <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />}
+          <div className="vr d-none d-sm-block" style={{ height: '1.5rem' }} />
 
           <button
             type="button"

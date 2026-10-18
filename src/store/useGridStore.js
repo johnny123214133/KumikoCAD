@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { clampGridDimensions, fitCellCounts, DEFAULT_CELL_WIDTH_MM, DEFAULT_GRID_STRIP_WIDTH_MM } from '../geometry/units.js';
+import { clampGridDimensions, fitCellCounts, clampBorderWidth, clampPanelDepth, DEFAULT_PANEL_DEPTH_MM, DEFAULT_CELL_WIDTH_MM, DEFAULT_GRID_STRIP_WIDTH_MM, DEFAULT_BORDER_WIDTH_MM } from '../geometry/units.js';
 import { reflectXform } from '../geometry/grid/computeGridGeometry.js';
 
 const BLANK_PATTERN_ID = 'builtin:blank';
@@ -18,6 +18,17 @@ const useGridStore = create((set, get) => ({
   rows: 4,                    // up-pointing triangles along y-axis
   cellWidth: DEFAULT_CELL_WIDTH_MM, // mm — equilateral triangle side length
   gridStripWidth: DEFAULT_GRID_STRIP_WIDTH_MM, // mm — width of the grid's own structural strips (distinct from a pattern's strip width inside a cell)
+  // mm — width of the four border strips round the panel. Their inner face is always half a grid
+  // strip in from the nominal panel edge (so the border cells keep their shape); anything wider
+  // than a grid strip adds to the OUTSIDE only. At least half the grid strip width (rounded up
+  // to a half mm) — see geometry/units.js.
+  borderWidth: DEFAULT_BORDER_WIDTH_MM,
+  // How the border strips meet at the panel's corners: 'miter' (45° mitres) or 'halfLap' (a half
+  // lap, the strip parallel to the cell's base edge on top). See geometry/grid/gridStrips.js.
+  borderCorner: 'miter',
+  // mm — how far the panel stands off the wall (at least 10). Draws nothing; it is how deep the
+  // grid and border strips are, which the laps cut into. See geometry/units.js.
+  panelDepth: DEFAULT_PANEL_DEPTH_MM,
   orientation: 'horizontal',   // 'horizontal' (AB edge horizontal, flat base) | 'vertical' (AB edge vertical, point left)
   // 'taper' | 'fill', per grid_schema_v1.json's TriangleGrid.cornerBehavior.
   // Exposed in the UI as "Gridpoint" (taper — corner lands on a grid vertex)
@@ -81,7 +92,21 @@ const useGridStore = create((set, get) => ({
   // Ignores 0/negative, caps at 1/3 of the current cell width.
   setGridStripWidth: (gridStripWidth) => {
     if (!(gridStripWidth > 0)) return;
-    set(clampGridDimensions(get(), { gridStripWidth }));
+    const next = clampGridDimensions(get(), { gridStripWidth });
+    // The border can't be narrower than half the new grid strip width.
+    set({ ...next, borderWidth: clampBorderWidth(get().borderWidth, next.gridStripWidth) });
+  },
+  // Ignores non-positive requests; held between half a grid strip (rounded up to a half mm) and the maximum.
+  setBorderWidth: (borderWidth) => {
+    if (!(borderWidth > 0)) return;
+    set((s) => ({ borderWidth: clampBorderWidth(borderWidth, s.gridStripWidth) }));
+  },
+  setPanelDepth: (panelDepth) => {
+    if (!(panelDepth > 0)) return;
+    set({ panelDepth: clampPanelDepth(panelDepth) });
+  },
+  setBorderCorner: (borderCorner) => {
+    if (borderCorner === 'miter' || borderCorner === 'halfLap') set({ borderCorner });
   },
   // Vertical is the horizontal layout turned a quarter turn, so the space ids,
   // the placements and their xforms all carry over as they are — only where
