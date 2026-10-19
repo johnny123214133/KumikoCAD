@@ -9,7 +9,7 @@ import useGridStore from '../../store/useGridStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import CachedPatternImage from './CachedPatternImage.jsx'
-import { computeGridGeometry, computeCellPlacement, halfSpaceWindow, computeGridpoints } from '../../geometry/grid/computeGridGeometry.js'
+import { computeGridGeometry, computeCellPlacement, computeGridpoints } from '../../geometry/grid/computeGridGeometry.js'
 import { panelBorderRects } from '../../geometry/grid/gridStrips.js'
 import { drawGridStrips, shapeScale } from '../../scene/drawGridStrips.js'
 import { isInteractionLayerActive } from '../../scene/interactionLayers.js'
@@ -40,8 +40,17 @@ const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridSt
   )
   // Where the grid strips meet this cell: its outline pulled in by half a grid strip.
   const innerBorder = useMemo(
-    () => (selected || highlighted ? insetConvexPolygon(flippedVertices, gridStripWidth / 2) : []),
-    [selected, highlighted, flippedVertices, gridStripWidth]
+    () => {
+      if (!selected && !highlighted) return []
+      // A half cell's third edge is the border's inner face itself: nothing to pull in there.
+      let cut = -1
+      if (space.spaceType === 'half') {
+        const moved = [0, 1].find((i) => Math.hypot(space.vertices[i].x - space.fullVertices[i].x, space.vertices[i].y - space.fullVertices[i].y) > 1e-6)
+        if (moved !== undefined) cut = moved === 1 ? 1 : 2 // the edge from the moved vertex to the apex
+      }
+      return insetConvexPolygon(flippedVertices, [0, 1, 2].map((e) => (e === cut ? 0 : gridStripWidth / 2)))
+    },
+    [selected, highlighted, flippedVertices, gridStripWidth, space]
   )
   // Cells listen while the active tool clicks them (Validation included: while it
   // is armed, hovering a cell shows its matches and clicking one pins them).
@@ -50,19 +59,17 @@ const Cell = React.memo(function Cell({ space, pattern, xform, cellWidth, gridSt
   // computeGridGeometry.js): the pattern is placed on the whole triangle, as in
   // a full space, and clipped to the part that is inside the panel.
   const isHalf = space.spaceType === 'half'
-  // The window stops at the border strip's inner face (half a grid strip in from the panel
-  // edge), not at the edge itself — that is the strip's centreline, and the pattern would
-  // paint over the inner half of the border.
+  // The window is the half cell itself: the border's inner face is on the cell's median.
   const clipFunc = useMemo(() => {
     if (!isHalf) return undefined
-    const pts = halfSpaceWindow(space, gridStripWidth / 2).flatMap(v => { const f = flip(v); return [f.x, f.y] })
+    const pts = space.vertices.flatMap(v => { const f = flip(v); return [f.x, f.y] })
     return (ctx) => {
       ctx.beginPath()
       ctx.moveTo(pts[0], pts[1])
       for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1])
       ctx.closePath()
     }
-  }, [isHalf, space, gridStripWidth])
+  }, [isHalf, space])
   const rot = xform?.rot ?? 0
   const mirrored = !!xform?.flip
   const placement = useMemo(
@@ -388,19 +395,18 @@ export default function GridLayer() {
     [snapActive, geometry]
   )
 
-  // The border: a closed band along its centreline (borderWidth wide), whose inner face is half
-  // a grid strip inside the panel's nominal edge and whose outer face is `borderWidth - half a
-  // grid strip` outside it (geometry/grid/gridStrips.js, panelBorderRects).
+  // The border: a closed band along its centreline (borderWidth wide); its inner face is half a grid
+  // strip inside the nominal edge along the base edge and on it across it (geometry/grid/gridStrips.js, panelBorderRects).
   const borderRects = useMemo(
-    () => panelBorderRects({ ...geometry.bounds, gridStripWidth, borderWidth }),
-    [geometry.bounds, gridStripWidth, borderWidth]
+    () => panelBorderRects({ ...geometry.bounds, gridStripWidth, borderWidth, orientation }),
+    [geometry.bounds, gridStripWidth, borderWidth, orientation]
   )
   const boundaryPoints = useMemo(() => {
     const { x0, y0, x1, y1 } = borderRects.centre
     return [{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }].flatMap(c => { const f = flip(c); return [f.x, f.y] })
   }, [borderRects])
   const latticeClip = useMemo(() => {
-    const { x0, y0, x1, y1 } = borderRects.outer
+    const { x0, y0, x1, y1 } = borderRects.inner
     return [x0, -y1, x1, -y0]
   }, [borderRects])
 
@@ -409,12 +415,12 @@ export default function GridLayer() {
   // They stand clear of the border's outer face.
   const scaleAxes = useMemo(() => {
     const { width, height } = geometry.bounds
-    const half = Math.max(gridStripWidth / 2, borderWidth - gridStripWidth / 2)
+    const { x0, y0 } = borderRects.outer
     return [
-      { origin: { x: 0, y: half }, dir: { x: 1, y: 0 }, out: { x: 0, y: 1 }, length: width, gapPx: 14 },
-      { origin: { x: -half, y: 0 }, dir: { x: 0, y: -1 }, out: { x: -1, y: 0 }, length: height, gapPx: 14 },
+      { origin: { x: 0, y: -y0 }, dir: { x: 1, y: 0 }, out: { x: 0, y: 1 }, length: width, gapPx: 14 },
+      { origin: { x: x0, y: 0 }, dir: { x: 0, y: -1 }, out: { x: -1, y: 0 }, length: height, gapPx: 14 },
     ]
-  }, [geometry.bounds, gridStripWidth, borderWidth])
+  }, [geometry.bounds, borderRects])
 
   const flippedJointPoints = useMemo(
     () => geometry.jointPoints.map(flip),
@@ -443,8 +449,28 @@ export default function GridLayer() {
   // themes), else the same 0.35 darkening the pattern strips' selected border uses.
   const selectedBorderColor = theme.canvas.selection ?? darkenHex(strokeColor, 0.35)
   const flippedGridLines = useMemo(
-    () => geometry.gridLines.map(([x1, y1, x2, y2]) => [x1, -y1, x2, -y2]),
-    [geometry.gridLines]
+    () => {
+      // The lines on the nominal edge are the border's own (it is drawn there instead). A line that ends
+      // on the edge runs on a strip width beyond it, under the border, so that where the lattice is
+      // clipped to the border's inner face (latticeClip) its end is cut flush with that face.
+      const { width, height } = geometry.bounds
+      const eps = 1e-6
+      const lineOn = (a, b) => (p) => Math.abs(p[a] - b) < eps
+      const onEdge = [lineOn('x', 0), lineOn('x', width), lineOn('y', 0), lineOn('y', height)]
+      const out = []
+      for (const [x1, y1, x2, y2] of geometry.gridLines) {
+        const p = { x: x1, y: y1 }, q = { x: x2, y: y2 }
+        if (onEdge.some((on) => on(p) && on(q))) continue
+        const len = Math.hypot(x2 - x1, y2 - y1)
+        const ux = (x2 - x1) / len, uy = (y2 - y1) / len
+        const ext = gridStripWidth * 2
+        const a = onEdge.some((on) => on(p)) ? { x: x1 - ux * ext, y: y1 - uy * ext } : p
+        const b = onEdge.some((on) => on(q)) ? { x: x2 + ux * ext, y: y2 + uy * ext } : q
+        out.push([a.x, -a.y, b.x, -b.y])
+      }
+      return out
+    },
+    [geometry.gridLines, geometry.bounds, gridStripWidth]
   )
 
   // Each distinct pattern is resolved once per render, not once per cell —

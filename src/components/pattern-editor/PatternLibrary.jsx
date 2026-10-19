@@ -82,7 +82,8 @@ export default function PatternLibrary() {
         <div className="fw-semibold small text-uppercase text-muted" style={{ letterSpacing: '0.05em', fontSize: '11px' }}>Patterns</div>
         <ThemedSelect
           className="form-select-sm ms-auto"
-          style={{ width: 'auto', fontSize: '11px', padding: '1px 22px 1px 6px', minWidth: 0 }}
+          // (the chevron is drawn smaller and nearer the edge, with room kept for it, so the text never runs under it)
+          style={{ width: 'auto', fontSize: '11px', padding: '1px 24px 1px 6px', minWidth: 0, backgroundSize: '10px 8px', backgroundPosition: 'right 8px center' }}
           value={patternSort}
           onChange={setPatternSort}
           options={asOptions(SORT_OPTIONS)}

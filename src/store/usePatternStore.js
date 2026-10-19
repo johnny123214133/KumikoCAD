@@ -337,6 +337,11 @@ function bumpName(name) {
 // whole app: first the same pattern at the widest strip width it does build, then at
 // its default parameters, and as a last resort the blank pattern.
 function buildOrFallback(build, args, template) {
+  // (a half cell's pattern is built small with the full cell's parameters, see paramCellWidth in
+  // factories/_shared.js; if those don't fit the smaller cell it is built with its own)
+  if (args.paramCellWidth != null) {
+    try { return build(args); } catch { args = { ...args, paramCellWidth: undefined }; }
+  }
   try { return build(args); } catch (error) {
     console.warn(`[pattern] ${template.name} can't be built with these settings, using the nearest that works:`, error.message);
   }
@@ -500,6 +505,7 @@ const usePatternStore = create((set, get) => ({
     const grid = useGridStore.getState();
     const cellWidth = ctx?.cellWidth ?? grid.cellWidth;
     const gridStripWidth = ctx?.gridStripWidth ?? grid.gridStripWidth;
+    const paramCellWidth = ctx?.paramCellWidth;
     const paramStep = paramStepFor(useAppStore.getState().gridUnit);
     const overrides = (ctx?.patternOverrides ?? state.patternOverrides)[id] || {};
     const patternStripWidth = overrides.patternStripWidth ?? template.stripProperties?.[0]?.width ?? DEFAULT_PATTERN_STRIP_WIDTH_MM;
@@ -507,9 +513,9 @@ const usePatternStore = create((set, get) => ({
     const finish = overrides.finish ?? template.stripProperties?.[0]?.finish ?? 'natural';
     const patternParams = { ...template.patternParams, ...overrides.params };
     const stripMaterials = mergeStripMaterials(template.stripMaterialOverrides, overrides.stripMaterials);
-    const key = ['c', cellWidth, gridStripWidth, patternStripWidth, material, finish, paramsKey(patternParams), JSON.stringify(stripMaterials), paramStep ?? ''].join('|');
+    const key = ['c', cellWidth, paramCellWidth ?? '', gridStripWidth, patternStripWidth, material, finish, paramsKey(patternParams), JSON.stringify(stripMaterials), paramStep ?? ''].join('|');
     return memoBuilt(template, key, () => {
-      const computed = withTemplateIdentity(buildOrFallback(build, { cellWidth, gridStripWidth, patternStripWidth, patternParams, material, finish, paramStep }, template), template);
+      const computed = withTemplateIdentity(buildOrFallback(build, { cellWidth, paramCellWidth, gridStripWidth, patternStripWidth, patternParams, material, finish, paramStep }, template), template);
       if (Object.keys(stripMaterials).length) {
         return applyStripColorOverrides(computed, stripMaterials, material, finish);
       }

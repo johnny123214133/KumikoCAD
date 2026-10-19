@@ -91,11 +91,71 @@ function clipConvex(subject, clip) {
   }
   return out;
 }
-export function overlap(a, b) {
-  const clip = isConvex(a) ? a : isConvex(b) ? b : hull(a);
-  const subject = clip === a ? b : a;
-  const out = clipConvex(subject, clip);
-  return out.length >= 3 && Math.abs(area(out)) > MIN_AREA ? out : null;
+// A simple polygon cut into convex parts: ear-clipped into triangles, then neighbours merged back
+// together while the result stays convex (Hertel–Mehlhorn). [[x, y]] -> [[[x, y]]].
+const cross3 = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+function convexParts(polygon) {
+  let pts = ccw(polygon).filter((p, i, all) => Math.hypot(p[0] - all[(i + all.length - 1) % all.length][0], p[1] - all[(i + all.length - 1) % all.length][1]) > 1e-6);
+  const base = pts;
+  let idx = base.map((_, i) => i);
+  const tris = [];
+  const inside = (p, a, b, c) => cross3(a, b, p) > 1e-9 && cross3(b, c, p) > 1e-9 && cross3(c, a, p) > 1e-9;
+  let guard = 0;
+  while (idx.length > 3 && guard++ < 1000) {
+    let cut = -1;
+    for (let k = 0; k < idx.length && cut < 0; k++) {
+      const ia = idx[(k + idx.length - 1) % idx.length], ib = idx[k], ic = idx[(k + 1) % idx.length];
+      const a = base[ia], b = base[ib], c = base[ic];
+      if (cross3(a, b, c) <= 1e-9) continue; // reflex or flat: not an ear
+      if (idx.some((m) => m !== ia && m !== ib && m !== ic && inside(base[m], a, b, c))) continue;
+      cut = k;
+    }
+    if (cut < 0) return [hull(base)]; // not a simple polygon after all: its hull is the best that can be said
+    const k = cut;
+    tris.push([idx[(k + idx.length - 1) % idx.length], idx[k], idx[(k + 1) % idx.length]]);
+    idx = idx.filter((_, m) => m !== k);
+  }
+  if (idx.length === 3 && Math.abs(cross3(base[idx[0]], base[idx[1]], base[idx[2]])) > 1e-9) tris.push(idx);
+  // Merge neighbours across a shared edge while the union is convex.
+  let parts = tris;
+  const convexIdx = (loop) => loop.every((m, i) => cross3(base[m], base[loop[(i + 1) % loop.length]], base[loop[(i + 2) % loop.length]]) >= -1e-9);
+  let merged = true;
+  while (merged) {
+    merged = false;
+    outer: for (let x = 0; x < parts.length; x++) {
+      for (let y = x + 1; y < parts.length; y++) {
+        const p = parts[x], q = parts[y];
+        for (let i = 0; i < p.length; i++) {
+          const u = p[i], v = p[(i + 1) % p.length];
+          const j = q.findIndex((m, jj) => m === v && q[(jj + 1) % q.length] === u);
+          if (j < 0) continue;
+          const loop = [];
+          for (let n = 1; n <= p.length; n++) loop.push(p[(i + n) % p.length]); // v ... u
+          for (let n = 2; n < q.length; n++) loop.push(q[(j + n) % q.length]); // the far side of q
+          if (!convexIdx(loop)) continue;
+          parts = parts.filter((_, m) => m !== x && m !== y).concat([loop]);
+          merged = true;
+          break outer;
+        }
+      }
+    }
+  }
+  return parts.map((loop) => loop.map((m) => base[m]));
+}
+
+// Where two outlines overlap: [polygon, ...] (none when they don't). The outlines can have notches
+// and tapers, so they needn't be convex; a convex one clips the other directly, and when neither is
+// it is cut into convex parts first.
+export function overlaps(a, b) {
+  const ca = isConvex(a), cb = isConvex(b);
+  const out = [];
+  if (ca || cb) {
+    const clip = ca ? a : b, subject = ca ? b : a;
+    out.push(clipConvex(subject, clip));
+  } else {
+    for (const part of convexParts(a)) out.push(clipConvex(b, part));
+  }
+  return out.filter((o) => o.length >= 3 && Math.abs(area(o)) > MIN_AREA);
 }
 
 /**
@@ -126,11 +186,13 @@ export function lapRegions({ strips, joints, widthOf }) {
           if (m.stripId === strip.id || RANK[m.role] == null || !wanted(RANK[m.role])) continue;
           const a = world.get(strip.id), b = world.get(m.stripId);
           if (!a?.length || !b?.length) continue;
-          const o = overlap(a, b);
-          if (o) polygons.push(o.map((p) => toLocal(strip, p)));
+          for (const o of overlaps(a, b)) polygons.push(o.map((p) => toLocal(strip, p)));
         }
       }
-      result.set(key, polygons);
+      // A groove cut for strips that cross inside it (joint.groove) is cut as the one rectangle that holds
+      // them all, not as the shapes they leave in it (a small triangle at its back stays empty).
+      if (joint?.groove && polygons.length > 1) result.set(key, [hull(polygons.flat())]);
+      else result.set(key, polygons);
     }
   }
   return result;

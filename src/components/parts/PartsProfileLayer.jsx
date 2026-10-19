@@ -6,13 +6,15 @@ import { useTheme } from '../../store/useThemeStore.js'
 import ScaleOverlay from '../shared/ScaleOverlay.jsx'
 import { profileLayout, jointDotsOf } from '../../geometry/parts/profiles.js'
 import { getMaterialColor } from '../../geometry/woodFinishColors.js'
-import { darkenHex } from '../../geometry/color.js'
+import { darkenHex, lightenHex } from '../../geometry/color.js'
 import { stripEdgeColor } from '../../theme/themeRuntime.js'
 import { shapeScale } from '../../scene/drawGridStrips.js'
 import { notchLabel } from '../pattern-editor/PatternLayer.jsx'
 
 // How much darker a cut face is drawn than the wood around it.
 const CUT_FACE_DARKEN = 0.2
+// The part of a strip that is cut off at the panel's edge: a lighter tone of the wood, dotted outline.
+const MISSING_LIGHTEN = 0.55
 const LABEL_PX = 12
 const LABEL_GAP_PX = 10
 
@@ -43,7 +45,9 @@ export default function PartsProfileLayer() {
 
   const fill = piece ? getMaterialColor(piece.material, piece.finish) : '#e8d5b0'
   const cutFill = darkenHex(fill, CUT_FACE_DARKEN)
+  const missingFill = lightenHex(fill, MISSING_LIGHTEN)
   const edge = stripEdgeColor(fill, darkenHex(fill, 0.35))
+  const seamColor = darkenHex(fill, 0.45) // the line where two different cut faces meet
 
   useEffect(() => {
     if (!tip) return undefined
@@ -73,11 +77,26 @@ export default function PartsProfileLayer() {
           ctx.lineJoin = 'miter'
           for (const view of layout.views) {
             if (view.outline) {
+              for (const poly of view.missing ?? []) {
+                tracePolygon(ctx, poly)
+                ctx.fillStyle = missingFill
+                ctx.fill()
+                ctx.setLineDash([3 * px, 3 * px])
+                ctx.strokeStyle = edge
+                ctx.stroke()
+                ctx.setLineDash([])
+              }
               tracePolygon(ctx, view.outline)
               ctx.fillStyle = fill
               ctx.fill()
               ctx.fillStyle = cutFill
-              for (const poly of view.dark) { tracePolygon(ctx, poly); ctx.fill() }
+              // (one path, so pieces of one cut-away that touch leave no seam between them)
+              ctx.beginPath()
+              for (const poly of view.dark) {
+                poly.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
+                ctx.closePath()
+              }
+              ctx.fill()
               tracePolygon(ctx, view.outline)
               ctx.strokeStyle = edge
               ctx.stroke()
@@ -88,13 +107,25 @@ export default function PartsProfileLayer() {
               }
               ctx.strokeStyle = edge
               for (const r of view.rects) ctx.strokeRect(r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0)
+              // Where one cut face ends and another begins: a darker line between them.
+              ctx.strokeStyle = seamColor
+              ctx.lineWidth = 1.5 * px
+              for (const r of view.rects) {
+                if (!r.seam) continue
+                const x = r.seam === 'x0' ? r.x0 : r.x1
+                ctx.beginPath()
+                ctx.moveTo(x, r.y0)
+                ctx.lineTo(x, r.y1)
+                ctx.stroke()
+              }
+              ctx.lineWidth = px
             }
             // The view's name, to the left of it, upright at a fixed size on screen.
             ctx.fillStyle = colors.scale
             ctx.font = `600 ${LABEL_PX * px}px sans-serif`
             ctx.textAlign = 'right'
             ctx.textBaseline = 'middle'
-            ctx.fillText(view.label, layout.x0 - LABEL_GAP_PX * px, (view.box.y0 + view.box.y1) / 2)
+            ctx.fillText(view.label, layout.labelX - LABEL_GAP_PX * px, (view.box.y0 + view.box.y1) / 2)
           }
           ctx.restore()
         }}

@@ -35,6 +35,17 @@ function intervalsAt(poly, x) {
   return out;
 }
 
+// Intervals [lo, hi] joined where they overlap or touch.
+function joinIntervals(list) {
+  const sorted = [...list].sort((a, b) => a[0] - b[0]);
+  const out = [];
+  for (const [lo, hi] of sorted) {
+    const last = out[out.length - 1];
+    if (last && lo <= last[1] + 1e-4) last[1] = Math.max(last[1], hi); else out.push([lo, hi]);
+  }
+  return out;
+}
+
 // The lap cuts of a piece with their cut-away shapes and the depth cut (mm) and face.
 export function lapsOf(piece) {
   return piece.cuts
@@ -55,7 +66,26 @@ function sideRects(piece, fromLeft = false) {
   if (!fromLeft) return rects;
   const xs = piece.outline.map((pt) => pt[0]);
   const sum = Math.min(...xs) + Math.max(...xs);
-  return rects.map((r) => ({ ...r, x0: sum - r.x1, x1: sum - r.x0 })).sort((a, b) => a.x0 - b.x0);
+  return rects.map((r) => ({ ...r, x0: sum - r.x1, x1: sum - r.x0, ...(r.seam ? { seam: 'x1' } : {}) })).sort((a, b) => a.x0 - b.x0);
+}
+
+// Which face of the piece's outline is nearest the viewer at x: the line it lies on (direction and
+// offset, rounded), so that collinear pieces of one face read as one and every other face as another.
+function nearFaceAt(outline, x) {
+  let best = null;
+  for (let i = 0; i < outline.length; i++) {
+    const a = outline[i], b = outline[(i + 1) % outline.length];
+    if (Math.abs(b[0] - a[0]) < EPS) continue;
+    const lo = Math.min(a[0], b[0]), hi = Math.max(a[0], b[0]);
+    if (x < lo || x > hi) continue;
+    const y = a[1] + ((b[1] - a[1]) * (x - a[0])) / (b[0] - a[0]);
+    if (!best || y < best.y) best = { y, a, b };
+  }
+  if (!best) return '';
+  let dx = best.b[0] - best.a[0], dy = best.b[1] - best.a[1];
+  const len = Math.hypot(dx, dy); dx /= len; dy /= len;
+  if (dx < 0) { dx = -dx; dy = -dy; }
+  return `e${Math.round(Math.atan2(dy, dx) * 1800 / Math.PI)}:${Math.round((-dy * best.a[0] + dx * best.a[1]) * 100)}`;
 }
 
 function sideRectsFromRight(piece, outline, laps, t) {
@@ -74,22 +104,37 @@ function sideRectsFromRight(piece, outline, laps, t) {
     for (let k = 0; k < n; k++) columns.push([a + ((b - a) * k) / n, a + ((b - a) * (k + 1)) / n]);
   }
   const rects = [];
-  let run = null;
-  const flush = () => { if (run) { for (const band of run.bands) rects.push({ x0: run.x0, x1: run.x1, ...band }); run = null; } };
+  let run = null, prevRun = null;
+  // A rectangle that starts where another cut face ends (a different face: another cut, or another
+  // face of the same one) is marked `seam`, so the profile can draw the line between the two.
+  const flush = () => {
+    if (!run) return;
+    const next = [];
+    for (const band of run.bands) {
+      const seam = state => state === 'cut' && prevRun && Math.abs(prevRun.x1 - run.x0) < EPS
+        && prevRun.bands.some((o) => o.state === 'cut' && o.ids !== band.ids && Math.min(o.z1, band.z1) - Math.max(o.z0, band.z0) > EPS);
+      const rect = { x0: run.x0, x1: run.x1, z0: band.z0, z1: band.z1, state: band.state };
+      if (seam(band.state)) rect.seam = 'x0'; // the seam is on the rectangle's left side
+      rects.push(rect);
+    }
+    prevRun = run;
+    run = null;
+  };
   for (const [a, b] of columns) {
     const mid = (a + b) / 2;
     const inside = intervalsAt(outline, mid);
     if (!inside.length) { flush(); continue; }
     const yLow = inside[0][0], yHigh = inside[inside.length - 1][1];
     const base = yLow > near + 0.02 ? 'cut' : 'face';
+    const baseId = base === 'cut' ? nearFaceAt(outline, mid) : '';
     const effects = [];
-    for (const lap of laps) {
-      for (const region of lap.regions) {
-        const iv = intervalsAt(region, mid).find(([lo, hi]) => lo <= yLow + 1e-4 && hi >= yLow - 1e-4);
-        if (!iv) continue; // the near face is intact here: the notch is hidden behind it
-        const z0 = lap.face === 'top' ? t - lap.depth : 0, z1 = lap.face === 'top' ? t : lap.depth;
-        effects.push({ z0, z1, state: iv[1] >= yHigh - 1e-4 ? 'clear' : 'cut' });
-      }
+    for (const [lapIndex, lap] of laps.entries()) {
+      // The lap's regions can be several pieces (one per mate, and a notched outline's overlap comes
+      // in convex parts), so join what they cover at this x before asking how far the notch reaches.
+      const iv = joinIntervals(lap.regions.flatMap((region) => intervalsAt(region, mid))).find(([lo, hi]) => lo <= yLow + 1e-4 && hi >= yLow - 1e-4);
+      if (!iv) continue; // the near face is intact here: the notch is hidden behind it
+      const z0 = lap.face === 'top' ? t - lap.depth : 0, z1 = lap.face === 'top' ? t : lap.depth;
+      effects.push({ z0, z1, state: iv[1] >= yHigh - 1e-4 ? 'clear' : 'cut', id: `l${lapIndex}` });
     }
     const zs = [...new Set([0, t, ...effects.flatMap((e) => [e.z0, e.z1])])].filter((z) => z >= 0 && z <= t).sort((m, n) => m - n);
     const bands = [];
@@ -98,10 +143,11 @@ function sideRectsFromRight(piece, outline, laps, t) {
       const hit = effects.filter((e) => zm > e.z0 && zm < e.z1);
       const state = hit.some((e) => e.state === 'cut') ? 'cut' : hit.length ? 'clear' : base;
       if (state === 'clear') continue;
+      const ids = state === 'cut' ? [...hit.filter((e) => e.state === 'cut').map((e) => e.id), ...(hit.length ? [] : [baseId])].join('+') : '';
       const last = bands[bands.length - 1];
-      if (last && last.state === state && Math.abs(last.z1 - z0) < EPS) last.z1 = z1; else bands.push({ z0, z1, state });
+      if (last && last.state === state && last.ids === ids && Math.abs(last.z1 - z0) < EPS) last.z1 = z1; else bands.push({ z0, z1, state, ids });
     }
-    const key = bands.map((b) => `${b.z0.toFixed(3)}:${b.z1.toFixed(3)}:${b.state}`).join('|');
+    const key = bands.map((b) => `${b.z0.toFixed(3)}:${b.z1.toFixed(3)}:${b.state}:${b.ids}`).join('|');
     if (run && run.key === key && Math.abs(run.x1 - a) < EPS) run.x1 = b;
     else { flush(); run = { key, x0: a, x1: b, bands }; }
   }
@@ -114,7 +160,7 @@ const lapKind = (role) => (/-3$/.test(role) ? 'triLap' : /-2$/.test(role) ? 'hal
 export function jointDotsOf(piece) {
   const dots = [];
   for (const c of piece.cuts) {
-    const kind = c.role === 'end' ? (c.notch ?? 'miter') : lapKind(c.role);
+    const kind = c.role === 'end' ? (c.notch ?? 'miter') : c.role === 'border' ? 'butt' : lapKind(c.role);
     const at = dots.find((d) => Math.abs(d.x - c.x) < 0.05);
     if (at) { if (!at.kinds.includes(kind)) at.kinds.push(kind); } else dots.push({ x: c.x, kinds: [kind] });
   }
@@ -127,13 +173,18 @@ export function jointDotsOf(piece) {
  *   { views: [{ id: 'top'|'side'|'bottom'|'side-left', label, flipX?, box: { x0, y0, x1, y1 }, outline?, dark?, rects? }],
  *     bounds: { minX, maxX, minY, maxY }, centreY: { top, side, bottom } (the centreline's screen y in each view),
  *     length (overall, mm), x0 (screen x of the piece's tip) }
- * For 'top' and 'bottom': `outline` is the polygon [[x, y]] and `dark` the cut floors [[[x, y]...]].
+ * For 'top' and 'bottom': `outline` is the polygon [[x, y]], `dark` the cut floors [[[x, y]...]] and
+ * `missing` the polygons of a cut-off strip's missing part.
  * For 'side': `rects` as sideRects.
  */
 export function profileLayout(piece) {
   if (!piece?.outline?.length) return null;
   const xs = piece.outline.map((p) => p[0]), ys = piece.outline.map((p) => p[1]);
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), yMin = Math.min(...ys), yMax = Math.max(...ys);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  // (the missing part of a strip that is cut off at the panel's edge is drawn too, so it takes room)
+  const missing = piece.missing ?? [];
+  const allX = [...xs, ...missing.flat().map((p) => p[0])], allY = [...ys, ...missing.flat().map((p) => p[1])];
+  const yMin = Math.min(...allY), yMax = Math.max(...allY);
   const plan = yMax - yMin, t = piece.thickness;
   const gap = Math.max(3, Math.min(plan, t) * 0.5);
   const laps = lapsOf(piece);
@@ -144,22 +195,23 @@ export function profileLayout(piece) {
   const bottomPoint = ([x, y]) => [x, bottomY0 + (y - yMin)]; // turned over: y up = screen down
   const darkOf = (face, map) => laps.filter((l) => l.face === face).flatMap((l) => l.regions.map((r) => r.map(map)));
   const views = [
-    { id: 'top', label: 'Top', box: { x0, y0: topY0, x1, y1: topY0 + plan }, outline: piece.outline.map(topPoint), dark: darkOf('top', topPoint) },
+    { id: 'top', label: 'Top', box: { x0, y0: topY0, x1, y1: topY0 + plan }, outline: piece.outline.map(topPoint), dark: darkOf('top', topPoint), missing: missing.map((poly) => poly.map(topPoint)) },
     {
       id: 'side', label: 'Right side', box: { x0, y0: sideY0, x1, y1: sideY0 + t },
-      rects: sideRects(piece).map((r) => ({ x0: r.x0, x1: r.x1, y0: sideY0 + (t - r.z1), y1: sideY0 + (t - r.z0), state: r.state })),
+      rects: sideRects(piece).map((r) => ({ x0: r.x0, x1: r.x1, y0: sideY0 + (t - r.z1), y1: sideY0 + (t - r.z0), state: r.state, seam: r.seam })),
     },
-    { id: 'bottom', label: 'Bottom', box: { x0, y0: bottomY0, x1, y1: bottomY0 + plan }, outline: piece.outline.map(bottomPoint), dark: darkOf('bottom', bottomPoint) },
+    { id: 'bottom', label: 'Bottom', box: { x0, y0: bottomY0, x1, y1: bottomY0 + plan }, outline: piece.outline.map(bottomPoint), dark: darkOf('bottom', bottomPoint), missing: missing.map((poly) => poly.map(bottomPoint)) },
     {
       id: 'side-left', label: 'Left side', flipX: true, box: { x0, y0: leftY0, x1, y1: leftY0 + t },
-      rects: sideRects(piece, true).map((r) => ({ x0: r.x0, x1: r.x1, y0: leftY0 + (t - r.z1), y1: leftY0 + (t - r.z0), state: r.state })),
+      rects: sideRects(piece, true).map((r) => ({ x0: r.x0, x1: r.x1, y0: leftY0 + (t - r.z1), y1: leftY0 + (t - r.z0), state: r.state, seam: r.seam })),
     },
   ];
   return {
     views,
-    bounds: { minX: x0, maxX: x1, minY: topY0, maxY: leftY0 + t },
+    bounds: { minX: Math.min(...allX), maxX: Math.max(...allX), minY: topY0, maxY: leftY0 + t },
     centreY: { top: topY0 + yMax, side: sideY0 + t / 2, bottom: bottomY0 - yMin, sideLeft: leftY0 + t / 2 },
     length: x1 - x0,
     x0,
+    labelX: Math.min(x0, ...allX), // where the views' names are put against
   };
 }

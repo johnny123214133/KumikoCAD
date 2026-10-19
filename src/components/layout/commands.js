@@ -10,7 +10,7 @@ import { choosePattern } from '../../store/patternActions.js'
 import { EDITORS } from './editors.js'
 import { TOOLS, VALIDATION } from './toolDefs.js'
 import { overlaysFor } from './overlays.js'
-import { keyFor, selectAll, invertSelection, resetRotation } from './keyBindings.js'
+import { keyFor, selectAll, invertSelection, resetRotation, clearSelectedCells } from './keyBindings.js'
 
 // Everything the command palette (Ctrl/Cmd + K) can do, for the editor you are in:
 //   { id, title, section, keys?, keywords?, run }
@@ -53,6 +53,7 @@ export function buildCommands(workspace) {
   if (workspace === 'panel-editor') {
     add({ id: 'rotate-ccw', title: 'Rotate selected patterns counterclockwise', section: 'Cells', keys: keyFor('rotate-ccw'), keywords: 'turn', run: () => useGridStore.getState().rotateSpaces(useSelectionStore.getState().selectedSpaceIds, 1) })
     add({ id: 'rotate-cw', title: 'Rotate selected patterns clockwise', section: 'Cells', keys: keyFor('rotate-cw'), keywords: 'turn', run: () => useGridStore.getState().rotateSpaces(useSelectionStore.getState().selectedSpaceIds, -1) })
+    add({ id: 'clear-cells', title: 'Replace selected patterns with Mitsukude A (empty the cells)', section: 'Cells', keys: keyFor('clear-cells'), keywords: 'delete clear remove blank empty', run: () => clearSelectedCells() })
     add({ id: 'rotate-reset', title: 'Reset rotation of selected patterns', section: 'Cells', keys: keyFor('rotate-reset'), keywords: 'default turn zero original', run: () => resetRotation() })
   }
 

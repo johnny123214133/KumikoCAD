@@ -23,3 +23,11 @@ export function darkenHex(hex, amount = 0.35) {
   const toHex = (v) => clamp(v).toString(16).padStart(2, '0');
   return `#${toHex(r * (1 - amount))}${toHex(g * (1 - amount))}${toHex(b * (1 - amount))}`;
 }
+
+// The colour moved `amount` of the way toward white: a lighter tone of the same wood.
+export function lightenHex(hex, amount = 0.5) {
+  const h = hex.replace('#', '');
+  const channel = (i) => parseInt(h.substring(i, i + 2), 16);
+  const toHex = (v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0');
+  return `#${[0, 2, 4].map((i) => toHex(channel(i) + (255 - channel(i)) * amount)).join('')}`;
+}

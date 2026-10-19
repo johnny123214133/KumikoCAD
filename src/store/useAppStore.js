@@ -87,6 +87,11 @@ const useAppStore = create((set, get) => ({
   // "Don't show again" on the delete-pattern confirmation. Session only: it
   // resets on reload so a fresh session always asks first.
   confirmDeletePattern: true,
+  // Delete key (Panel editor): warn before the selected cells are emptied. "Don't show again" is remembered.
+  confirmClearCells: loadSetting('kumiko_confirmClearCells', true, (v) => typeof v === 'boolean'),
+  setConfirmClearCells: (v) => { saveSetting('kumiko_confirmClearCells', !!v); set({ confirmClearCells: !!v }); },
+  clearCellsRequest: 0, // number of cells awaiting the warning's answer (0 = no dialog)
+  setClearCellsRequest: (n) => set({ clearCellsRequest: n }),
   setConfirmDeletePattern: (v) => set({ confirmDeletePattern: !!v }),
   gridUnit: loadSetting('kumiko_unit', 'mm', (v) => v === 'mm' || v === 'in'),
   // Not reactive render state — just a handle Viewport publishes on mount so

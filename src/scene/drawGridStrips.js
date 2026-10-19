@@ -24,9 +24,8 @@ export function gridEdgeWidth(scale, stripWidth) {
 //   boundaryWidth: the border's width (defaults to the strip width)
 //   segments: [[x1, y1, x2, y2], ...] open interior lines
 //   joints:   [{ x, y }] where 2+ segments meet (round patches fill the gaps)
-//   latticeClip: [x0, y0, x1, y1] — the border's outer face; the interior lines (whose ends are
-//     cut square across the panel's nominal edge) are kept inside it, one edge width short, so a
-//     slanted end can't poke out past a narrow border or break its outline
+//   latticeClip: [x0, y0, x1, y1] — the border's inner face; the interior lines (which run on out
+//     under the border) are cut off flush with it, so every strip meets the border along its face
 export function drawGridStrips(ctx, { scale, stripWidth, boundaryWidth = stripWidth, fillColor, edgeColor, boundary = [], segments = [], joints = [], latticeClip = null }) {
   if (!(stripWidth > 0)) return;
   const edge = gridEdgeWidth(scale, Math.min(stripWidth, boundaryWidth));
@@ -53,7 +52,7 @@ export function drawGridStrips(ctx, { scale, stripWidth, boundaryWidth = stripWi
     if (latticeClip) {
       const [x0, y0, x1, y1] = latticeClip;
       ctx.beginPath();
-      ctx.rect(x0 + edge, y0 + edge, Math.max(0, x1 - x0 - 2 * edge), Math.max(0, y1 - y0 - 2 * edge));
+      ctx.rect(x0 - edge / 2, y0 - edge / 2, Math.max(0, x1 - x0 + edge), Math.max(0, y1 - y0 + edge));
       ctx.clip();
     }
     ctx.lineWidth = width;

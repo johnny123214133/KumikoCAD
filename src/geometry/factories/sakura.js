@@ -81,10 +81,10 @@ function defineSakura({ id, name, notch, description }) {
     const wThick = params.thickStripWidth;
 
     // Positions along the altitude toward a corner, measured from G.
-    // The corner's inner apex is (2r − g) from G.
-    const outerFace = (2 * cell.r - cell.gridStripWidth) - params.cornerSpacing;
-    const centerline = outerFace - wThick / 2;
-    const innerFace = outerFace - wThick;
+    // The corner's inner apex is (2r − g) from G. Strip i is the one at corner C, A, B (i = 0, 1, 2).
+    const outerFace = [0, 1, 2].map(() => (2 * cell.r - cell.gridStripWidth) - params.cornerSpacing);
+    const centerline = outerFace.map((f) => f - wThick / 2);
+    const innerFace = outerFace.map((f) => f - wThick);
 
     // Thin spokes: s0..s2, from the middle of each thick strip's inner face
     // to the centre (spoke 0 toward corner C, 1 toward A, 2 toward B).
@@ -92,15 +92,17 @@ function defineSakura({ id, name, notch, description }) {
     // inside the thick strip, at the apex of the notch cut for it.
     const depth = (SQRT3 / 2) * w;
     const spokes = buildSpokes(cell, {
-      outerPoints: [0, 120, 240].map((deg) => cell.rotate({ x: G.x, y: G.y + innerFace + (notch ? depth : 0) }, deg)),
+      outerPoints: [0, 120, 240].map((deg, i) => cell.rotate({ x: G.x, y: G.y + innerFace[i] + (notch ? depth : 0) }, deg)),
       boundaryAngle: notch ? 30 : 90,
       boundaryNotch: notch ? 'taper' : 'butt',
     });
 
     // Thick strips: s3..s5. s3 is the one nearest C (parallel to AB); s4/s5
     // are it rotated 120°/240° (nearest A / B).
-    const { start, end } = chordAtHeight(cell, G.y + centerline);
-    const bars = [0, 120, 240].map((deg) => ({ start: cell.rotate(start, deg), end: cell.rotate(end, deg) }));
+    const bars = [0, 120, 240].map((deg, i) => {
+      const { start, end } = chordAtHeight(cell, G.y + centerline[i]);
+      return { start: cell.rotate(start, deg), end: cell.rotate(end, deg) };
+    });
     const barStrips = bars.map((b, i) => makeStrip(`s${3 + i}`, b.start, b.end, [
       endCut(`j${4 + 2 * i}`, b.start, 60),
       endCut(`j${5 + 2 * i}`, b.end, 120),

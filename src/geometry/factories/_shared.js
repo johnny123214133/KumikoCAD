@@ -2,7 +2,7 @@
 // consumers outside geometry/factories/ — these are construction internals
 // (GridBorderStrip.jsx reuses a few of the pure math helpers).
 import { getMaterialColor } from '../woodFinishColors.js';
-import { resolveParams, toPatternParams } from '../params.js';
+import { resolveParams, toPatternParams, isRatioDef, paramBounds } from '../params.js';
 import { DEFAULT_PATTERN_STRIP_WIDTH_MM } from '../units.js';
 
 export const SQRT3_2 = Math.sqrt(3) / 2;
@@ -345,10 +345,20 @@ export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], bu
   const paramDefs = declaredDefs.map((def) => ({ ...def, refStripWidth: defaultStripWidth ?? DEFAULT_PATTERN_STRIP_WIDTH_MM }));
   function factory({
     cellWidth, gridStripWidth = 0, patternStripWidth = DEFAULT_PATTERN_STRIP_WIDTH_MM, patternParams = {},
-    material = 'hinoki', finish = 'natural', paramStep,
+    material = 'hinoki', finish = 'natural', paramStep, paramCellWidth,
   }) {
     const cell = cellContext(cellWidth, gridStripWidth);
-    const params = resolveParams(paramDefs, patternParams, { cellWidth, gridStripWidth, patternStripWidth, paramStep });
+    // `paramCellWidth`: the width of the full cell this one is a half of. The half cells along the
+    // panel's border are built on a smaller cell (see halfSpaceCell), but the pattern's own dimensions —
+    // corner spacing, strip widths, the gaps that aren't a share of the cell — are worked out for the
+    // full cell first and carried over as they are; only what scales with the cell (the ratio
+    // parameters) is worked out at the width it is built at.
+    const ctx = { cellWidth, gridStripWidth, patternStripWidth, paramStep };
+    const params = resolveParams(paramDefs, patternParams, ctx);
+    if (paramCellWidth != null && paramCellWidth !== cellWidth) {
+      const full = resolveParams(paramDefs, patternParams, { ...ctx, cellWidth: paramCellWidth });
+      for (const def of paramDefs) if (!isRatioDef(def)) params[def.key] = full[def.key];
+    }
     const { strips, joints, stripWidths = {} } = build({ cell, params, patternStripWidth });
 
     const stripProperties = makeStripProperties(patternStripWidth, material, finish);

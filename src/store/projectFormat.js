@@ -162,7 +162,7 @@ function validate(doc) {
   // borderWidth and borderCorner came later than format 1: a file without them is a panel whose border
   // was as wide as a grid strip with mitred corners (optional fields never need a version bump).
   const borderWidth = p.borderWidth === undefined ? p.gridStripWidth : p.borderWidth;
-  if (!isNum(borderWidth) || borderWidth < minBorderWidthMm(p.gridStripWidth) - 1e-9 || borderWidth > MAX_BORDER_WIDTH_MM) fail('The panel’s border width is out of range.');
+  if (!isNum(borderWidth) || borderWidth <= 0 || borderWidth > MAX_BORDER_WIDTH_MM) fail('The panel’s border width is out of range.');
   const borderCorner = p.borderCorner === undefined ? 'miter' : p.borderCorner;
   if (borderCorner !== 'miter' && borderCorner !== 'halfLap') fail('The panel’s border corner type is invalid.');
   // panelDepth (how far the panel stands off the wall) is optional too: an older file gets the default.
@@ -198,7 +198,7 @@ function validate(doc) {
 
   return {
     panel: {
-      cols, rows, cellWidth: p.cellWidth, gridStripWidth: p.gridStripWidth, borderWidth, borderCorner, panelDepth, orientation: p.orientation,
+      cols, rows, cellWidth: p.cellWidth, gridStripWidth: p.gridStripWidth, borderWidth: Math.max(borderWidth, minBorderWidthMm(p.gridStripWidth)), borderCorner, panelDepth, orientation: p.orientation,
       cornerBehavior: p.cornerBehavior, material: p.material, finish: p.finish, placementFlip: p.placementFlip, cells,
     },
     patterns,

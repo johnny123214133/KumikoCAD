@@ -369,7 +369,7 @@ export default function Viewport() {
   const isOutsideWork = (world) => {
     if (workspace === 'panel-editor') {
       // the border's outer face is the edge of the work (it can stand well out from the nominal edge)
-      return isOutsidePanel(useSelectionStore.getState().selectableSpaces, Math.max(gridStripWidth / 2, borderWidth - gridStripWidth / 2), world.x, world.y)
+      return isOutsidePanel(useSelectionStore.getState().selectableSpaces, Math.max(gridStripWidth / 2, borderWidth), world.x, world.y)
     }
     const { A, B, C } = pattern.vertices
     return isOutsideTriangle([A.x, -A.y, B.x, -B.y, C.x, -C.y], gridStripWidth / 2, world.x, world.y)

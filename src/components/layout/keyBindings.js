@@ -46,6 +46,14 @@ export const KEY_BINDINGS = [
     id: 'rotate-reset', code: 'Digit0', keys: '0', group: 'Cells', label: 'Put the selected patterns back to their default rotation (mirroring stays)', workspaces: PANEL,
     run: () => resetRotation(),
   },
+  {
+    id: 'clear-cells', key: 'delete', keys: 'Delete', group: 'Cells', label: 'Replace the selected cells\' patterns with Mitsukude A (the blank pattern: the cell is emptied)', workspaces: PANEL,
+    run: () => clearSelectedCells(),
+  },
+  {
+    id: 'clear-cells-backspace', key: 'backspace', keys: 'Backspace', group: 'Cells', label: 'Same as Delete (the Delete key of a Mac keyboard)', workspaces: PANEL,
+    run: () => clearSelectedCells(),
+  },
   { id: 'validation', key: 'v', keys: 'V', group: 'Cells', label: 'Turn Highlighter/Validation on or off', workspaces: PANEL, run: () => useAppStore.getState().toggleValidation() },
   // Not a key press: handled by the cells' click handler (GridLayer.jsx).
   { id: 'apply-pattern', keys: 'Ctrl / Cmd + click', group: 'Cells', label: 'Click a cell to apply the current pattern to the selected cells, with any tool but Snap to gridpoint', workspaces: PANEL },
@@ -108,6 +116,22 @@ export const invertSelection = () => reselect((all, selected) => {
 })
 
 // Puts the selected cells' patterns back to the default rotation (mirroring is left as it is).
+// Delete: the selected cells get Mitsukude A, the blank pattern, which empties them.
+// Unless the user ticked "Don't show again", a warning (components/layout/ClearCellsDialog.jsx)
+// comes first; its Replace button calls doClearSelectedCells.
+export function clearSelectedCells() {
+  const ids = useSelectionStore.getState().selectedSpaceIds
+  if (!ids.length) return
+  const app = useAppStore.getState()
+  if (app.confirmClearCells) app.setClearCellsRequest(ids.length)
+  else doClearSelectedCells()
+}
+
+export function doClearSelectedCells() {
+  const ids = useSelectionStore.getState().selectedSpaceIds
+  if (ids.length) useGridStore.getState().setSpacesPattern(ids, 'builtin:blank')
+}
+
 export function resetRotation() {
   const ids = useSelectionStore.getState().selectedSpaceIds
   if (!ids.length) return false

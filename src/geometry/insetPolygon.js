@@ -3,10 +3,12 @@
 // lines are intersected, so corners stay sharp (miter). Used for a cell's inner
 // border: the cell's outline pulled in by half a grid strip, i.e. the face where
 // the grid strip meets the cell. Returns the input unchanged if `d` is 0 or the
-// polygon is degenerate, and an empty array if it is inset out of existence.
+// polygon is degenerate, and an empty array if it is inset out of existence. `d` can also be an
+// array with one distance per edge (edge i runs from point i to point i + 1; 0 leaves an edge in place).
 export function insetConvexPolygon(pts, d) {
   const n = pts.length / 2;
-  if (n < 3 || !(d > 0)) return pts;
+  const dAt = (i) => (Array.isArray(d) ? d[i] : d);
+  if (n < 3 || !(Array.isArray(d) ? d.some((x) => x > 0) : d > 0)) return pts;
   let area = 0;
   for (let i = 0; i < n; i++) {
     const j = (i + 1) % n;
@@ -23,7 +25,7 @@ export function insetConvexPolygon(pts, d) {
     if (!len) return pts;
     // Inward normal for the winding above.
     const nx = (-dy / len) * sign, ny = (dx / len) * sign;
-    lines.push({ px: pts[2 * i] + nx * d, py: pts[2 * i + 1] + ny * d, dx: dx / len, dy: dy / len });
+    lines.push({ px: pts[2 * i] + nx * dAt(i), py: pts[2 * i + 1] + ny * dAt(i), dx: dx / len, dy: dy / len });
   }
   const out = [];
   for (let i = 0; i < n; i++) {

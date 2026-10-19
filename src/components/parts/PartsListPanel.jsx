@@ -157,7 +157,7 @@ export default function PartsListPanel() {
   const input = useDeferredValue(current)
   const overrides = usePatternStore((s) => s.patternOverrides) // a pattern's own edits change its pieces
   const parts = useMemo(() => {
-    try { return { value: computePanelParts({ grid: input, getPattern: (id) => getComputedPattern(id) }) } } catch (error) { return { error } }
+    try { return { value: computePanelParts({ grid: input, getPattern: (id, ctx) => getComputedPattern(id, ctx) }) } } catch (error) { return { error } }
   }, [input, getComputedPattern, lookup, overrides])
 
   const setParts = usePartsStore((s) => s.setParts)

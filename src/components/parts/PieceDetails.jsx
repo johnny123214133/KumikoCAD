@@ -58,6 +58,12 @@ export default function PieceDetails() {
           <div className="text-muted mt-1" style={{ fontSize: 11 }}>Positions are along the centreline, measured from the start end.</div>
         </div>
       )}
+      {piece.missing?.length > 0 && (
+        <p className="mt-3 mb-0" style={{ fontSize: 12 }}>
+          Cut at the panel's edge: this piece is made only as far as the border, {piece.cuts.some((c) => c.role === 'border' && !c.end) ? 'which also runs along it, so it is cut down its length as well. ' : 'with a butt joint against it. '}
+          The rest of the strip, which would lie under the border, is drawn dotted in a lighter tone and is not made.
+        </p>
+      )}
       <p className="text-muted mt-3 mb-0" style={{ fontSize: 11 }}>
         The profiles show the piece from above, from each side and from below (the left side as seen from that side, so its start is at the right). Where a cut face can be seen it is drawn a touch darker.
       </p>

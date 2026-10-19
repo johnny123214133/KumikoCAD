@@ -39,14 +39,15 @@ function piecesOfCell(pattern, window, mirrored, thickness) {
   let approx = false;
   for (const strip of pattern.strips) {
     let use = strip;
+    const sp = props.get(templateOf.get(strip.id)?.stripPropertyId) ?? pattern.stripProperties[0];
     if (window) {
-      const clipped = clipStripToWindow(strip, window);
+      const clipped = clipStripToWindow(strip, window, { width: sp.width, joints: jointMap });
       if (!clipped) continue;
       use = clipped.strip;
       approx = approx || clipped.approx;
       extraJoints.push(...clipped.joints);
     }
-    used.push({ strip: use, sp: props.get(templateOf.get(strip.id)?.stripPropertyId) ?? pattern.stripProperties[0] });
+    used.push({ strip: use, sp });
   }
   const joints = new Map([...jointMap, ...extraJoints.map((j) => [j.id, j])]);
   const widthById = new Map(used.map(({ strip, sp }) => [strip.id, sp.width]));
@@ -91,12 +92,13 @@ export function computePanelParts({ grid, getPattern }) {
   const perPattern = new Map(); // id -> { cells, edgeCells, approx, tally }
   const byPieceTally = new Map();
   const unbuilt = new Set();
-  const inset = grid.gridStripWidth / 2;
   const thickness = grid.panelDepth ?? DEFAULT_PANEL_DEPTH_MM; // patterns are as deep as the panel
 
   for (const space of geometry.spaces) {
     const id = grid.spacePatterns?.[space.id];
     if (!id || id === BLANK_PATTERN_ID) continue;
+    const half = space.spaceType === 'half';
+    const xform = grid.spaceXforms?.[space.id] ?? { rot: 0, flip: false };
     let pattern = patternCache.get(id);
     if (pattern === undefined) {
       try { pattern = getPattern(id); } catch (error) { pattern = error instanceof Error ? error : new Error(String(error)); }
@@ -104,10 +106,8 @@ export function computePanelParts({ grid, getPattern }) {
     }
     if (pattern instanceof Error) { unbuilt.add(id); continue; }
 
-    const xform = grid.spaceXforms?.[space.id] ?? { rot: 0, flip: false };
     const mirrored = !!xform.flip;
-    const half = space.spaceType === 'half';
-    const window = half ? windowInPattern(space, pattern, xform, inset) : null;
+    const window = half ? windowInPattern(space, pattern, xform) : null;
     const cacheKey = `${id}|${mirrored ? 1 : 0}|${window ? window.map((v) => `${v.x.toFixed(2)},${v.y.toFixed(2)}`).join(';') : ''}`;
     let cell = cellCache.get(cacheKey);
     if (!cell) { cell = piecesOfCell(pattern, window, mirrored, thickness); cellCache.set(cacheKey, cell); }

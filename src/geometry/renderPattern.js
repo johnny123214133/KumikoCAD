@@ -6,6 +6,7 @@
 // polygon" — see PatternStrips.jsx's StripBody for the Y-flip/rotation-sign
 // reasoning this carries over unchanged.
 import { buildStripLocalPoints, buildCurvedStripLocalPoints } from './stripShape.js';
+import { clipFlatToWindow } from './trimStrip.js';
 import { darkenHex } from './color.js';
 import { getTheme, selectionColor, stripEdgeColor } from '../theme/themeRuntime.js';
 import { DEFAULT_PATTERN_STRIP_WIDTH_MM } from './units.js';
@@ -67,7 +68,9 @@ function computeUnorderedStripRenderData(pattern) {
     const dy = strip.end.y - strip.start.y;
     const length = Math.sqrt(dx * dx + dy * dy);
 
-    const endCuts = strip.cuts.filter(c => c.role === 'end');
+    // (a strip cut off at the panel's edge, see trimStrip.js, is shaped by the end cuts it had whole
+    // and then cut down to its window)
+    const endCuts = (strip.trim?.fullCuts ?? strip.cuts).filter(c => c.role === 'end');
     const unitDx = Math.cos(strip.orientation);
     const unitDy = Math.sin(strip.orientation);
 
@@ -103,7 +106,7 @@ function computeUnorderedStripRenderData(pattern) {
 
     // Interior V-notches ('notch' cuts, e.g. Sakura A): the cut's position is the notch apex,
     // `notchSide` which face of the strip ('left' / 'right' of its direction) it is cut into.
-    const notches = strip.cuts.filter(c => c.role === 'notch').map((c) => {
+    const notches = (strip.trim?.fullCuts ?? strip.cuts).filter(c => c.role === 'notch').map((c) => {
       const px = c.position.x - strip.start.x, py = c.position.y - strip.start.y
       const x = px * unitDx + py * unitDy
       const yLeft = -px * unitDy + py * unitDx // signed offset to the strip's left (y-up world)
@@ -122,9 +125,10 @@ function computeUnorderedStripRenderData(pattern) {
       length, width / 2, startAngle, endAngle, startNotchType, endNotchType,
       pairAtStart ? asPair(startPair) : undefined, pairAtEnd ? asPair(endPair) : undefined, notches,
     );
+    const shapePoints = strip.trim ? clipFlatToWindow(points, strip.trim.window) : points;
     // See PatternStrips.jsx's StripBody comment — flipping y here AND
     // negating rotation/position below are both required together.
-    const flippedPoints = points.map((v, i) => (i % 2 === 1 ? -v : v));
+    const flippedPoints = shapePoints.map((v, i) => (i % 2 === 1 ? -v : v));
 
     return {
       stripId: strip.id,

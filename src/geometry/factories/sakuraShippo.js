@@ -84,15 +84,16 @@ export const buildSakuraShippo = definePattern({
     const { G } = cell;
     const wThick = params.thickStripWidth;
     const ctx = { cellWidth: cell.cellWidth, gridStripWidth: cell.gridStripWidth, patternStripWidth: w };
-    const fam = familyFor(ctx, wThick, params.cornerSpacing);
-    const shape = sakuraShippoShape(cell, w, wThick, params.cornerSpacing, fam.paramFor(params.curveLength));
+    const spacing = params.cornerSpacing;
+    const fam = familyFor(ctx, wThick, spacing);
+    const shape = sakuraShippoShape(cell, w, wThick, spacing, fam.paramFor(params.curveLength));
 
     // The notch apexes: s3 is the thick strip nearest C, s4 / s5 are it rotated 120° / 240°.
     const apexes = [0, 120, 240].map((deg) => cell.rotate({ x: G.x, y: G.y + shape.rho }, deg));
     const bent = bowStrips(apexes, shape, (i) => ({ id: `s${i}`, joints: [`j${3 + 2 * i}`, `j${4 + 2 * i}`] }));
 
     const clear = cell.r - cell.gridStripWidth / 2;
-    const centerline = 2 * clear - params.cornerSpacing - wThick / 2;
+    const centerline = 2 * clear - spacing - wThick / 2;
     const { start, end } = chordAtHeight(cell, G.y + centerline);
     const bars = [0, 120, 240].map((deg) => ({ start: cell.rotate(start, deg), end: cell.rotate(end, deg) }));
     const barStrips = bars.map((b, i) => {

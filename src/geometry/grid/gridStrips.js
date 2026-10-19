@@ -20,13 +20,14 @@
 // as the orientation changes only which way "top" points on screen.
 //
 // ── Border strips ─────────────────────────────────────────────────────────────────────────
-// Four strips, bottom / right / top / left. Their INNER face is half a grid strip width inside
-// the nominal edge (where the grid strips stop the patterns beside them), whatever the border
-// width; the rest of the border (border width - half a grid strip) lies outside the nominal
-// edge. So the border's centreline is `(borderWidth - gridStripWidth) / 2` outside the
-// nominal edge: on it when the border is as wide as a grid strip, further out when wider,
-// inside it when narrower (never by more than a quarter of the grid strip: the border is at
-// least half a grid strip wide).
+// Four strips, bottom / right / top / left. The two that run along the cell's base edge (the
+// horizontal ones in the horizontal orientation) have their INNER face half a grid strip width
+// inside the nominal edge, whatever the border width; the rest of the border (border width - half a
+// grid strip) lies outside it, so their centreline is `(borderWidth - gridStripWidth) / 2` outside
+// the nominal edge. The two across it (the vertical ones) have their inner face ON the nominal
+// edge — the line that bisects the half cells there, so those are exact halves — and the whole
+// border lies outside it, centreline `borderWidth / 2` out. (The panel is wider by a grid strip
+// width than it used to be.)
 //
 // The corners are the user's choice (`borderCorner`):
 //   'miter'   45° mitres, the two strips meeting at the corner of their centrelines.
@@ -46,19 +47,19 @@
 // ── Grid strips meeting the border ───────────────────────────────────────────────────────
 // Every grid strip runs out to the nominal edge. What happens there depends on what else ends on
 // the same point of the border (the border strip always takes the top role):
-//   a strip perpendicular to the border (with or without the two diagonals that meet it there):
-//       the perpendicular strip is half lapped to the border (it ends square on the nominal edge,
-//       half its thickness removed from its top face, the border half from its bottom face), and
-//       the two diagonals stop in the right-angle corner that makes, each end cut as an asymmetric
-//       miter: one cut flush with the border's inner face, one flush with the perpendicular
-//       strip's side face;
+//   a strip perpendicular to the border (with or without the two diagonals that meet it there; this
+//       is the border across the cell's base edge, whose inner face is ON the nominal edge): the
+//       perpendicular strip runs on into the border to its centreline and is half lapped to it (half
+//       its thickness removed from its top face, the border half from its bottom face), and the two
+//       diagonals stop in the right-angle corner between that strip and the border's inner face, each
+//       end cut as an asymmetric miter: one cut flush with the border's inner face, one flush with
+//       the perpendicular strip's side face;
 //   two diagonals and nothing perpendicular (the base-edge-parallel strip is the one lying along
 //       the border): a three-strip lap — border on top, the lower-numbered set in the middle, the
 //       other below — the diagonals' ends cut flush along the nominal edge;
 //   a lone diagonal (does not happen on the regular lattice; kept sound anyway): a half lap, the
 //       border on top, end cut flush along the nominal edge.
-// Nothing reaches past the nominal edge except the border itself, so a border as narrow as the
-// minimum (whose outer face is the nominal edge) still holds every grid strip.
+// Along the base edge nothing reaches past the nominal edge except the border itself.
 // The overlaps themselves (what is cut away where) come from the strips' real outlines, see
 // geometry/parts/laps.js.
 
@@ -74,13 +75,16 @@ const pt = (x, y) => ({ x, y });
 // The panel border's three rectangles: the nominal edge pushed in/out. `inner` is the face the
 // patterns and grid strips meet, `outer` the outside of the frame, `centre` the border strips'
 // centrelines (what the mitres meet on).
-export function panelBorderRects({ width, height, gridStripWidth, borderWidth }) {
-  const rect = (out) => ({ x0: -out, y0: -out, x1: width + out, y1: height + out });
-  return {
-    inner: rect(-gridStripWidth / 2),
-    centre: rect((borderWidth - gridStripWidth) / 2),
-    outer: rect(borderWidth - gridStripWidth / 2),
-  };
+//
+// The sides that run along the cell's base edge (set 0) have their inner face half a grid strip
+// inside the nominal edge; the sides across it (the vertical ones in the horizontal orientation)
+// have it ON the nominal edge, the median of the half cells there. `orientation` says which is which.
+export function panelBorderRects({ width, height, gridStripWidth, borderWidth, orientation = 'horizontal' }) {
+  const horizontalOnTop = orientation !== 'vertical';
+  const innerOut = (alongBase) => (alongBase ? -gridStripWidth / 2 : 0); // how far the inner face is outside the nominal edge
+  const ox = innerOut(!horizontalOnTop), oy = innerOut(horizontalOnTop); // left/right sides, bottom/top sides
+  const rect = (k) => ({ x0: -(ox + k * borderWidth), y0: -(oy + k * borderWidth), x1: width + ox + k * borderWidth, y1: height + oy + k * borderWidth });
+  return { inner: rect(0), centre: rect(0.5), outer: rect(1) };
 }
 
 // ── Lattice lines -> whole grid strips ──────────────────────────────────────────────────────
@@ -179,7 +183,7 @@ const alongOf = (strip, p) => {
 export function computePanelStrips({ cols, rows, cellWidth, orientation = 'horizontal', cornerBehavior = 'fill', gridStripWidth, borderWidth, borderCorner = 'miter' }) {
   const geometry = computeGridGeometry({ cols, rows, cellWidth, orientation, cornerBehavior });
   const { width, height } = geometry.bounds;
-  const rects = panelBorderRects({ width, height, gridStripWidth, borderWidth });
+  const rects = panelBorderRects({ width, height, gridStripWidth, borderWidth, orientation });
   const horizontalOnTop = orientation !== 'vertical';
 
   const joints = [];
@@ -245,9 +249,9 @@ export function computePanelStrips({ cols, rows, cellWidth, orientation = 'horiz
   const gridById = new Map(gridStrips.map((s) => [s.id, s]));
 
   // ── Border strips
-  const d = (borderWidth - gridStripWidth) / 2;
   const P = { // centreline corners
-    bl: pt(-d, -d), br: pt(width + d, -d), tr: pt(width + d, height + d), tl: pt(-d, height + d),
+    bl: pt(rects.centre.x0, rects.centre.y0), br: pt(rects.centre.x1, rects.centre.y0),
+    tr: pt(rects.centre.x1, rects.centre.y1), tl: pt(rects.centre.x0, rects.centre.y1),
   };
   // side -> [start corner, end corner] (horizontal sides run left to right, vertical ones upward)
   const SIDES = [['bottom', 'bl', 'br'], ['right', 'br', 'tr'], ['top', 'tl', 'tr'], ['left', 'bl', 'tl']];
@@ -359,23 +363,26 @@ export function computePanelStrips({ cols, rows, cellWidth, orientation = 'horiz
     const obliques = items.filter((it) => !perps.includes(it));
 
     if (perps.length) {
-      // the perpendicular strip: square end on the nominal edge, half lapped under the border
+      // Across the base edge (the border's inner face is ON the nominal edge, see the header): the
+      // perpendicular strip runs on into the border as far as its centreline and is half lapped to it —
+      // the border on top, its cut at the centreline, the strip's end square.
       for (const it of perps) {
-        endJoint(it, point, 90);
-        const id = addJoint(point, [{ stripId: border.id, role: 'role-top-2' }, { stripId: it.strip.id, role: 'role-bottom-2' }], 'halfLap');
+        const end = pt(centre.x, centre.y);
+        endJoint(it, end, 90);
+        setEnd(it, end);
+        const id = addJoint(end, [{ stripId: border.id, role: 'role-top-2' }, { stripId: it.strip.id, role: 'role-bottom-2' }], 'halfLap');
         border.cuts.push(...lapCuts('top-2', id, centre, 90));
-        it.strip.cuts.push(...lapCuts('bottom-2', id, point, 90));
+        it.strip.cuts.push(...lapCuts('bottom-2', id, end, 90));
       }
-      // the diagonals: stop in the right-angle corner between that strip and the border
+      // the diagonals: stop in the right-angle corner between the perpendicular strip and the border's
+      // inner face, which passes through `point`: one cut flush with that face, one with the strip's side face
       for (const it of obliques) {
         const f = forward(it.strip), v = dirIn(it);
-        const t1 = (gridStripWidth / 2) / dot(v, into);          // to the border's inner face
         const t2 = (gridStripWidth / 2) / Math.abs(dot(v, bdir)); // to the perpendicular strip's side face
         const at = (t) => pt(point.x + v.x * t, point.y + v.y * t);
-        const far = Math.max(t1, t2);
-        const id = addJoint(at(far), [{ stripId: it.strip.id, role: 'end' }], 'asymMiter');
-        it.strip.cuts.push(endCut(id, at(t1), localCutAngle(f, bdir)), endCut(id, at(t2), localCutAngle(f, into)));
-        setEnd(it, at(far));
+        const id = addJoint(at(t2), [{ stripId: it.strip.id, role: 'end' }], 'asymMiter');
+        it.strip.cuts.push(endCut(id, point, localCutAngle(f, bdir)), endCut(id, at(t2), localCutAngle(f, into)));
+        setEnd(it, at(t2));
       }
     } else if (obliques.length >= 2) {
       // two diagonals: a three-strip lap under the border

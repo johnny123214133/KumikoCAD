@@ -80,16 +80,19 @@ function normPoly(poly) {
 const mapPoly = (poly, f) => poly.map((p) => f(p));
 const hash = (text) => { let h = 5381; for (let i = 0; i < text.length; i++) h = ((h * 33) ^ text.charCodeAt(i)) >>> 0; return h.toString(36); };
 const regionText = (regions) => (regions?.length ? hash(regions.map((r) => normPoly(r).map((q) => q.join(',')).join(' ')).sort().join('/')) : '');
+// A border cut's stretch of the panel's edge, as two points turned and put in a standard order.
+const turnSeg = (c, f) => (c.seg ? { seg: c.seg.map((p) => { const [x, y] = f(p); return [num(x, 2), num(y, 2)]; }).sort((a, b) => a[0] - b[0] || a[1] - b[1]) } : {});
+const segText = (seg) => (seg ? seg.map((p) => p.join(',')).join('>') : '');
 const turnRegions = (c, f) => (c.regions ? { regions: c.regions.map((r) => normPoly(mapPoly(r, f))) } : {});
 
 const TURNS = [
-  (c) => ({ ...c, ...turnRegions(c, (p) => p) }),
-  (c, L) => ({ ...c, x: num(L - c.x, 4), side: flipSide(c.side), end: swapEnd(c.end), ...turnRegions(c, (p) => TURN_POINT[1](p, L)) }),
-  (c, L) => ({ ...c, angle: flipAngle(c.angle), role: SWAP_FACE(c.role), side: flipSide(c.side), ...turnRegions(c, (p) => TURN_POINT[2](p, L)) }),
-  (c, L) => ({ ...c, x: num(L - c.x, 4), angle: flipAngle(c.angle), role: SWAP_FACE(c.role), end: swapEnd(c.end), ...turnRegions(c, (p) => TURN_POINT[3](p, L)) }),
+  (c) => ({ ...c, ...turnRegions(c, (p) => p), ...turnSeg(c, (p) => p) }),
+  (c, L) => ({ ...c, x: num(L - c.x, 4), side: flipSide(c.side), end: swapEnd(c.end), ...turnRegions(c, (p) => TURN_POINT[1](p, L)), ...turnSeg(c, (p) => TURN_POINT[1](p, L)) }),
+  (c, L) => ({ ...c, angle: flipAngle(c.angle), role: SWAP_FACE(c.role), side: flipSide(c.side), ...turnRegions(c, (p) => TURN_POINT[2](p, L)), ...turnSeg(c, (p) => TURN_POINT[2](p, L)) }),
+  (c, L) => ({ ...c, x: num(L - c.x, 4), angle: flipAngle(c.angle), role: SWAP_FACE(c.role), end: swapEnd(c.end), ...turnRegions(c, (p) => TURN_POINT[3](p, L)), ...turnSeg(c, (p) => TURN_POINT[3](p, L)) }),
 ];
 
-const cutText = (c) => [num(c.x, 2).toFixed(2), c.angle.toFixed(1), c.depth.toFixed(3), c.role, c.side ?? '', c.end ?? '', c.notch ?? '', regionText(c.regions)].join('|');
+const cutText = (c) => [num(c.x, 2).toFixed(2), c.angle.toFixed(1), c.depth.toFixed(3), c.role, c.side ?? '', c.end ?? '', c.notch ?? '', regionText(c.regions), segText(c.seg)].join('|');
 const sortCuts = (cuts) => [...cuts].sort((a, b) => a.x - b.x || (a.role < b.role ? -1 : a.role > b.role ? 1 : 0) || a.angle - b.angle || a.depth - b.depth);
 
 // The piece's cut list lying whichever way gives the smallest description, and that description.
@@ -103,18 +106,22 @@ function canonical(cuts, L) {
   return best;
 }
 
-function finish({ width, thickness, material, finishName, centreline, length, curved, curveText, cuts, outline }) {
+function finish({ width, thickness, material, finishName, centreline, length, curved, curveText, cuts, outline, missing }) {
   // The identity is the smallest description over the four ways the piece can lie; the piece
   // itself is kept lying the way it is built into the panel (front face up), so that its profiles
   // show its cut faces on the faces they are really cut into — a border strip lapped over the
   // grid is cut on its underside, whichever way round the identity happens to describe it.
   const { text } = canonical(cuts, centreline);
+  // (what is cut off is part of what the piece is: the same area of it, which no turn changes)
+  const missingText = missing?.length ? `miss${num(missing.reduce((a, poly) => a + Math.abs(area(poly)), 0), 1)}` : '';
   const asBuilt = sortCuts(cuts.map((c) => TURNS[0](c, centreline)));
   return {
-    key: [num(width, 2), num(thickness, 2), material, finishName, num(centreline, 2), curveText, text].join('#'),
+    key: [num(width, 2), num(thickness, 2), material, finishName, num(centreline, 2), curveText, text, missingText].join('#'),
     width: num(width, 2), thickness: num(thickness, 2), material, finish: finishName,
     length: num(length, 2), centreline: num(centreline, 2), curved, curveText, cuts: asBuilt,
     outline: outline ? normPoly(outline) : [],
+    // (a strip cut off at the panel's edge: the part of it that isn't made, as plan polygons)
+    missing: (missing ?? []).map(normPoly),
   };
 }
 
@@ -126,51 +133,57 @@ function finish({ width, thickness, material, finishName, centreline, length, cu
  */
 export function pieceFromStrip({ strip, joints, width, thickness, material, finish: finishName, lapRegions }) {
   const dx = strip.end.x - strip.start.x, dy = strip.end.y - strip.start.y;
-  const L = Math.hypot(dx, dy);
   const ux = Math.cos(strip.orientation), uy = Math.sin(strip.orientation);
-  const cuts = strip.cuts.map((c) => {
-    const px = c.position.x - strip.start.x, py = c.position.y - strip.start.y;
-    const x = px * ux + py * uy;
-    const isEnd = c.role === 'end';
-    return {
-      x: num(x, 4), angle: num(c.angle, 1), depth: num(c.depth, 3), role: c.role,
-      notch: isEnd ? (joints.get(c.jointId)?.notchType ?? 'miter') : undefined,
-      side: c.role === 'notch' ? (c.notchSide === 'right' ? 'R' : 'L') : undefined,
-      end: isEnd ? (x < L / 2 ? 's' : 'e') : undefined,
-      ...(c.role.startsWith('cut-') ? { regions: lapRegions?.get(lapKey(strip.id, c.jointId, c.role)) ?? [] } : {}),
-    };
-  });
   // Overall length: the outline the renderer draws for this strip (its ends can be mitred, tapered,
   // notched), measured along the strip.
-  let length, outline;
-  {
-    const [shape] = computeStripRenderData({
-      strips: [strip],
-      joints: [...new Set(strip.cuts.map((c) => c.jointId))].map((id) => ({ id, notchType: joints.get(id)?.notchType, members: [] })), // (members only order painting, which this doesn't do)
-      stripProperties: [{ id: 'sp0', width }],
-      pieceTemplates: [{ stripId: strip.id, stripPropertyId: 'sp0' }],
-    });
-    let lo = Infinity, hi = -Infinity;
-    outline = [];
-    for (let i = 0; i < shape.points.length; i += 2) {
-      lo = Math.min(lo, shape.points[i]); hi = Math.max(hi, shape.points[i]);
-      outline.push([shape.points[i], -shape.points[i + 1]]); // un-flip y: y to the strip's left
-    }
-    length = strip.curve ? curveLength(L, strip.curve) : hi - lo;
+  const [shape] = computeStripRenderData({
+    strips: [strip],
+    joints: [...new Set(strip.cuts.map((c) => c.jointId))].map((id) => ({ id, notchType: joints.get(id)?.notchType, members: [] })), // (members only order painting, which this doesn't do)
+    stripProperties: [{ id: 'sp0', width }],
+    pieceTemplates: [{ stripId: strip.id, stripPropertyId: 'sp0' }],
+  });
+  let lo = Infinity, hi = -Infinity;
+  let outline = [];
+  for (let i = 0; i < shape.points.length; i += 2) {
+    lo = Math.min(lo, shape.points[i]); hi = Math.max(hi, shape.points[i]);
+    outline.push([shape.points[i], -shape.points[i + 1]]); // un-flip y: y to the strip's left
   }
-  const curveText = strip.curve ? JSON.stringify(Object.fromEntries(Object.entries(strip.curve).map(([k, v]) => [k, num(v, 4)]))) : '';
-  return finish({ width, thickness, material, finishName, centreline: L, length, curved: !!strip.curve, curveText, cuts, outline });
+  const trim = strip.trim;
+  // A strip cut off at the panel's edge (see trimStrip.js) keeps the frame of the whole strip; a
+  // straight one is described from where what is made starts, so its frame is moved there.
+  const shift = trim && !strip.curve ? trim.c0 : 0;
+  const L = trim && !strip.curve ? trim.c1 - trim.c0 : Math.hypot(dx, dy);
+  const moveX = (p) => [p[0] - shift, p[1]];
+  const cuts = strip.cuts.map((c) => {
+    const px = c.position.x - strip.start.x, py = c.position.y - strip.start.y;
+    const x = px * ux + py * uy - shift;
+    const isEnd = c.role === 'end' || c.role === 'border';
+    return {
+      x: num(x, 4), angle: num(c.angle, 1), depth: num(c.depth, 3), role: c.role,
+      notch: c.role === 'end' ? (joints.get(c.jointId)?.notchType ?? 'miter') : c.role === 'border' ? 'butt' : undefined,
+      side: c.role === 'notch' ? (c.notchSide === 'right' ? 'R' : 'L') : undefined,
+      end: isEnd ? (c.endSide ?? (c.role === 'end' ? (x < L / 2 ? 's' : 'e') : undefined)) : undefined,
+      ...(c.role === 'border' ? { seg: c.seg.map((p) => { const [mx, my] = moveX(p); return [num(mx, 2), num(my, 2)]; }) } : {}),
+      ...(c.role.startsWith('cut-') ? { regions: (lapRegions?.get(lapKey(strip.id, c.jointId, c.role)) ?? []).map((r) => r.map(moveX)) } : {}),
+    };
+  });
+  const length = trim && strip.curve ? trim.kept : strip.curve ? curveLength(L, strip.curve) : hi - lo;
+  if (shift) outline = outline.map(moveX);
+  const missing = trim ? trim.missing.map((poly) => poly.map(moveX)) : [];
+  const curveObj = strip.curve ? Object.fromEntries(Object.entries(strip.curve).map(([k, v]) => [k, num(v, 4)])) : null;
+  const curveText = curveObj ? JSON.stringify(trim ? { ...curveObj, kept: num(trim.kept, 2) } : curveObj) : '';
+  return finish({ width, thickness, material, finishName, centreline: L, length, curved: !!strip.curve, curveText, cuts, outline, missing });
 }
 
 // The mirror image of a piece: reflected across its own length (every angle becomes 180° minus
 // itself, left becomes right). The same piece again when it is symmetrical.
 export function mirrorPiece(piece) {
   const flipY = (p) => [p[0], -p[1]];
-  const cuts = piece.cuts.map((c) => ({ ...c, angle: flipAngle(c.angle), side: flipSide(c.side), ...(c.regions ? { regions: c.regions.map((r) => mapPoly(r, flipY)) } : {}) }));
+  const cuts = piece.cuts.map((c) => ({ ...c, angle: flipAngle(c.angle), side: flipSide(c.side), ...(c.regions ? { regions: c.regions.map((r) => mapPoly(r, flipY)) } : {}), ...(c.seg ? { seg: c.seg.map(flipY) } : {}) }));
   return finish({
     width: piece.width, thickness: piece.thickness, material: piece.material, finishName: piece.finish,
     centreline: piece.centreline, length: piece.length, curved: piece.curved, curveText: piece.curveText, cuts,
-    outline: piece.outline.map(flipY),
+    outline: piece.outline.map(flipY), missing: (piece.missing ?? []).map((poly) => poly.map(flipY)),
   });
 }
 
@@ -179,13 +192,14 @@ const angleText = (a) => (Math.abs(a - 90) < 0.05 ? 'square' : `${Number(a.toFix
 
 // One end of the piece: [{ angle, notch }] for each cut that makes it (an 'asymMiter' end has two).
 export function pieceEnd(piece, which) {
-  return piece.cuts.filter((c) => c.role === 'end' && c.end === which).map((c) => ({ angle: c.angle, notch: c.notch }));
+  return piece.cuts.filter((c) => (c.role === 'end' || c.role === 'border') && c.end === which).map((c) => ({ angle: c.angle, notch: c.notch }));
 }
 
 // "60°" / "square" / "30° taper" / "60° + 120°" for one end.
 export function endText(cuts) {
   if (!cuts.length) return 'square';
   const notch = cuts[0].notch;
+  if (notch === 'butt') return `${cuts.map((c) => angleText(c.angle)).join(' + ')} at the border`;
   const angles = cuts.map((c) => angleText(c.angle)).join(' + ');
   if (notch === 'taper') return `${angles} taper`;
   if (notch === 'vNotch') return `${angles} V-notch`;
@@ -202,7 +216,7 @@ const LAP_KIND = [
 export function pieceLaps(piece) {
   const seen = new Map();
   for (const c of piece.cuts) {
-    if (c.role === 'end') continue;
+    if (c.role === 'end' || c.role === 'border') continue;
     const kind = LAP_KIND.find(([re]) => re.test(c.role));
     const [, id, label] = kind ?? [null, c.role, c.role];
     const places = seen.get(id) ?? { label, xs: new Set() };
