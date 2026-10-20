@@ -1,4 +1,4 @@
-import useAppStore from '../../store/useAppStore.js'
+import useAppStore, { cameraApi } from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import { EDITORS } from './editors.js'
@@ -57,7 +57,12 @@ export const KEY_BINDINGS = [
   { id: 'validation', key: 'v', keys: 'V', group: 'Cells', label: 'Turn Highlighter/Validation on or off', workspaces: PANEL, run: () => useAppStore.getState().toggleValidation() },
   // Not a key press: handled by the cells' click handler (GridLayer.jsx).
   { id: 'apply-pattern', keys: 'Ctrl / Cmd + click', group: 'Cells', label: 'Click a cell to apply the current pattern to the selected cells, with any tool but Snap to gridpoint', workspaces: PANEL },
-  { id: 'zoom-fit', key: 'z', keys: 'Z', group: 'View', label: 'Zoom to fit', workspaces: ALL, run: () => useAppStore.getState().viewportApi?.zoomToFit() },
+  { id: 'zoom-fit', key: 'z', keys: 'Z', group: 'View', label: 'Zoom to fit', workspaces: ALL, run: () => cameraApi()?.zoomToFit() },
+  // The Parts List's 3D view: slide the camera sideways and raise or lower it (the point it looks at moves with it). Held keys repeat.
+  ...[['arrowleft', 'Left arrow', 'Slide the camera left (3D view)', -1, 0], ['arrowright', 'Right arrow', 'Slide the camera right (3D view)', 1, 0], ['arrowup', 'Up arrow', 'Raise the camera (3D view)', 0, 1], ['arrowdown', 'Down arrow', 'Lower the camera (3D view)', 0, -1]]
+    .map(([key, keys, label, dx, dy]) => ({ id: `cam-${key}`, key, keys, group: 'View', label, workspaces: ['parts-list'], repeat: true, run: () => cameraApi()?.slide?.(dx, dy) })),
+  { id: 'focus-pick', key: 'f', keys: 'F', group: 'View', label: 'Set the 3D focal point: then click the piece to look at that spot (Esc or a click on empty canvas cancels)', workspaces: ['parts-list'], run: () => { const a = useAppStore.getState(); if (a.partsView === '3d') a.setFocusPick(!a.focusPick) } },
+  { id: 'view-3d', key: 'x', keys: 'X', group: 'View', label: 'Switch the Parts List between the 2D profiles and the 3D view', workspaces: ['parts-list'], run: () => { const a = useAppStore.getState(); a.setPartsView(a.partsView === '3d' ? '2d' : '3d') } },
   { id: 'lock', key: 'l', keys: 'L', group: 'View', label: 'Lock or unlock the camera (from Multi-select, switches to the Selection tool first)', workspaces: BOTH, run: () => useAppStore.getState().toggleViewportLock() },
   { id: 'overview', key: 'o', keys: 'O', group: 'View', label: 'Show or hide the overview window', workspaces: ALL, run: () => useAppStore.getState().toggleOverview() },
   { id: 'left-panel', code: 'BracketLeft', keys: '[', group: 'View', label: 'Show or hide the left panel', workspaces: ALL, run: () => { const a = useAppStore.getState(); a.setLeftPanelOpen(!a.leftPanelOpen) } },
@@ -162,7 +167,7 @@ export function bindingFor(e, workspace) {
 }
 
 export function handleKeyDown(e) {
-  if (e.defaultPrevented || e.repeat) return
+  if (e.defaultPrevented || (e.repeat && (e.ctrlKey || e.metaKey))) return
   // The command palette opens from anywhere (even in a text field) and closes the same way.
   if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && !e.isComposing && e.key?.toLowerCase() === 'k') {
     const a = useAppStore.getState()
@@ -188,7 +193,7 @@ export function handleKeyDown(e) {
     return
   }
   const binding = bindingFor(e, useAppStore.getState().workspace)
-  if (!binding) return
+  if (!binding || (e.repeat && !binding.repeat)) return
   e.preventDefault()
   binding.run()
 }

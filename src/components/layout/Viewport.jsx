@@ -19,6 +19,7 @@ import PartsOverview from '../parts/PartsOverview.jsx'
 import CanvasControls from './CanvasControls.jsx'
 import useCursorStore from '../../store/useCursorStore.js'
 import PartsListView from './PartsListView.jsx'
+import PieceView3D from '../parts/PieceView3D.jsx'
 import PartsProfileLayer, { useSelectedProfile } from '../parts/PartsProfileLayer.jsx'
 import usePartsStore from '../../store/usePartsStore.js'
 import CanvasLoader from './CanvasLoader.jsx'
@@ -47,6 +48,7 @@ export default function Viewport() {
   const leftPanelOpen = useAppStore(s => s.leftPanelOpen)
   const leftPanelWidth = useAppStore(s => s.leftPanelWidth)
   const rightPanelOpen = useAppStore(s => s.rightPanelOpen)
+  const partsView = useAppStore(s => s.partsView)
   const rightPanelWidth = useAppStore(s => s.rightPanelWidth)
   // Read via ref (not useCallback deps) inside zoomToFit below — panels are
   // now an overlay, not a resize, so toggling/resizing one should behave
@@ -575,6 +577,7 @@ export default function Viewport() {
       {!ready && <CanvasLoader delayMs={200} />}
       {/* Zoomed far in: a small overview of the whole panel / pattern with the visible part boxed. */}
       {workspace !== 'parts-list' ? <MiniMap workspace={workspace} pattern={pattern} /> : <PartsOverview />}
+      {workspace === 'parts-list' && partsView === '3d' && <PieceView3D />}
       <CanvasControls workspace={workspace} />
       {/* The Parts List's canvas draws the selected piece's profiles; until one is picked it says so. */}
       {workspace === 'parts-list' && <PartsListView />}

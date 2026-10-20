@@ -92,7 +92,7 @@ const TURNS = [
   (c, L) => ({ ...c, x: num(L - c.x, 4), angle: flipAngle(c.angle), role: SWAP_FACE(c.role), end: swapEnd(c.end), ...turnRegions(c, (p) => TURN_POINT[3](p, L)), ...turnSeg(c, (p) => TURN_POINT[3](p, L)) }),
 ];
 
-const cutText = (c) => [num(c.x, 2).toFixed(2), c.angle.toFixed(1), c.depth.toFixed(3), c.role, c.side ?? '', c.end ?? '', c.notch ?? '', regionText(c.regions), segText(c.seg)].join('|');
+const cutText = (c) => [num(c.x, 2).toFixed(2), c.angle.toFixed(1), c.depth.toFixed(3), c.role, c.side ?? '', c.end ?? '', c.notch ?? '', c.reach ?? '', regionText(c.regions), segText(c.seg)].join('|');
 const sortCuts = (cuts) => [...cuts].sort((a, b) => a.x - b.x || (a.role < b.role ? -1 : a.role > b.role ? 1 : 0) || a.angle - b.angle || a.depth - b.depth);
 
 // The piece's cut list lying whichever way gives the smallest description, and that description.
@@ -123,6 +123,13 @@ function finish({ width, thickness, material, finishName, centreline, length, cu
     // (a strip cut off at the panel's edge: the part of it that isn't made, as plan polygons)
     missing: (missing ?? []).map(normPoly),
   };
+}
+
+function notchSize(c, strip, ux, uy, width) {
+  const px = c.position.x - strip.start.x, py = c.position.y - strip.start.y;
+  const yLeft = -px * uy + py * ux; // signed offset to the strip's left
+  const reach = width / 2 - (c.notchSide === 'right' ? -1 : 1) * yLeft;
+  return { reach: num(reach, 3), open: num(2 * reach * Math.tan(((c.angle / 2) * Math.PI) / 180), 3) };
 }
 
 /**
@@ -162,6 +169,8 @@ export function pieceFromStrip({ strip, joints, width, thickness, material, fini
       x: num(x, 4), angle: num(c.angle, 1), depth: num(c.depth, 3), role: c.role,
       notch: c.role === 'end' ? (joints.get(c.jointId)?.notchType ?? 'miter') : c.role === 'border' ? 'butt' : undefined,
       side: c.role === 'notch' ? (c.notchSide === 'right' ? 'R' : 'L') : undefined,
+      // a V-notch: how far its apex is from the face it is cut into, and how wide it opens there
+      ...(c.role === 'notch' ? notchSize(c, strip, ux, uy, width) : {}),
       end: isEnd ? (c.endSide ?? (c.role === 'end' ? (x < L / 2 ? 's' : 'e') : undefined)) : undefined,
       ...(c.role === 'border' ? { seg: c.seg.map((p) => { const [mx, my] = moveX(p); return [num(mx, 2), num(my, 2)]; }) } : {}),
       ...(c.role.startsWith('cut-') ? { regions: (lapRegions?.get(lapKey(strip.id, c.jointId, c.role)) ?? []).map((r) => r.map(moveX)) } : {}),

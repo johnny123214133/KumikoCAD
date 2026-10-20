@@ -98,6 +98,16 @@ const useAppStore = create((set, get) => ({
   // sibling components (e.g. ViewControls in the left panel) can call into the
   // SceneManager/PatternRenderer instances that live inside Viewport's canvas.
   viewportApi: null,
+  // The Parts List's canvas shows the piece's profiles ('2d') or the piece as a solid ('3d'); view3dApi is the 3D view's zoom handle.
+  partsView: loadSetting('kumiko_partsView', '2d', (v) => v === '2d' || v === '3d'),
+  setPartsView: (v) => { if (v === '2d' || v === '3d') { saveSetting('kumiko_partsView', v); set({ partsView: v }); } },
+  focusPick: false, // the 3D view is waiting for a click on the piece to look at
+  setFocusPick: (on) => set({ focusPick: !!on }),
+  view3dApi: null, // { zoomBy(k), zoomToFit(), slide(dx, dy) } while the 3D view is mounted
+  // Where the 3D view's light is, in the plane through the camera that faces the piece: x right, y up, within the unit circle.
+  lightPos: loadSetting('kumiko_lightPos', { x: -0.45, y: 0.6 }, (v) => v && Number.isFinite(v.x) && Number.isFinite(v.y) && Math.hypot(v.x, v.y) <= 1.0001),
+  setLightPos: (p) => { const r = Math.hypot(p.x, p.y); const k = r > 1 ? 1 / r : 1; const v = { x: p.x * k, y: p.y * k }; saveSetting('kumiko_lightPos', v); set({ lightPos: v }); },
+  setView3dApi: (api) => set({ view3dApi: api }),
   // Current visible world-rect (Y-up, same convention as computeGridGeometry
   // — {minX,maxX,minY,maxY}), used by GridLayer to cull off-screen cells
   // instead of mounting every cell in the whole grid regardless of zoom/pan.
@@ -230,6 +240,12 @@ const useAppStore = create((set, get) => ({
 }));
 
 export default useAppStore;
+
+// The camera the zoom buttons, Z and the palette drive: the Parts List's 3D view when it is up, else the canvas's.
+export const is3dView = (s) => s.workspace === 'parts-list' && s.partsView === '3d';
+export const pickCameraApi = (s) => (is3dView(s) ? s.view3dApi : s.viewportApi);
+export const cameraApi = () => pickCameraApi(useAppStore.getState());
+export const useCameraApi = () => useAppStore(pickCameraApi);
 
 
 // tanihata dimensions

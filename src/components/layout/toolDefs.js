@@ -92,14 +92,23 @@ export const ACTIONS = [
   {
     id: 'zoom', label: 'Zoom', Icon: ZoomFitIcon, workspaces: ['pattern-editor', 'panel-editor', 'parts-list'],
     help: () => [
-      'Zoom to fit (Z) frames the whole work. The zoom buttons at the bottom right of the canvas zoom out, fit and zoom in; the mouse wheel zooms too (in the Parts List always; in the editors while the viewport is unlocked).',
+      'Zoom to fit (Z) frames the whole work (in the Parts List\u2019s 3D view, the piece). The zoom buttons at the bottom right of the canvas zoom out, fit and zoom in; the mouse wheel zooms too (in the Parts List always; in the editors while the viewport is unlocked).',
       'The status bar along the bottom shows how far in you are (100% is the real size on a 96 dpi screen; click it to zoom to fit), where the pointer is, what is selected, and the unit lengths are shown in.',
+    ],
+  },
+  {
+    id: 'view3d', label: '3D view', Icon: OverviewIcon, workspaces: ['parts-list'],
+    help: () => [
+      'The 2D / 3D buttons at the bottom right of the canvas (or X) switch between the selected piece\u2019s profiles and the piece itself as a solid, with its laps and notches cut in and the part of a trimmed strip that is not made shown faintly. Every edge is outlined.',
+      'Drag to orbit around the piece, right-drag to pan, scroll to zoom. The arrow keys (or the arrow buttons above the zoom buttons) slide the camera left and right and raise and lower it, taking the point it looks at along; hold one to keep moving. The target button beside them (F) sets the focal point: while it is lit a dot shows where the camera is looking and orbiting from; click the piece to look at that spot instead, or click empty canvas (or press Esc) to cancel. Zoom to fit (Z) and the zoom buttons work here too.',
+      'The window in the top-right corner sets the light. The camera is in its middle and the light is the dot: drag it anywhere in the circle (arrow keys nudge it when it has focus; double-click puts it back). The light is always level with the camera, so the piece is never backlit \u2014 the middle is a headlight and the edge rakes across the piece to show its cuts. The overview window in the bottom-left corner shows where the piece is used, as in the 2D view.',
+      'Joint dots (hover one to see what it is) and Show Scale work in 3D: dots sit on the top and bottom faces where the piece is cut, and the scale gives its length, width and thickness.',
     ],
   },
   {
     id: 'overlays', label: 'Overlays', Icon: LayersIcon, workspaces: ['pattern-editor', 'panel-editor', 'parts-list'],
     help: (w) => [
-      `The second line of the toolbar, beside the editor tabs, switches the drawing aids for this editor on and off (Shift + 1 to 5). ${w.work === 'pattern' ? 'Centerlines, joint dots (hover one to see its joint type), wireframe, the view-orientation arrow and a scale ruler.' : w.work === 'piece' ? 'Joint dots where the selected piece is cut (hover one to see what it is), and a scale ruler under its profiles.' : 'The view-orientation arrow on every cell, and a scale ruler along the panel.'}`,
+      `The second line of the toolbar, beside the editor tabs, switches the drawing aids for this editor on and off (Shift + 1 to 5). ${w.work === 'pattern' ? 'Centerlines, joint dots (hover one to see its joint type), wireframe, the view-orientation arrow and a scale ruler.' : w.work === 'piece' ? 'Joint dots where the selected piece is cut (hover one to see what it is), and a scale ruler under its profiles (in 3D, its length, width and thickness)' : 'The view-orientation arrow on every cell, and a scale ruler along the panel.'}`,
     ],
   },
   {

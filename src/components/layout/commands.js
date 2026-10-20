@@ -1,4 +1,4 @@
-import useAppStore from '../../store/useAppStore.js'
+import useAppStore, { cameraApi } from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
@@ -58,9 +58,18 @@ export function buildCommands(workspace) {
   }
 
   {
-    add({ id: 'zoom-fit', title: 'Zoom to fit', section: 'View', keys: keyFor('zoom-fit'), keywords: 'frame all reset view', run: () => app().viewportApi?.zoomToFit() })
-    add({ id: 'zoom-in', title: 'Zoom in', section: 'View', keywords: 'closer magnify', run: () => app().viewportApi?.zoomBy(1.25) })
-    add({ id: 'zoom-out', title: 'Zoom out', section: 'View', keywords: 'farther', run: () => app().viewportApi?.zoomBy(1 / 1.25) })
+    add({ id: 'zoom-fit', title: 'Zoom to fit', section: 'View', keys: keyFor('zoom-fit'), keywords: 'frame all reset view', run: () => cameraApi()?.zoomToFit() })
+    add({ id: 'zoom-in', title: 'Zoom in', section: 'View', keywords: 'closer magnify', run: () => cameraApi()?.zoomBy(1.25) })
+    add({ id: 'zoom-out', title: 'Zoom out', section: 'View', keywords: 'farther', run: () => cameraApi()?.zoomBy(1 / 1.25) })
+    if (workspace === 'parts-list') {
+      add({ id: 'view-3d', title: 'Switch between the 2D profiles and the 3D view', section: 'View', keys: keyFor('view-3d'), keywords: 'toggle render solid three dimensional profiles', run: () => app().setPartsView(app().partsView === '3d' ? '2d' : '3d') })
+      for (const [id, title, dx, dy, kw] of [['left', 'Slide the camera left', -1, 0, 'truck move'], ['right', 'Slide the camera right', 1, 0, 'truck move'], ['up', 'Raise the camera', 0, 1, 'elevate pedestal move'], ['down', 'Lower the camera', 0, -1, 'elevate pedestal move']]) {
+        add({ id: `cam-${id}`, title: `${title} (3D view)`, section: 'View', keys: keyFor(`cam-arrow${id}`), keywords: `${kw} camera`, run: () => { if (app().partsView !== '3d') app().setPartsView('3d'); setTimeout(() => cameraApi()?.slide?.(dx, dy), 0) } })
+      }
+      add({ id: 'focus-pick', title: 'Set the focal point (3D view)', section: 'View', keys: keyFor('focus-pick'), keywords: 'pivot orbit centre center look at target', run: () => { if (app().partsView !== '3d') app().setPartsView('3d'); app().setFocusPick(true) } })
+      add({ id: 'light-reset', title: 'Reset the 3D light (to the upper left of the camera)', section: 'View', keywords: 'lighting sun shadow', run: () => app().setLightPos({ x: -0.45, y: 0.6 }) })
+      add({ id: 'light-head', title: 'Put the 3D light at the camera (a headlight)', section: 'View', keywords: 'lighting flat even', run: () => app().setLightPos({ x: 0, y: 0 }) })
+    }
     if (canvas) add({ id: 'lock', title: 'Lock or unlock the camera', section: 'View', keys: keyFor('lock'), keywords: 'pan viewport', run: () => app().toggleViewportLock() })
     add({ id: 'overview', title: 'Show or hide the overview window', section: 'View', keys: keyFor('overview'), keywords: 'minimap', run: () => app().toggleOverview() })
   }

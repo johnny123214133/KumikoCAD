@@ -1,5 +1,5 @@
 import React from 'react'
-import useAppStore from '../../store/useAppStore.js'
+import useAppStore, { useCameraApi, is3dView } from '../../store/useAppStore.js'
 import useCursorStore from '../../store/useCursorStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import { toUnit } from '../../geometry/units.js'
@@ -39,9 +39,10 @@ export default function StatusBar() {
   const unit = useAppStore((s) => s.gridUnit)
   const zoom = useAppStore((s) => s.viewportZoom)
   const rectWorkspace = useAppStore((s) => s.viewportRectWorkspace)
-  const api = useAppStore((s) => s.viewportApi)
+  const api = useCameraApi()
+  const in3d = useAppStore(is3dView)
   const canvas = workspace !== 'parts-list'
-  const pct = zoom > 0 && rectWorkspace === workspace ? Math.round((zoom / PX_PER_MM_AT_100) * 100) : null
+  const pct = !in3d && zoom > 0 && rectWorkspace === workspace ? Math.round((zoom / PX_PER_MM_AT_100) * 100) : null
   return (
     <footer
       className="kumiko-statusbar d-flex align-items-center gap-3 px-3"

@@ -1,5 +1,5 @@
 import React from 'react'
-import useAppStore from '../../store/useAppStore.js'
+import useAppStore, { useCameraApi, is3dView } from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
@@ -30,9 +30,61 @@ function useRightOffset() {
   return (open ? width : 0) + MARGIN
 }
 
-function ZoomCluster({ right }) {
+// 2D profiles / 3D solid, for the Parts List's canvas.
+function ViewToggle() {
+  const view = useAppStore((s) => s.partsView)
+  const setView = useAppStore((s) => s.setPartsView)
+  const pick = (id, label, title) => (
+    <button type="button" className={`btn btn-sm ${view === id ? 'btn-dark' : 'btn-outline-secondary border-0'}`} style={{ padding: '3px 8px', fontWeight: 600, fontSize: 12 }} aria-pressed={view === id} title={title} onClick={() => setView(id)}>{label}</button>
+  )
+  return (
+    <div role="group" aria-label="Piece view" className="d-flex align-items-center gap-1 px-1 me-1" style={{ borderRight: '1px solid rgba(128,128,128,0.35)' }}>
+      {pick('2d', '2D', 'Top, side and bottom profiles')}
+      {pick('3d', '3D', 'The piece as a solid you can orbit')}
+    </div>
+  )
+}
+
+// 3D view: slide the camera left / right and raise / lower it (the arrow keys do the same).
+const Chev = ({ d }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+)
+function CameraPad({ right }) {
   const { ui } = useTheme()
-  const api = useAppStore((s) => s.viewportApi)
+  const api = useCameraApi()
+  const picking = useAppStore((s) => s.focusPick)
+  const setPicking = useAppStore((s) => s.setFocusPick)
+  const reduced = prefersReducedMotion()
+  const b = (label, d, dx, dy, key) => (
+    <button type="button" className="btn btn-sm btn-outline-secondary border-0" style={{ padding: '4px 8px' }} aria-label={label} title={`${label} (${key})`} disabled={!api} onClick={() => api?.slide(dx, dy)}>
+      <Chev d={d} />
+    </button>
+  )
+  return (
+    <div role="group" aria-label="Move the camera" style={{ position: 'absolute', bottom: MARGIN * 2 + CLUSTER_H, right, zIndex: 5, display: 'flex', height: CLUSTER_H, alignItems: 'center', transition: reduced ? 'none' : 'right 220ms ease', ...cardStyle(ui) }}>
+      {b('Slide the camera left', 'M15 5 L8 12 L15 19', -1, 0, 'Left arrow')}
+      {b('Slide the camera right', 'M9 5 L16 12 L9 19', 1, 0, 'Right arrow')}
+      {b('Lower the camera', 'M5 9 L12 16 L19 9', 0, -1, 'Down arrow')}
+      {b('Raise the camera', 'M5 15 L12 8 L19 15', 0, 1, 'Up arrow')}
+      <button
+        type="button"
+        className={`btn btn-sm ${picking ? 'btn-dark' : 'btn-outline-secondary border-0'}`}
+        style={{ padding: '4px 8px', marginLeft: 2 }}
+        aria-pressed={picking}
+        aria-label="Set the focal point"
+        title={`Set the focal point: click the piece to look at that spot (${keyFor('focus-pick') ?? 'F'}). Click empty canvas or press Esc to cancel.`}
+        disabled={!api}
+        onClick={() => setPicking(!picking)}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></svg>
+      </button>
+    </div>
+  )
+}
+
+function ZoomCluster({ right, workspace }) {
+  const { ui } = useTheme()
+  const api = useCameraApi()
   const reduced = prefersReducedMotion()
   const btn = (label, Icon, run, title) => (
     <button type="button" className="btn btn-sm btn-outline-secondary border-0" style={{ padding: '4px 8px' }} aria-label={label} title={title ?? label} disabled={!api} onClick={run}>
@@ -46,6 +98,7 @@ function ZoomCluster({ right }) {
       aria-label="Zoom"
       style={{ position: 'absolute', bottom: MARGIN, right, zIndex: 5, display: 'flex', height: CLUSTER_H, alignItems: 'center', transition: reduced ? 'none' : 'right 220ms ease', ...cardStyle(ui) }}
     >
+      {workspace === 'parts-list' && <ViewToggle />}
       {btn('Zoom out', ZoomOutIcon, () => api?.zoomBy(1 / ZOOM_STEP))}
       {btn('Zoom to fit', ZoomFitIcon, () => api?.zoomToFit(), `Zoom to fit${keyFor('zoom-fit') ? ` (${keyFor('zoom-fit')})` : ''}`)}
       {btn('Zoom in', ZoomInIcon, () => api?.zoomBy(ZOOM_STEP))}
@@ -128,10 +181,12 @@ function FillPanel({ right, workspace }) {
 
 export default function CanvasControls({ workspace }) {
   const right = useRightOffset()
+  const in3d = useAppStore(is3dView)
   return (
     <>
+      {in3d && <CameraPad right={right} />}
       {workspace !== 'parts-list' && <FillPanel right={right} workspace={workspace} />}
-      <ZoomCluster right={right} />
+      <ZoomCluster right={right} workspace={workspace} />
     </>
   )
 }

@@ -26,7 +26,13 @@ export default function PieceDetails() {
   const start = endText(pieceEnd(piece, 's')), end = endText(pieceEnd(piece, 'e'))
   const laps = piece.cuts
     .filter((c) => c.role.startsWith('cut-'))
-    .map((c) => ({ x: c.x, face: c.role.startsWith('cut-top') ? 'top' : 'bottom', name: LAP_NAMES[c.role.slice(-1)] ?? 'Lap', depth: c.depth * piece.thickness }))
+    .map((c) => {
+      // the cut-away's footprint: how far it runs along the piece and across it
+      const pts = (c.regions ?? []).flat()
+      const along = pts.length ? [Math.min(...pts.map((q) => q[0])), Math.max(...pts.map((q) => q[0]))] : null
+      const across = pts.length ? Math.max(...pts.map((q) => q[1])) - Math.min(...pts.map((q) => q[1])) : null
+      return { x: c.x, face: c.role.startsWith('cut-top') ? 'top' : 'bottom', name: LAP_NAMES[c.role.slice(-1)] ?? 'Lap', depth: c.depth * piece.thickness, along, across }
+    })
     .sort((a, b) => a.x - b.x)
   const notches = piece.cuts.filter((c) => c.role === 'notch')
   return (
@@ -47,12 +53,22 @@ export default function PieceDetails() {
           <table className="table table-sm small mb-0">
             <thead><tr><th className="fw-normal text-muted">From start</th><th className="fw-normal text-muted">Cut</th><th className="fw-normal text-muted">Into</th><th className="fw-normal text-muted">Depth</th></tr></thead>
             <tbody>
-              {laps.map((l, i) => (
-                <tr key={`l${i}`}><td>{len(Math.max(0, l.x))}</td><td>{l.name}</td><td>{l.face} face</td><td>{len(l.depth)}</td></tr>
-              ))}
-              {notches.map((n, i) => (
-                <tr key={`n${i}`}><td>{len(Math.max(0, n.x))}</td><td>V-notch</td><td>{n.side === 'R' ? 'right' : 'left'} side</td><td>{Number(n.angle.toFixed(1))}°</td></tr>
-              ))}
+              {laps.flatMap((l, i) => [
+                <tr key={`l${i}`} style={l.along ? { borderBottomColor: 'transparent' } : undefined}><td>{len(Math.max(0, l.x))}</td><td>{l.name}</td><td>{l.face} face</td><td>{len(l.depth)}</td></tr>,
+                l.along && (
+                  <tr key={`l${i}m`}><td colSpan={4} className="text-muted pt-0">
+                    Cut away {len(l.along[1] - l.along[0])} along the piece (from {len(Math.max(0, l.along[0]))} to {len(Math.max(0, l.along[1]))}), {len(l.across)} across, {len(l.depth)} deep — leaves {len(piece.thickness - l.depth)} of {len(piece.thickness)}
+                  </td></tr>
+                ),
+              ])}
+              {notches.flatMap((n, i) => [
+                <tr key={`n${i}`} style={n.open ? { borderBottomColor: 'transparent' } : undefined}><td>{len(Math.max(0, n.x))}</td><td>V-notch</td><td>{n.side === 'R' ? 'right' : 'left'} side</td><td>{Number(n.angle.toFixed(1))}°</td></tr>,
+                n.open > 0 && (
+                  <tr key={`n${i}m`}><td colSpan={4} className="text-muted pt-0">
+                    Opens {len(n.open)} wide at the face, apex {len(n.reach)} in from it; {Number(n.angle.toFixed(1))}° included angle
+                  </td></tr>
+                ),
+              ])}
             </tbody>
           </table>
           <div className="text-muted mt-1" style={{ fontSize: 11 }}>Positions are along the centreline, measured from the start end.</div>

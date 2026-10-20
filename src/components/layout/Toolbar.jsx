@@ -1,5 +1,5 @@
 import React from 'react'
-import useAppStore from '../../store/useAppStore.js'
+import useAppStore, { useCameraApi } from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import {
@@ -32,6 +32,7 @@ export default function Toolbar() {
     overviewOn, toggleOverview,
     viewportApi, setPaletteOpen,
   } = useAppStore()
+  const camApi = useCameraApi()
   const validationOn = validationActive && workspace === 'panel-editor'
   const validationPinned = validationOn && validationPinnedId != null
   const canvas = workspace !== 'parts-list'
@@ -130,8 +131,8 @@ export default function Toolbar() {
                 className="btn btn-outline-secondary"
                 title={`Zoom to fit${keyFor('zoom-fit') ? ` (${keyFor('zoom-fit')})` : ''}`}
                 aria-label="Zoom to fit"
-                disabled={!viewportApi}
-                onClick={() => viewportApi?.zoomToFit()}
+                disabled={!camApi}
+                onClick={() => camApi?.zoomToFit()}
               >
                 <ZoomFitIcon />
               </button>
