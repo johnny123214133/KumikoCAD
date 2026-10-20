@@ -1,5 +1,9 @@
-// Reading and writing project files in a browser, the same for all four major ones.
+// Reading and writing project files — in a browser (all four major ones) or in the Tauri desktop app.
 //
+//  • Tauri (the desktop app, src-tauri/): the native open/save dialogs and the file system plugin,
+//    reached through window.__TAURI__ (app.withGlobalTauri in tauri.conf.json), so the web build
+//    needs no Tauri packages at all. Save writes straight back to the file that was opened or last
+//    saved.
 //  • Chrome / Edge (secure context): the File System Access API — Save writes straight back to
 //    the file that was opened or last saved, Save As and Open use the system pickers.
 //  • Firefox / Safari (and anything without that API): Open uses a hidden file input, Save
@@ -13,6 +17,12 @@ export const hasFilePicker = () =>
   typeof window !== 'undefined' && window.isSecureContext && typeof window.showSaveFilePicker === 'function' && typeof window.showOpenFilePicker === 'function';
 
 const isAbort = (e) => e?.name === 'AbortError';
+
+// ── The desktop app
+const tauri = () => (typeof window !== 'undefined' ? window.__TAURI__ : undefined);
+export const hasTauri = () => !!(tauri()?.dialog && tauri()?.fs);
+const TAURI_FILTERS = [{ name: 'Kumiko CAD project', extensions: ['json'] }];
+const baseName = (path) => String(path).split(/[\\/]/).pop();
 
 function download(name, text) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -29,6 +39,20 @@ function download(name, text) {
 // Writes `text`. `handle` (from an earlier call) saves in place; `saveAs` or no handle asks
 // where. Resolves { name, handle, how: 'file' | 'download' }, or null if cancelled.
 export async function saveTextFile({ text, suggestedName, handle, saveAs }) {
+  if (hasTauri()) {
+    const { dialog, fs } = tauri();
+    let path = saveAs ? null : handle?.path;
+    if (!path) path = await dialog.save({ defaultPath: suggestedName, filters: TAURI_FILTERS });
+    if (!path) return null;
+    try {
+      await fs.writeTextFile(path, text);
+    } catch (e) {
+      if (handle && !saveAs) return saveTextFile({ text, suggestedName, saveAs: true }); // file moved or permission lost: ask where
+      throw e;
+    }
+    const name = baseName(path);
+    return { name, handle: { path, name }, how: 'file' };
+  }
   if (hasFilePicker()) {
     try {
       let target = saveAs ? null : handle;
@@ -49,6 +73,13 @@ export async function saveTextFile({ text, suggestedName, handle, saveAs }) {
 
 // Asks for a file and reads it. Resolves { name, text, handle }, or null if cancelled.
 export async function openTextFile() {
+  if (hasTauri()) {
+    const { dialog, fs } = tauri();
+    const path = await dialog.open({ multiple: false, directory: false, filters: TAURI_FILTERS });
+    if (!path) return null;
+    const name = baseName(path);
+    return { name, text: await fs.readTextFile(path), handle: { path, name } };
+  }
   if (hasFilePicker()) {
     try {
       const [handle] = await window.showOpenFilePicker({ types: PICKER_TYPES, multiple: false });
