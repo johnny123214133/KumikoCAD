@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import useAppStore from '../../store/useAppStore.js'
 import useProjectStore from '../../store/useProjectStore.js'
 import { saveProject, openProject } from '../../store/projectActions.js'
 import { SaveProjectIcon, LoadProjectIcon } from './icons.jsx'
@@ -45,7 +46,7 @@ export default function FileMenu() {
           type="button"
           className={`btn ${open ? 'btn-dark' : 'btn-outline-secondary'}`}
           style={{ paddingLeft: 6, paddingRight: 6 }}
-          title="Save As, Open…"
+          title="Save As, Open, Export and print…"
           aria-label="More project actions"
           aria-haspopup="menu"
           aria-expanded={open}
@@ -61,6 +62,9 @@ export default function FileMenu() {
           </button>
           <button type="button" role="menuitem" disabled={busy} onClick={run(() => openProject())}>
             <span className="d-inline-flex align-items-center gap-2"><LoadProjectIcon />Open{'…'}</span><kbd>Ctrl/Cmd + O</kbd>
+          </button>
+          <button type="button" role="menuitem" onClick={run(() => useAppStore.getState().setExportDialogOpen(true))}>
+            <span className="d-inline-flex align-items-center gap-2">Export and print{'…'}</span>
           </button>
         </div>
       )}

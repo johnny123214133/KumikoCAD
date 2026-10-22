@@ -106,3 +106,39 @@ export async function openTextFile() {
     input.click();
   });
 }
+
+// Writes a binary file (the PDF and spreadsheet exports). Always asks where (these are exports, not the project), except in a
+// browser without a save dialog, where it downloads. Resolves { name, how: 'file' | 'download' }, or null if cancelled.
+//   bytes Uint8Array · suggestedName 'panel.pdf' · mime 'application/pdf' · description 'PDF document'
+export async function saveBinaryFile({ bytes, suggestedName, mime, description }) {
+  const ext = `.${suggestedName.split('.').pop()}`;
+  if (hasTauri()) {
+    const { dialog, fs } = tauri();
+    const path = await dialog.save({ defaultPath: suggestedName, filters: [{ name: description, extensions: [ext.slice(1)] }] });
+    if (!path) return null;
+    await fs.writeFile(path, bytes);
+    return { name: baseName(path), how: 'file' };
+  }
+  if (hasFilePicker()) {
+    try {
+      const target = await window.showSaveFilePicker({ suggestedName, types: [{ description, accept: { [mime]: [ext] } }] });
+      const writable = await target.createWritable();
+      await writable.write(bytes);
+      await writable.close();
+      return { name: target.name, how: 'file' };
+    } catch (e) {
+      if (isAbort(e)) return null;
+      throw e;
+    }
+  }
+  const url = URL.createObjectURL(new Blob([bytes], { type: mime }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = suggestedName;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return { name: suggestedName, how: 'download' };
+}

@@ -1,13 +1,14 @@
 import React from 'react'
-import useAppStore, { useCameraApi } from '../../store/useAppStore.js'
+import useAppStore from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import {
   LeftPanelIcon, RightPanelIcon, LockIcon, UnlockIcon,
-  RotateCcwIcon, RotateCwIcon, HelpIcon, OverviewIcon, ZoomFitIcon, SearchIcon,
+  RotateCcwIcon, RotateCwIcon, TileSelectIcon, TilePatternIcon, HelpIcon, OverviewIcon, SearchIcon,
 } from './icons.jsx'
 import { TOOLS, VALIDATION } from './toolDefs.js'
 import { keyFor } from './keyBindings.js'
+import { tileSelectionAction, tilePatternsAction } from '../../store/tilingActions.js'
 import ProjectName from './ProjectName.jsx'
 import FileMenu from './FileMenu.jsx'
 import EditorBar from './EditorBar.jsx'
@@ -30,9 +31,8 @@ export default function Toolbar() {
     validationActive, validationPinnedId, toggleValidation,
     helpOpen, toggleHelp, selectTool,
     overviewOn, toggleOverview,
-    viewportApi, setPaletteOpen,
+    setPaletteOpen,
   } = useAppStore()
-  const camApi = useCameraApi()
   const validationOn = validationActive && workspace === 'panel-editor'
   const validationPinned = validationOn && validationPinnedId != null
   const canvas = workspace !== 'parts-list'
@@ -120,22 +120,20 @@ export default function Toolbar() {
                 <Icon />
               </button>
             ))}
+            {workspace === 'panel-editor' && [
+              { label: 'Tile the selection across the panel (adds the copies to the selection)', Icon: TileSelectIcon, run: tileSelectionAction, id: 'tile-selection', enabled: selectedSpaceIds.length > 0 },
+              { label: 'Tile the selected cells\' patterns across the panel', Icon: TilePatternIcon, run: tilePatternsAction, id: 'tile-patterns', enabled: selectedSpaceIds.length > 0 },
+            ].map(({ label, Icon, run, id, enabled }) => (
+              <button key={id} type="button" className="btn btn-outline-secondary" disabled={!enabled} title={keyFor(id) ? `${label} (${keyFor(id)})` : label} aria-label={label} onClick={run}>
+                <Icon />
+              </button>
+            ))}
           </div>
         )}
 
         <div className="ms-auto d-flex align-items-center flex-wrap" style={{ gap: '0.375rem' }}>
           {(
             <div className="btn-group btn-group-sm" role="group" aria-label="View">
-              <button
-                type="button"
-                className="btn btn-outline-secondary"
-                title={`Zoom to fit${keyFor('zoom-fit') ? ` (${keyFor('zoom-fit')})` : ''}`}
-                aria-label="Zoom to fit"
-                disabled={!camApi}
-                onClick={() => camApi?.zoomToFit()}
-              >
-                <ZoomFitIcon />
-              </button>
               {canvas && <button
                 type="button"
                 className={`btn ${viewportLocked ? 'btn-dark' : 'btn-outline-secondary'}`}

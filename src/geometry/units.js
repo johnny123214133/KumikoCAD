@@ -13,8 +13,29 @@ export const formatIn = (mm, decimals = 2) => `${mmToIn(mm).toFixed(decimals)} i
 export const toUnit = (mm, unit) => (unit === 'in' ? mmToIn(mm) : mm);
 export const fromUnit = (value, unit) => (unit === 'in' ? inToMm(value) : value);
 // "12.5 mm" / "0.4921 in" — inches get 4 decimals so a 1/16" step (0.0625) shows exactly.
-export const formatLength = (mm, unit, decimals = unit === 'in' ? 4 : 2) =>
-  `${Number(toUnit(mm, unit).toFixed(decimals))} ${unit}`;
+// A length of a metre or more also gets the larger units, "1053 mm (1 m, 5 cm, 3 mm)", and one of a foot
+// or more "37.5 in (3 ft, 1.5 in)"; zero parts are left out.
+export function formatLength(mm, unit, decimals = unit === 'in' ? 4 : 2) {
+  const round = (v) => Number(v.toFixed(decimals));
+  const v = round(toUnit(mm, unit));
+  const text = `${v} ${unit}`;
+  const sign = v < 0 ? -1 : 1, a = Math.abs(v);
+  const parts = [];
+  if (unit === 'in') {
+    if (a < 12) return text;
+    const ft = Math.floor(a / 12), rest = round(a - 12 * ft);
+    parts.push(`${ft} ft`);
+    if (rest > 0) parts.push(`${rest} in`);
+  } else {
+    if (a < 1000) return text;
+    const m = Math.floor(a / 1000), r = a - 1000 * m, cm = Math.floor(r / 10), rest = round(r - 10 * cm);
+    parts.push(`${m} m`);
+    if (cm > 0) parts.push(`${cm} cm`);
+    if (rest > 0) parts.push(`${rest} mm`);
+  }
+  if (sign < 0) parts[0] = `-${parts[0]}`;
+  return `${text} (${parts.join(', ')})`;
+}
 export const formatBoth = (mm, mmDecimals = 1, inDecimals = 2) =>
   `${formatMm(mm, mmDecimals)} (${formatIn(mm, inDecimals)})`;
 
@@ -180,7 +201,7 @@ export function clampGridDimensions(current, requested = {}) {
 }
 
 // The most cells (X × Y) a panel can have. Past this the panel is too heavy to draw and edit.
-export const MAX_PANEL_CELLS = 2000;
+export const MAX_PANEL_CELLS = 3000;
 
 // Cell counts after the user sets one of them (`which` = 'cols' | 'rows') to `value`: that one is
 // rounded and kept to 1..MAX_PANEL_CELLS, and if the product would pass the limit the OTHER one is

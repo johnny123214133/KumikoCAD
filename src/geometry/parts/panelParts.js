@@ -82,6 +82,9 @@ export function computePanelParts({ grid, getPattern }) {
     });
     const entry = addToTally(strip.kind === 'border' ? borderTally : gridTally, piece, 1, strip.kind === 'border' ? BORDER : GRID);
     (entry.stripIds ??= []).push(strip.id);
+    // Where this strip's piece sits in the panel (for the 1:1 layout): the piece frame's origin and turn, panel mm, Y up.
+    const shift = strip.trim && !strip.curve ? strip.trim.c0 : 0;
+    (entry.placed ??= new Map()).set(strip.id, { piece, x: strip.start.x + Math.cos(strip.orientation) * shift, y: strip.start.y + Math.sin(strip.orientation) * shift, angle: strip.orientation });
   }
   const border = items(borderTally), gridStrips = items(gridTally);
 
@@ -118,7 +121,7 @@ export function computePanelParts({ grid, getPattern }) {
     if (half) entry.edgeCells++;
     entry.approx = entry.approx || cell.approx;
     for (const piece of cell.pieces) {
-      addToTally(entry.tally, piece, 1);
+      (addToTally(entry.tally, piece, 1).spaceIds ??= new Set()).add(space.id);
       (addToTally(byPieceTally, piece, 1, id).spaceIds ??= new Set()).add(space.id);
     }
   }

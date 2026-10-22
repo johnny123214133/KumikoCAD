@@ -203,3 +203,24 @@ export const SearchIcon = () => (
 export const LayersIcon = () => (
   <svg {...base}><path d="M12 4 L21 9 L12 14 L3 9 Z" /><path d="M3 13 L12 18 L21 13" /></svg>
 )
+
+// Tile the selection: the selected cell repeated in a lattice (dashed copies).
+export const TileSelectIcon = () => (
+  <svg {...base}>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" strokeDasharray="2.2 1.8" />
+    <rect x="3" y="14" width="7" height="7" rx="1" strokeDasharray="2.2 1.8" />
+    <rect x="14" y="14" width="7" height="7" rx="1" strokeDasharray="2.2 1.8" />
+  </svg>
+)
+
+// Tile the patterns: the same, with the pattern (a triangle) filled in each copy.
+export const TilePatternIcon = () => (
+  <svg {...base}>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+    <path d="M4.5 8.5 L6.5 4.5 L8.5 8.5 Z M15.5 8.5 L17.5 4.5 L19.5 8.5 Z M4.5 19.5 L6.5 15.5 L8.5 19.5 Z M15.5 19.5 L17.5 15.5 L19.5 19.5 Z" fill="currentColor" stroke="none" />
+  </svg>
+)

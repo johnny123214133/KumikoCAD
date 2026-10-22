@@ -2,6 +2,7 @@ import useAppStore, { cameraApi } from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import { EDITORS } from './editors.js'
+import { tileSelectionAction, tilePatternsAction } from '../../store/tilingActions.js'
 import { saveProject, openProject } from '../../store/projectActions.js'
 
 // The keyboard shortcuts, in one place: the key handler (useKeyBindings.js), the
@@ -54,6 +55,8 @@ export const KEY_BINDINGS = [
     id: 'clear-cells-backspace', key: 'backspace', keys: 'Backspace', group: 'Cells', label: 'Same as Delete (the Delete key of a Mac keyboard)', workspaces: PANEL,
     run: () => clearSelectedCells(),
   },
+  { id: 'tile-selection', key: 't', keys: 'T', group: 'Selection', label: 'Tile the selection across the panel: the copies of the selected cells are added to the selection', workspaces: PANEL, run: () => tileSelectionAction() },
+  { id: 'tile-patterns', key: 't', shift: true, keys: 'Shift + T', group: 'Cells', label: 'Tile the patterns of the selected cells across the panel (one step; the selection stays)', workspaces: PANEL, run: () => tilePatternsAction() },
   { id: 'validation', key: 'v', keys: 'V', group: 'Cells', label: 'Turn Highlighter/Validation on or off', workspaces: PANEL, run: () => useAppStore.getState().toggleValidation() },
   // Not a key press: handled by the cells' click handler (GridLayer.jsx).
   { id: 'apply-pattern', keys: 'Ctrl / Cmd + click', group: 'Cells', label: 'Click a cell to apply the current pattern to the selected cells, with any tool but Snap to gridpoint', workspaces: PANEL },

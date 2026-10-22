@@ -35,6 +35,12 @@ export default function PieceDetails() {
     })
     .sort((a, b) => a.x - b.x)
   const notches = piece.cuts.filter((c) => c.role === 'notch')
+  // The cuts that make the ends (mitres, tapers, cuts against the border), listed with the rest; a square end is no cut.
+  const ENDS = { miter: 'Miter', miterHalfLap: 'Miter', taper: 'Taper', vNotch: 'V-notch end', butt: 'Butt cut at the border' }
+  const ends = piece.cuts
+    .filter((c) => (c.role === 'end' || c.role === 'border') && c.end && (Math.abs(c.angle - 90) > 0.05 || (c.notch && c.notch !== 'miter' && c.notch !== 'miterHalfLap')))
+    .map((c) => ({ x: c.x, end: c.end, name: ENDS[c.notch] ?? 'End cut', angle: c.angle }))
+    .sort((a, b) => a.x - b.x)
   return (
     <div>
       <h6 className="text-uppercase small text-muted mb-2" style={{ letterSpacing: '0.05em' }}>Selected piece</h6>
@@ -47,12 +53,15 @@ export default function PieceDetails() {
       <Row label="Used in">{sections.join(', ')}</Row>
       <Row label="Start end">{start}</Row>
       <Row label="Finish end">{end}</Row>
-      {(laps.length > 0 || notches.length > 0) && (
+      {(laps.length > 0 || notches.length > 0 || ends.length > 0) && (
         <div className="mt-3">
-          <div className="small fw-semibold mb-1">Cuts along the piece</div>
+          <div className="small fw-semibold mb-1">Cuts</div>
           <table className="table table-sm small mb-0">
             <thead><tr><th className="fw-normal text-muted">From start</th><th className="fw-normal text-muted">Cut</th><th className="fw-normal text-muted">Into</th><th className="fw-normal text-muted">Depth</th></tr></thead>
             <tbody>
+              {ends.map((e, i) => (
+                <tr key={`e${i}`}><td>{len(Math.max(0, e.x))}</td><td>{e.name} {Math.abs(e.angle - 90) > 0.05 ? `${Number(e.angle.toFixed(1))}°` : ''}</td><td>{e.end === 's' ? 'start' : 'finish'} end</td><td>through</td></tr>
+              ))}
               {laps.flatMap((l, i) => [
                 <tr key={`l${i}`} style={l.along ? { borderBottomColor: 'transparent' } : undefined}><td>{len(Math.max(0, l.x))}</td><td>{l.name}</td><td>{l.face} face</td><td>{len(l.depth)}</td></tr>,
                 l.along && (

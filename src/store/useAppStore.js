@@ -99,8 +99,13 @@ const useAppStore = create((set, get) => ({
   // SceneManager/PatternRenderer instances that live inside Viewport's canvas.
   viewportApi: null,
   // The Parts List's canvas shows the piece's profiles ('2d') or the piece as a solid ('3d'); view3dApi is the 3D view's zoom handle.
-  partsView: loadSetting('kumiko_partsView', '2d', (v) => v === '2d' || v === '3d'),
-  setPartsView: (v) => { if (v === '2d' || v === '3d') { saveSetting('kumiko_partsView', v); set({ partsView: v }); } },
+  partsView: '2d', // always opens on the 2D profiles; switching is for the session
+  setPartsView: (v) => { if (v === '2d' || v === '3d') set({ partsView: v }); },
+  // The Export dialog (parts list PDF / spreadsheet, 1:1 layout) and the paper the PDFs are made for.
+  exportDialogOpen: false,
+  setExportDialogOpen: (open) => set({ exportDialogOpen: !!open }),
+  printPaper: loadSetting('kumiko_printPaper', 'letter', (v) => v === 'letter' || v === 'a4'),
+  setPrintPaper: (v) => { if (v === 'letter' || v === 'a4') { saveSetting('kumiko_printPaper', v); set({ printPaper: v }); } },
   focusPick: false, // the 3D view is waiting for a click on the piece to look at
   setFocusPick: (on) => set({ focusPick: !!on }),
   view3dApi: null, // { zoomBy(k), zoomToFit(), slide(dx, dy) } while the 3D view is mounted

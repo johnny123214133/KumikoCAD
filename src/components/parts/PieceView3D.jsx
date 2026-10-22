@@ -27,7 +27,7 @@ const toThree = (positions) => {
 const P = (x, y, z) => new THREE.Vector3(x, z, -y)
 const SLIDE = 0.06 // of the distance to the piece, per key press
 
-// A solid's faces and its edges drawn as lines a couple of pixels wide, so the borders read.
+// A solid's faces and its edges drawn as lines one pixel wide.
 function meshOf(positions, material, lineMaterial) {
   const geo = new THREE.BufferGeometry()
   geo.setAttribute('position', new THREE.BufferAttribute(toThree(positions), 3))
@@ -177,7 +177,7 @@ export default function PieceView3D() {
     const dark = new THREE.Color(wood).multiplyScalar(0.35)
     const content = new THREE.Group()
     const woodMat = new THREE.MeshStandardMaterial({ color: wood, roughness: 0.75, metalness: 0, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 })
-    const edgeMat = new LineMaterial({ color: dark, linewidth: 2 })
+    const edgeMat = new LineMaterial({ color: dark, linewidth: 1 })
     edgeMat.resolution.copy(s.size)
     s.lineMats.push(edgeMat)
     let madeMesh = null

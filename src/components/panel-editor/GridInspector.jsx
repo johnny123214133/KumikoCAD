@@ -68,13 +68,13 @@ export default function GridInspector() {
         </div>
 
         <div className="mb-3">
-          <label className="form-label small mb-1">Grid size (cells)</label>
+          <FieldLabel label="Grid size (cells)" tip={`The panel is limited to ${MAX_PANEL_CELLS} cells in all (X × Y). If a new X or Y would pass that, the other value scales back to fit.`} />
           <div className="d-flex gap-2 align-items-center">
             <DebouncedCountField label="X" ariaLabel="Cells along X" value={cols} onCommit={setCols} />
             <DebouncedCountField label="Y" ariaLabel="Cells along Y" value={rows} onCommit={setRows} />
           </div>
           <div className="form-text" style={{ fontSize: 11 }}>
-            {cols * rows} of {MAX_PANEL_CELLS} cells. If X × Y would pass {MAX_PANEL_CELLS}, the other value scales back.
+            {cols * rows} of {MAX_PANEL_CELLS} cells
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import {
   SelectionIcon, PlacePatternIcon, MultiSelectIcon, DragSelectIcon, HighlighterIcon, InspectIcon, FillPaintIcon,
-  SnapGridpointIcon, RotateCcwIcon, LockIcon, PaletteIcon, OverviewIcon, ZoomFitIcon, LayersIcon, SearchIcon,
+  SnapGridpointIcon, RotateCcwIcon, LockIcon, PaletteIcon, OverviewIcon, SaveProjectIcon, TileSelectIcon, ZoomFitIcon, LayersIcon, SearchIcon,
 } from './icons.jsx'
 
 // The toolbar's tools, and what the Help panel says about each — kept together so
@@ -90,6 +90,13 @@ export const ACTIONS = [
     help: () => ['The two rotate buttons turn the patterns in the selected cells 120° counterclockwise or clockwise.'],
   },
   {
+    id: 'tile', label: 'Tiling', Icon: TileSelectIcon, workspaces: ['panel-editor'],
+    help: () => [
+      'The two tiling buttons (T and Shift + T) repeat what is selected across the whole panel, in every direction. The selection\u2019s bounding box is the tile; if it spans an odd number of columns it is widened by one so the copies land on cells that point the same way as the originals. Copies that fall off the panel are dropped.',
+      'Tile selection (T) adds the copies to the selection. Tile patterns (Shift + T) puts the selected cells\u2019 patterns, with their turns and mirroring, into the copies, replacing what was there (an empty selected cell empties its copies) \u2014 all as one step.',
+    ],
+  },
+  {
     id: 'zoom', label: 'Zoom', Icon: ZoomFitIcon, workspaces: ['pattern-editor', 'panel-editor', 'parts-list'],
     help: () => [
       'Zoom to fit (Z) frames the whole work (in the Parts List\u2019s 3D view, the piece). The zoom buttons at the bottom right of the canvas zoom out, fit and zoom in; the mouse wheel zooms too (in the Parts List always; in the editors while the viewport is unlocked).',
@@ -109,6 +116,14 @@ export const ACTIONS = [
     id: 'overlays', label: 'Overlays', Icon: LayersIcon, workspaces: ['pattern-editor', 'panel-editor', 'parts-list'],
     help: (w) => [
       `The second line of the toolbar, beside the editor tabs, switches the drawing aids for this editor on and off (Shift + 1 to 5). ${w.work === 'pattern' ? 'Centerlines, joint dots (hover one to see its joint type), wireframe, the view-orientation arrow and a scale ruler.' : w.work === 'piece' ? 'Joint dots where the selected piece is cut (hover one to see what it is), and a scale ruler under its profiles (in 3D, its length, width and thickness)' : 'The view-orientation arrow on every cell, and a scale ruler along the panel.'}`,
+    ],
+  },
+  {
+    id: 'export', label: 'Export and print', Icon: SaveProjectIcon, workspaces: ['pattern-editor', 'panel-editor', 'parts-list'],
+    help: () => [
+      'The \u25be beside Save, then Export and print\u2026 (or the command palette), makes three files from the panel as it is now. Choose US Letter or A4 first.',
+      'The 1:1 layout is a PDF of the whole panel at full size with every piece outlined, cut into sheets that join edge to edge: each sheet has a margin, its page number, the number of the sheet that joins each side, an overlap band and + registration marks to line up, and a 50 mm bar to check the print scale. Print at 100% (Actual size).',
+      'The parts list PDF lists every strip by section and pattern, with its cuts, and a box beside each section, pattern and strip to tick off as you build. The spreadsheet (.xlsx) has the same hierarchy as collapsible rows with a Done column, and a flat cut list to sort and filter.',
     ],
   },
   {

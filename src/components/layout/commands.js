@@ -10,6 +10,7 @@ import { choosePattern } from '../../store/patternActions.js'
 import { EDITORS } from './editors.js'
 import { TOOLS, VALIDATION } from './toolDefs.js'
 import { overlaysFor } from './overlays.js'
+import { tileSelectionAction, tilePatternsAction } from '../../store/tilingActions.js'
 import { keyFor, selectAll, invertSelection, resetRotation, clearSelectedCells } from './keyBindings.js'
 
 // Everything the command palette (Ctrl/Cmd + K) can do, for the editor you are in:
@@ -27,6 +28,8 @@ export function buildCommands(workspace) {
   add({ id: 'save', title: 'Save project', section: 'Project', keys: 'Ctrl / Cmd + S', keywords: 'write file download', run: () => saveProject() })
   add({ id: 'save-as', title: 'Save project as…', section: 'Project', keys: 'Ctrl / Cmd + Shift + S', keywords: 'rename copy file', run: () => saveProject({ saveAs: true }) })
   add({ id: 'open', title: 'Open project…', section: 'Project', keys: 'Ctrl / Cmd + O', keywords: 'load file', run: () => openProject() })
+
+  add({ id: 'export', title: 'Export and print…', section: 'Project', keywords: 'pdf parts list spreadsheet xlsx excel layout 1:1 print letter a4 checklist', run: () => app().setExportDialogOpen(true) })
 
   EDITORS.forEach((ed, i) => add({
     id: `editor-${ed.id}`, title: `Go to ${ed.label}`, section: 'Editors', keys: String(i + 1), keywords: 'switch tab workspace',
@@ -54,6 +57,8 @@ export function buildCommands(workspace) {
     add({ id: 'rotate-ccw', title: 'Rotate selected patterns counterclockwise', section: 'Cells', keys: keyFor('rotate-ccw'), keywords: 'turn', run: () => useGridStore.getState().rotateSpaces(useSelectionStore.getState().selectedSpaceIds, 1) })
     add({ id: 'rotate-cw', title: 'Rotate selected patterns clockwise', section: 'Cells', keys: keyFor('rotate-cw'), keywords: 'turn', run: () => useGridStore.getState().rotateSpaces(useSelectionStore.getState().selectedSpaceIds, -1) })
     add({ id: 'clear-cells', title: 'Replace selected patterns with Mitsukude A (empty the cells)', section: 'Cells', keys: keyFor('clear-cells'), keywords: 'delete clear remove blank empty', run: () => clearSelectedCells() })
+    add({ id: 'tile-selection', title: 'Tile the selection across the panel', section: 'Selection', keys: keyFor('tile-selection'), keywords: 'repeat pattern extend copies grid select', run: () => tileSelectionAction() })
+    add({ id: 'tile-patterns', title: 'Tile the selected patterns across the panel', section: 'Cells', keys: keyFor('tile-patterns'), keywords: 'repeat copy fill extend place', run: () => tilePatternsAction() })
     add({ id: 'rotate-reset', title: 'Reset rotation of selected patterns', section: 'Cells', keys: keyFor('rotate-reset'), keywords: 'default turn zero original', run: () => resetRotation() })
   }
 

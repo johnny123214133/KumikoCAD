@@ -157,6 +157,20 @@ const useGridStore = create((set, get) => ({
     }
     return { spacePatterns, spaceXforms };
   }),
+  // Copies the placement (pattern and turn / mirroring) of each `from` cell onto its `to` cell, in one
+  // store update. A `from` cell that is empty empties its `to` cell. Pairs: [{ from, to }].
+  copySpacePlacements: (pairs) => set((s) => {
+    if (!pairs.length) return {};
+    const spacePatterns = { ...s.spacePatterns };
+    const spaceXforms = { ...s.spaceXforms };
+    for (const { from, to } of pairs) {
+      if (s.spacePatterns[from]) {
+        spacePatterns[to] = s.spacePatterns[from];
+        spaceXforms[to] = { ...(s.spaceXforms[from] ?? { rot: 0, flip: s.placementFlip }) };
+      } else { delete spacePatterns[to]; delete spaceXforms[to]; }
+    }
+    return { spacePatterns, spaceXforms };
+  }),
   // Turns the patterns in `spaceIds` a third of a turn per step about their
   // cells' centres: +1 = 120° counterclockwise, -1 = 120° clockwise (as seen on
   // screen, whatever the orientation or mirroring). Empty cells are skipped.

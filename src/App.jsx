@@ -11,6 +11,7 @@ import { useTheme } from './store/useThemeStore.js'
 import StatusBar from './components/layout/StatusBar.jsx'
 import CommandPalette from './components/layout/CommandPalette.jsx'
 import ProjectDialogs from './components/layout/ProjectDialogs.jsx'
+import ExportDialog from './components/layout/ExportDialog.jsx'
 import ClearCellsDialog from './components/layout/ClearCellsDialog.jsx'
 import { startProjectTracking } from './store/projectActions.js'
 import useKeyBindings from './components/layout/useKeyBindings.js'
@@ -38,6 +39,7 @@ export default function App() {
           as a dependency (npm install react-toastify) if it isn't already
           one. */}
       <ProjectDialogs />
+      <ExportDialog />
       <ClearCellsDialog />
       <CommandPalette />
       <ToastContainer
