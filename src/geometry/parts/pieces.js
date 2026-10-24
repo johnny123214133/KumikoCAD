@@ -106,7 +106,9 @@ function canonical(cuts, L) {
   return best;
 }
 
-function finish({ width, thickness, material, finishName, centreline, length, curved, curveText, cuts, outline, missing }) {
+// `layers` (optional): a laminated piece's glued-up strips, left to right in the piece's frame, each
+// { width, material, finish }; `material`/`finishName` then describe its core.
+function finish({ width, thickness, material, finishName, centreline, length, curved, curveText, cuts, outline, missing, layers }) {
   // The identity is the smallest description over the four ways the piece can lie; the piece
   // itself is kept lying the way it is built into the panel (front face up), so that its profiles
   // show its cut faces on the faces they are really cut into — a border strip lapped over the
@@ -116,12 +118,13 @@ function finish({ width, thickness, material, finishName, centreline, length, cu
   const missingText = missing?.length ? `miss${num(missing.reduce((a, poly) => a + Math.abs(area(poly)), 0), 1)}` : '';
   const asBuilt = sortCuts(cuts.map((c) => TURNS[0](c, centreline)));
   return {
-    key: [num(width, 2), num(thickness, 2), material, finishName, num(centreline, 2), curveText, text, missingText].join('#'),
+    key: [num(width, 2), num(thickness, 2), material, finishName, num(centreline, 2), curveText, text, missingText, ...(layers ? [layers.map((l) => `${num(l.width, 2)}${l.material}${l.finish}`).join('+')] : [])].join('#'),
     width: num(width, 2), thickness: num(thickness, 2), material, finish: finishName,
     length: num(length, 2), centreline: num(centreline, 2), curved, curveText, cuts: asBuilt,
     outline: outline ? normPoly(outline) : [],
     // (a strip cut off at the panel's edge: the part of it that isn't made, as plan polygons)
     missing: (missing ?? []).map(normPoly),
+    ...(layers ? { layers } : {}),
   };
 }
 
@@ -138,7 +141,7 @@ function notchSize(c, strip, ux, uy, width) {
  *   joints  a Map of joint id -> { notchType } (the notch type of the end cuts' joints)
  *   width, thickness, material, finish   the stock
  */
-export function pieceFromStrip({ strip, joints, width, thickness, material, finish: finishName, lapRegions }) {
+export function pieceFromStrip({ strip, joints, width, thickness, material, finish: finishName, lapRegions, layers }) {
   const dx = strip.end.x - strip.start.x, dy = strip.end.y - strip.start.y;
   const ux = Math.cos(strip.orientation), uy = Math.sin(strip.orientation);
   // Overall length: the outline the renderer draws for this strip (its ends can be mitred, tapered,
@@ -181,7 +184,7 @@ export function pieceFromStrip({ strip, joints, width, thickness, material, fini
   const missing = trim ? trim.missing.map((poly) => poly.map(moveX)) : [];
   const curveObj = strip.curve ? Object.fromEntries(Object.entries(strip.curve).map(([k, v]) => [k, num(v, 4)])) : null;
   const curveText = curveObj ? JSON.stringify(trim ? { ...curveObj, kept: num(trim.kept, 2) } : curveObj) : '';
-  return finish({ width, thickness, material, finishName, centreline: L, length, curved: !!strip.curve, curveText, cuts, outline, missing });
+  return finish({ width, thickness, material, finishName, centreline: L, length, curved: !!strip.curve, curveText, cuts, outline, missing, layers });
 }
 
 // The mirror image of a piece: reflected across its own length (every angle becomes 180° minus
@@ -193,6 +196,7 @@ export function mirrorPiece(piece) {
     width: piece.width, thickness: piece.thickness, material: piece.material, finishName: piece.finish,
     centreline: piece.centreline, length: piece.length, curved: piece.curved, curveText: piece.curveText, cuts,
     outline: piece.outline.map(flipY), missing: (piece.missing ?? []).map((poly) => poly.map(flipY)),
+    layers: piece.layers ? [...piece.layers].reverse() : undefined, // (left becomes right)
   });
 }
 

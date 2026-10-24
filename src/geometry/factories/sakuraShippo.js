@@ -3,6 +3,7 @@ import { curveFamily } from '../curve.js';
 import { MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM } from '../units.js';
 import { bowShape, bowStrips, THETA_MAX, LEAD_MAX } from './shippo.js';
 import { lengthLedParams } from './_lengthLed.js';
+import { buildBars, OUTER_STRIP_WIDTH, LAMINATED_PARTS_NOTE } from './_laminatedBars.js';
 
 // Sakura-shippo: Sakura A's three thick strips (one cutting off each corner, each with a V-notch
 // in its face toward the centre) and Shippo's three bent strips. The bent strips run from notch
@@ -29,26 +30,28 @@ const T30 = Math.tan(rad(30));
 
 // The family parameter is the straight lead (mm) the bent strips keep along the notch before they
 // bend; with none, the pair leaves the notch flush at 30° to the faces and the strip is a single parabola.
-export function sakuraShippoShape(cell, w, thick, spacing, lead) {
+// `thick` is the whole bar's width; `sec` the outer strips' share (laminated: the notch must go through
+// the inner one and leave the core 0.5 mm).
+export function sakuraShippoShape(cell, w, thick, spacing, lead, sec = 0) {
   const clear = cell.r - cell.gridStripWidth / 2;
   const innerFace = 2 * clear - spacing - thick;          // thick strip's face toward the centre, from G
   const Lq = 2 * w;                                        // notch face the strip's end lies along (strips side by side)
   const D = Lq * Math.cos(rad(30));                        // notch depth
   const rho = innerFace + D;                               // centre → apex
   const out = { ok: false, L: 0, rho, D, Lq, innerFace };
-  if (!(innerFace > 0) || !(D <= thick - 0.5) || !(Lq / 2 + 1 <= (spacing + thick) * T30)) return out;
+  if (!(innerFace > 0) || !(D <= thick - sec - 0.5) || !(D >= sec + 0.5) || !(Lq / 2 + 1 <= (spacing + thick) * T30)) return out;
   const b = bowShape(SQRT3 * rho, rho / 2, w, THETA_MAX + lead);
   return { ...b, rho, D, Lq, innerFace, ok: b.ok };
 }
 
 const familyCache = new Map();
-function familyFor(ctx, thick, spacing) {
+function familyFor(ctx, thick, spacing, sec = 0) {
   const { cellWidth, gridStripWidth, patternStripWidth: w } = ctx;
-  const key = `${cellWidth}|${gridStripWidth}|${w}|${thick}|${spacing}`;
+  const key = `${cellWidth}|${gridStripWidth}|${w}|${thick}|${spacing}|${sec}`;
   if (!familyCache.has(key)) {
     if (familyCache.size > 4000) familyCache.clear();
     const cell = cellContext(cellWidth, gridStripWidth);
-    familyCache.set(key, curveFamily((p) => sakuraShippoShape(cell, w, thick, spacing, p), 0, LEAD_MAX, 120));
+    familyCache.set(key, curveFamily((p) => sakuraShippoShape(cell, w, thick + 2 * sec, spacing, p, sec), 0, LEAD_MAX, 120));
   }
   return familyCache.get(key);
 }
@@ -63,58 +66,81 @@ const thickCap = (ctx) => {
 const spacingLo = ({ patternStripWidth: w }, thick) => Math.max(0, (w + 1) / T30 - thick);
 const spacingCap = ({ cellWidth, gridStripWidth }, thick) => Math.max(0, (SQRT3 * cellWidth - 3 * gridStripWidth - 4 * thick) / 4);
 
-export const buildSakuraShippo = definePattern({
-  id: 'builtin:sakura-shippo-sixth',
-  name: 'Sakura-shippo',
+function defineSakuraShippo({ id, name, laminated, description }) {
+  const secOf = (ctx) => (laminated ? ctx.params.outerStripWidth : 0);
+  // With laminated bars, `t` below is the core's width; the bar is t + 2·(outer strip width).
+  const lo = (ctx) => Math.max(MIN_STRIP_WIDTH_MM, thickLo(ctx) - secOf(ctx));
+  return definePattern({
+  id,
+  name,
+  usesGridMaterial: laminated,
   maxStripWidth: 3,
   defaultStripWidth: 1,
-  paramDefs: lengthLedParams({
-    spacingStep: 0.5, familyFor, thickLo, thickCap, spacingLo, spacingCap, defaultLength: 26.5, defaultThick: 6, defaultSpacing: 6,
+  paramDefs: [...(laminated ? [{
+    ...OUTER_STRIP_WIDTH,
+    max: ({ cellWidth, patternStripWidth: w }) => Math.max(MIN_STRIP_WIDTH_MM, Math.min(4, cellWidth * 0.08, 2 * w * Math.cos(rad(30)) - 0.5)),
+  }] : []), ...lengthLedParams({
+    spacingStep: 0.5,
+    familyFor: (ctx, t, sp) => familyFor(ctx, t, sp, secOf(ctx)),
+    thickLo: lo,
+    thickCap: (ctx) => Math.max(lo(ctx), thickCap(ctx) - 2 * secOf(ctx)),
+    spacingLo: (ctx, t) => spacingLo(ctx, t + 2 * secOf(ctx)),
+    spacingCap: (ctx, t) => spacingCap(ctx, t + 2 * secOf(ctx)), defaultLength: 26.5, defaultThick: laminated ? 4 : 6, defaultSpacing: 6,
     lengthDescription: 'Length of each bent strip, notch to notch; a longer strip bows more (and cuts a shallower notch), and past a point runs straight along the notch before it bends. The thick strip\'s ranges follow this length.',
-    thickDescription: 'Width of the three thick strips (the regular Strip width sets the bent strips).',
+    thickDescription: laminated ? 'Width of the core of each thick strip, between its two outer strips (the regular Strip width sets the bent strips).' : 'Width of the three thick strips (the regular Strip width sets the bent strips).',
+    thickLabel: laminated ? 'Thick strip core width' : undefined,
     spacingDescription: 'Gap between each corner and the thick strip nearest it.',
-  }),
+  })],
   meta: {
     difficulty: 'advanced',
     tags: ['six-fold', 'traditional', 'curved'],
-    description: 'Three thick strips cutting off the corners, each with a V-notch toward the centre, joined by three thin bent strips running notch to notch — two meeting side by side in every notch. Thin strip width defaults to and is capped at 3 mm.',
+    description,
+    ...(laminated ? { partsNote: LAMINATED_PARTS_NOTE } : {}),
     thumbnail: null,
   },
   build: ({ cell, params, patternStripWidth: w }) => {
     const { G } = cell;
     const wThick = params.thickStripWidth;
+    const sec = laminated ? params.outerStripWidth : 0;
+    const wBar = wThick + 2 * sec;
     const ctx = { cellWidth: cell.cellWidth, gridStripWidth: cell.gridStripWidth, patternStripWidth: w };
     const spacing = params.cornerSpacing;
-    const fam = familyFor(ctx, wThick, spacing);
-    const shape = sakuraShippoShape(cell, w, wThick, spacing, fam.paramFor(params.curveLength));
+    const fam = familyFor(ctx, wThick, spacing, sec);
+    const shape = sakuraShippoShape(cell, w, wBar, spacing, fam.paramFor(params.curveLength), sec);
 
     // The notch apexes: s3 is the thick strip nearest C, s4 / s5 are it rotated 120° / 240°.
     const apexes = [0, 120, 240].map((deg) => cell.rotate({ x: G.x, y: G.y + shape.rho }, deg));
     const bent = bowStrips(apexes, shape, (i) => ({ id: `s${i}`, joints: [`j${3 + 2 * i}`, `j${4 + 2 * i}`] }));
 
     const clear = cell.r - cell.gridStripWidth / 2;
-    const centerline = 2 * clear - spacing - wThick / 2;
-    const { start, end } = chordAtHeight(cell, G.y + centerline);
-    const bars = [0, 120, 240].map((deg) => ({ start: cell.rotate(start, deg), end: cell.rotate(end, deg) }));
-    const barStrips = bars.map((b, i) => {
-      const apex = apexes[i];
-      const dir = { x: b.end.x - b.start.x, y: b.end.y - b.start.y };
-      const toG = { x: G.x - apex.x, y: G.y - apex.y };
-      return makeStrip(`s${3 + i}`, b.start, b.end, [
-        endCut(`j${9 + 2 * i}`, b.start, 60),
-        endCut(`j${10 + 2 * i}`, b.end, 120),
-        { jointId: `j${i}`, position: { ...apex }, angle: 60, depth: 1.0, role: 'notch', notchSide: dir.x * toG.y - dir.y * toG.x > 0 ? 'left' : 'right' },
-      ]);
-    });
+    const outerFace = 2 * clear - spacing;
+    const bars = buildBars(cell, { outerFace, wc: wThick, sec, ids: { s: 3, j: 9 }, notch: { apexDist: shape.rho, halfAngle: 30, joint: (i) => `j${i}` } });
     const joints = [
-      ...barStrips.map((s, i) => ({ id: `j${i}`, position: { ...apexes[i] }, members: [{ stripId: s.id, role: 'notch' }], notchType: 'taper' })),
+      ...bars.bars.map((b, i) => ({ id: `j${i}`, position: { ...b.core.cuts.find((c) => c.role === 'notch').position }, members: [{ stripId: b.core.id, role: 'notch' }], notchType: 'taper' })),
       ...bent.joints,
-      ...barStrips.flatMap((s, i) => [endJoint(`j${9 + 2 * i}`, s.start, s.id, 'miter'), endJoint(`j${10 + 2 * i}`, s.end, s.id, 'miter')]),
+      ...bars.joints,
     ];
     return {
-      strips: [...bent.strips, ...barStrips],
+      strips: [...bent.strips, ...bars.strips],
       joints,
-      stripWidths: Object.fromEntries(barStrips.map((s) => [s.id, wThick])),
+      stripWidths: bars.stripWidths,
+      gridMatched: bars.gridMatched,
+      laminations: bars.laminations,
     };
   },
+  });
+}
+
+export const buildSakuraShippo = defineSakuraShippo({
+  id: 'builtin:sakura-shippo-sixth',
+  name: 'Sakura-shippo',
+  laminated: false,
+  description: 'Three thick strips cutting off the corners, each with a V-notch toward the centre, joined by three thin bent strips running notch to notch — two meeting side by side in every notch. Thin strip width defaults to and is capped at 3 mm.',
+});
+
+export const buildSakuraShippoVariant = defineSakuraShippo({
+  id: 'builtin:sakura-shippo-variant-sixth',
+  name: 'Sakura-shippo Variant',
+  laminated: true,
+  description: 'Sakura-shippo with each thick strip laminated: a core between two outer strips in the grid\'s wood, with the V-notch cut through the glued-up bar. Thin strip width defaults to and is capped at 3 mm.',
 });

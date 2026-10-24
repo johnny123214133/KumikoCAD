@@ -62,7 +62,7 @@ function sideRects(piece, fromLeft = false) {
   if (!piece.outline.length) return [];
   const flipY = (pt) => [pt[0], -pt[1]];
   const outline = fromLeft ? piece.outline.map(flipY) : piece.outline;
-  const rects = sideRectsFromRight(piece, outline, fromLeft ? lapsOf(piece).map((l) => ({ ...l, regions: l.regions.map((r) => r.map(flipY)) })) : lapsOf(piece), t);
+  const rects = sideRectsFromRight(piece, outline, fromLeft ? lapsOf(piece).map((l) => ({ ...l, regions: l.regions.map((r) => r.map(flipY)) })) : lapsOf(piece), t, viewLayers(piece, fromLeft));
   if (!fromLeft) return rects;
   const xs = piece.outline.map((pt) => pt[0]);
   const sum = Math.min(...xs) + Math.max(...xs);
@@ -88,7 +88,14 @@ function nearFaceAt(outline, x) {
   return `e${Math.round(Math.atan2(dy, dx) * 1800 / Math.PI)}:${Math.round((-dy * best.a[0] + dx * best.a[1]) * 100)}`;
 }
 
-function sideRectsFromRight(piece, outline, laps, t) {
+// A laminated piece's layers in the order a side view meets them going down the screen's y (the piece's
+// +y, its left, first; from the left side the piece is mirrored, so they run the other way).
+export function viewLayers(piece, fromLeft) {
+  if (!piece.layers?.length) return null;
+  return fromLeft ? [...piece.layers].reverse() : piece.layers;
+}
+
+function sideRectsFromRight(piece, outline, laps, t, lay) {
   const xs = outline.map((p) => p[0]), ys = outline.map((p) => p[1]);
   const x0 = Math.min(...xs), x1 = Math.max(...xs), near = Math.min(...ys);
   if (piece.curved) return [{ x0, x1, z0: 0, z1: t, state: 'face' }];
@@ -103,6 +110,12 @@ function sideRectsFromRight(piece, outline, laps, t) {
     const n = b - a < 0.5 ? 2 : SUBDIVISIONS;
     for (let k = 0; k < n; k++) columns.push([a + ((b - a) * k) / n, a + ((b - a) * (k + 1)) / n]);
   }
+  const layerAt = (y) => { // which layer the near face is cut from at lateral position y (centreline 0)
+    if (!lay) return undefined;
+    let hi = piece.width / 2;
+    for (let i = 0; i < lay.length; i++) { hi -= lay[i].width; if (y + 1e-6 >= hi || i === lay.length - 1) return i; }
+    return lay.length - 1;
+  };
   const rects = [];
   let run = null, prevRun = null;
   // A rectangle that starts where another cut face ends (a different face: another cut, or another
@@ -113,7 +126,7 @@ function sideRectsFromRight(piece, outline, laps, t) {
     for (const band of run.bands) {
       const seam = state => state === 'cut' && prevRun && Math.abs(prevRun.x1 - run.x0) < EPS
         && prevRun.bands.some((o) => o.state === 'cut' && o.ids !== band.ids && Math.min(o.z1, band.z1) - Math.max(o.z0, band.z0) > EPS);
-      const rect = { x0: run.x0, x1: run.x1, z0: band.z0, z1: band.z1, state: band.state };
+      const rect = { x0: run.x0, x1: run.x1, z0: band.z0, z1: band.z1, state: band.state, ...(lay ? { layer: run.layer } : {}) };
       if (seam(band.state)) rect.seam = 'x0'; // the seam is on the rectangle's left side
       rects.push(rect);
     }
@@ -147,9 +160,10 @@ function sideRectsFromRight(piece, outline, laps, t) {
       const last = bands[bands.length - 1];
       if (last && last.state === state && last.ids === ids && Math.abs(last.z1 - z0) < EPS) last.z1 = z1; else bands.push({ z0, z1, state, ids });
     }
-    const key = bands.map((b) => `${b.z0.toFixed(3)}:${b.z1.toFixed(3)}:${b.state}:${b.ids}`).join('|');
+    const layer = layerAt(yLow);
+    const key = `L${layer}|` + bands.map((b) => `${b.z0.toFixed(3)}:${b.z1.toFixed(3)}:${b.state}:${b.ids}`).join('|');
     if (run && run.key === key && Math.abs(run.x1 - a) < EPS) run.x1 = b;
-    else { flush(); run = { key, x0: a, x1: b, bands }; }
+    else { flush(); run = { key, x0: a, x1: b, bands, layer }; }
   }
   flush();
   return rects;
@@ -194,16 +208,22 @@ export function profileLayout(piece) {
   const topPoint = ([x, y]) => [x, topY0 + (yMax - y)];
   const bottomPoint = ([x, y]) => [x, bottomY0 + (y - yMin)]; // turned over: y up = screen down
   const darkOf = (face, map) => laps.filter((l) => l.face === face).flatMap((l) => l.regions.map((r) => r.map(map)));
+  // A laminated piece: the glued-up layers as bands across its width (left layer first, y = +width/2 down to -width/2).
+  const bandsOf = (map) => {
+    if (!piece.layers?.length) return undefined;
+    let y = piece.width / 2;
+    return piece.layers.map((l, i) => { const hi = y; y -= l.width; const a = map([0, hi])[1], b = map([0, y])[1]; return { layer: i, y0: Math.min(a, b), y1: Math.max(a, b) }; });
+  };
   const views = [
-    { id: 'top', label: 'Top', box: { x0, y0: topY0, x1, y1: topY0 + plan }, outline: piece.outline.map(topPoint), dark: darkOf('top', topPoint), missing: missing.map((poly) => poly.map(topPoint)) },
+    { id: 'top', label: 'Top', box: { x0, y0: topY0, x1, y1: topY0 + plan }, outline: piece.outline.map(topPoint), dark: darkOf('top', topPoint), missing: missing.map((poly) => poly.map(topPoint)), bands: bandsOf(topPoint) },
     {
       id: 'side', label: 'Right side', box: { x0, y0: sideY0, x1, y1: sideY0 + t },
-      rects: sideRects(piece).map((r) => ({ x0: r.x0, x1: r.x1, y0: sideY0 + (t - r.z1), y1: sideY0 + (t - r.z0), state: r.state, seam: r.seam })),
+      rects: sideRects(piece).map((r) => ({ x0: r.x0, x1: r.x1, y0: sideY0 + (t - r.z1), y1: sideY0 + (t - r.z0), state: r.state, seam: r.seam, layer: r.layer })),
     },
-    { id: 'bottom', label: 'Bottom', box: { x0, y0: bottomY0, x1, y1: bottomY0 + plan }, outline: piece.outline.map(bottomPoint), dark: darkOf('bottom', bottomPoint), missing: missing.map((poly) => poly.map(bottomPoint)) },
+    { id: 'bottom', label: 'Bottom', box: { x0, y0: bottomY0, x1, y1: bottomY0 + plan }, outline: piece.outline.map(bottomPoint), dark: darkOf('bottom', bottomPoint), missing: missing.map((poly) => poly.map(bottomPoint)), bands: bandsOf(bottomPoint) },
     {
       id: 'side-left', label: 'Left side', flipX: true, box: { x0, y0: leftY0, x1, y1: leftY0 + t },
-      rects: sideRects(piece, true).map((r) => ({ x0: r.x0, x1: r.x1, y0: leftY0 + (t - r.z1), y1: leftY0 + (t - r.z0), state: r.state, seam: r.seam })),
+      rects: sideRects(piece, true).map((r) => ({ x0: r.x0, x1: r.x1, y0: leftY0 + (t - r.z1), y1: leftY0 + (t - r.z0), state: r.state, seam: r.seam, layer: r.layer })),
     },
   ];
   return {

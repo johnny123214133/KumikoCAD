@@ -3,7 +3,7 @@
 
 import { pieceEnd, endText } from '../geometry/parts/pieces.js';
 import { formatLength } from '../geometry/units.js';
-import { getMaterialLabel, getFinishLabel } from '../components/parts/stockLabels.js';
+import { getMaterialLabel, getFinishLabel, stockText } from '../components/parts/stockLabels.js';
 
 const LAP_NAMES = { 2: 'Half lap', 3: 'Trilap' };
 const ENDS = { miter: 'Miter', miterHalfLap: 'Miter', taper: 'Taper', vNotch: 'V-notch end', butt: 'Butt cut at the border' };
@@ -48,10 +48,11 @@ export function describePiece(piece, unit) {
   cuts.sort((a, b) => a.at - b.at);
   return {
     length: piece.length, width: piece.width, thickness: piece.thickness,
-    wood: getMaterialLabel(piece.material), finish: getFinishLabel(piece.finish),
+    wood: piece.layers?.length ? 'Laminated' : getMaterialLabel(piece.material),
+    finish: piece.layers?.length ? [...new Set(piece.layers.map((l) => getFinishLabel(l.finish)))].join(', ') : getFinishLabel(piece.finish),
     curved: piece.curved,
     size: `${len(piece.length)} long × ${len(piece.width)} wide × ${len(piece.thickness)} thick${piece.curved ? ' (length before bending)' : ''}`,
-    stock: [getMaterialLabel(piece.material), getFinishLabel(piece.finish)].filter(Boolean).join(', '),
+    stock: stockText(piece),
     cuts,
   };
 }

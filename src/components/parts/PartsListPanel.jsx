@@ -10,7 +10,8 @@ import { sortPatterns } from '../pattern-editor/sortPatterns.js'
 import { computePanelParts } from '../../geometry/parts/panelParts.js'
 import { pieceEnd, endText, pieceLaps } from '../../geometry/parts/pieces.js'
 import { formatLength } from '../../geometry/units.js'
-import { getMaterialLabel, getFinishLabel } from './stockLabels.js'
+import { stockText } from './stockLabels.js'
+import HelpTip from '../shared/HelpTip.jsx'
 
 // The Parts List: every piece of wood the panel is made of, counted. Information only — nothing
 // here is editable. Two sections: the panel's own strips (border, grid strips) and the patterns'.
@@ -28,7 +29,7 @@ function PieceFacts({ piece, unit }) {
   const len = (mm) => formatLength(mm, unit)
   const start = endText(pieceEnd(piece, 's')), end = endText(pieceEnd(piece, 'e'))
   const laps = pieceLaps(piece)
-  const material = [getMaterialLabel(piece.material), getFinishLabel(piece.finish)].filter(Boolean).join(', ')
+  const material = stockText(piece)
   return (
     <>
       <div className="text-muted" style={{ fontSize: 11 }}>
@@ -118,6 +119,7 @@ function PatternByPieceRow({ item, unit, names }) {
 
 function PatternGroup({ group, pattern, unit }) {
   const [open, toggle] = useSectionOpen(`parts:pattern:${group.patternId}`, false)
+  const setStockLaminated = useAppStore((s) => s.setStockLaminated)
   return (
     <div className="border-bottom">
       <div className="d-flex align-items-center gap-2 py-1" style={{ fontSize: 13 }}>
@@ -135,6 +137,14 @@ function PatternGroup({ group, pattern, unit }) {
           {group.approx && ' Some curved strips at the edge are counted whole.'}
         </div>
       )}
+      {group.note && group.laminated == null && <div className="ms-5 pb-1 fst-italic" style={{ fontSize: 11 }}>{group.note}</div>}
+      {group.laminated != null && (
+        <label className="ms-5 pb-1 d-flex align-items-center gap-2" style={{ fontSize: 12 }}>
+          <input type="checkbox" className="form-check-input m-0" checked={group.laminated} onChange={(e) => setStockLaminated(group.patternId, e.target.checked)} />
+          Laminated
+          {group.note && <HelpTip text={group.note} />}
+        </label>
+      )}
       {open && <div className="ms-3 mb-1"><PieceList idPrefix={`pattern:${group.patternId}`} items={group.items} unit={unit} empty="No pieces." /></div>}
     </div>
   )
@@ -150,14 +160,15 @@ export default function PartsListPanel() {
 
   // (memoised: useDeferredValue needs the same object back while nothing changed)
   const { cols, rows, cellWidth, orientation, cornerBehavior, gridStripWidth, borderWidth, borderCorner, panelDepth, material, finish, spacePatterns, spaceXforms } = grid
+  const stockLaminated = useAppStore((s) => s.stockLaminated)
   const current = useMemo(
-    () => ({ cols, rows, cellWidth, orientation, cornerBehavior, gridStripWidth, borderWidth, borderCorner, panelDepth, material, finish, spacePatterns, spaceXforms }),
-    [cols, rows, cellWidth, orientation, cornerBehavior, gridStripWidth, borderWidth, borderCorner, panelDepth, material, finish, spacePatterns, spaceXforms],
+    () => ({ cols, rows, cellWidth, orientation, cornerBehavior, gridStripWidth, borderWidth, borderCorner, panelDepth, material, finish, spacePatterns, spaceXforms, stockLaminated }),
+    [cols, rows, cellWidth, orientation, cornerBehavior, gridStripWidth, borderWidth, borderCorner, panelDepth, material, finish, spacePatterns, spaceXforms, stockLaminated],
   )
   const input = useDeferredValue(current)
   const overrides = usePatternStore((s) => s.patternOverrides) // a pattern's own edits change its pieces
   const parts = useMemo(() => {
-    try { return { value: computePanelParts({ grid: input, getPattern: (id, ctx) => getComputedPattern(id, ctx) }) } } catch (error) { return { error } }
+    try { return { value: computePanelParts({ grid: input, getPattern: (id, ctx) => getComputedPattern(id, { ...ctx, gridMaterial: input.material, gridFinish: input.finish }) }) } } catch (error) { return { error } }
   }, [input, getComputedPattern, lookup, overrides])
 
   const setParts = usePartsStore((s) => s.setParts)

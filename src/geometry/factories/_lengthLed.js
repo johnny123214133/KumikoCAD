@@ -15,11 +15,11 @@ export const scan = (lo, hi, step = 1) => {
 };
 const reaches = (fam, L) => fam.feasible && L >= fam.Lmin - 1e-6 && L <= fam.Lmax + 1e-6;
 
-export function lengthLedParams({ spacingStep = 1, familyFor, thickLo, thickCap, spacingLo, spacingCap, defaultLength, defaultThick, defaultSpacing, lengthDescription, thickDescription, spacingDescription }) {
+export function lengthLedParams({ spacingStep = 1, familyFor, thickLo, thickCap, spacingLo, spacingCap, defaultLength, defaultThick, defaultSpacing, lengthDescription, thickDescription, thickLabel, spacingDescription }) {
   const gridCache = new Map();
   const gridFor = (ctx) => {
     const { cellWidth, gridStripWidth, patternStripWidth: w } = ctx;
-    const key = `${cellWidth}|${gridStripWidth}|${w}`;
+    const key = `${cellWidth}|${gridStripWidth}|${w}|${ctx.params?.outerStripWidth ?? ''}`;
     if (!gridCache.has(key)) {
       if (gridCache.size > 64) gridCache.clear();
       const g = [];
@@ -46,7 +46,7 @@ export function lengthLedParams({ spacingStep = 1, familyFor, thickLo, thickCap,
     },
     {
       key: 'thickStripWidth',
-      label: 'Thick strip width',
+      label: thickLabel ?? 'Thick strip width',
       kind: 'length',
       default: defaultThick,
       min: (ctx) => { const fs = gridFor(ctx).filter((c) => reaches(c.fam, ctx.params.curveLength)); return fs.length ? Math.min(...fs.map((c) => c.t)) : thickLo(ctx); },

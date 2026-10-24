@@ -30,16 +30,39 @@ const total = (list) => list.reduce((n, it) => n + it.qty, 0);
 
 // The pieces one cell of `pattern` makes. `window`: the polygon (pattern frame) a half cell shows
 // the pattern through, or null for a full cell.
-function piecesOfCell(pattern, window, mirrored, thickness) {
+function piecesOfCell(pattern, window, mirrored, thickness, laminate) {
   const jointMap = new Map(pattern.joints.map((j) => [j.id, j]));
   const props = new Map(pattern.stripProperties.map((sp) => [sp.id, sp]));
   const templateOf = new Map((pattern.pieceTemplates ?? []).map((pt) => [pt.stripId, pt]));
   const used = []; // the strips that are really made: { strip, sp }
   const extraJoints = [];
   let approx = false;
+  const spOfStrip = (strip) => props.get(templateOf.get(strip.id)?.stripPropertyId) ?? pattern.stripProperties[0];
+  // Laminated stock (a group of strips glued face to face before cutting) counts as ONE strip: the core,
+  // as wide as the whole stack, since every layer's end cuts lie on the same lines.
+  const skip = new Set(), merged = new Map(); // layer ids left out; core id -> its stack's sp
+  if (laminate) {
+    const byId = new Map(pattern.strips.map((s) => [s.id, s]));
+    for (const group of pattern.laminations ?? []) {
+      // [outer, core, inner]: each layer one strip id, or several ids when the layer is made of more
+      // than one piece (an inner strip split by a notch) — those share their first piece's width and wood.
+      const layerIds = group.map((e) => (Array.isArray(e) ? e : [e]));
+      const reps = layerIds.map((ids) => byId.get(ids[0]));
+      if (reps.some((s) => !s)) continue;
+      const core = reps[1];
+      const mid = (s) => ({ x: (s.start.x + s.end.x) / 2, y: (s.start.y + s.end.y) / 2 });
+      const ux = Math.cos(core.orientation), uy = Math.sin(core.orientation);
+      const side = (s) => ux * (mid(s).y - mid(core).y) - uy * (mid(s).x - mid(core).x); // > 0: to the core's left
+      const stack = [...reps].sort((p, q) => side(q) - side(p)); // leftmost first
+      const layers = stack.map((s) => { const sp = spOfStrip(s); return { width: sp.width, material: sp.material, finish: sp.finish }; });
+      merged.set(core.id, { ...spOfStrip(core), width: layers.reduce((n, l) => n + l.width, 0), layers });
+      layerIds.flat().filter((id) => id !== core.id).forEach((id) => skip.add(id));
+    }
+  }
   for (const strip of pattern.strips) {
+    if (skip.has(strip.id)) continue;
     let use = strip;
-    const sp = props.get(templateOf.get(strip.id)?.stripPropertyId) ?? pattern.stripProperties[0];
+    const sp = merged.get(strip.id) ?? spOfStrip(strip);
     if (window) {
       const clipped = clipStripToWindow(strip, window, { width: sp.width, joints: jointMap });
       if (!clipped) continue;
@@ -55,7 +78,7 @@ function piecesOfCell(pattern, window, mirrored, thickness) {
   const pieces = used.map(({ strip, sp }) => {
     // At the panel's edge a lap whose mate was trimmed away is not cut.
     const kept = window ? { ...strip, cuts: strip.cuts.filter((c) => !c.role.startsWith('cut-') || regions.get(lapKey(strip.id, c.jointId, c.role))?.length) } : strip;
-    const piece = pieceFromStrip({ strip: kept, joints, width: sp.width, thickness, material: sp.material, finish: sp.finish, lapRegions: regions });
+    const piece = pieceFromStrip({ strip: kept, joints, width: sp.width, thickness, material: sp.material, finish: sp.finish, lapRegions: regions, layers: sp.layers });
     return mirrored ? mirrorPiece(piece) : piece;
   });
   return { pieces, approx };
@@ -111,12 +134,13 @@ export function computePanelParts({ grid, getPattern }) {
 
     const mirrored = !!xform.flip;
     const window = half ? windowInPattern(space, pattern, xform) : null;
-    const cacheKey = `${id}|${mirrored ? 1 : 0}|${window ? window.map((v) => `${v.x.toFixed(2)},${v.y.toFixed(2)}`).join(';') : ''}`;
+    const laminate = grid.stockLaminated?.[id] !== false;
+    const cacheKey = `${id}|${laminate ? 'L' : ''}|${mirrored ? 1 : 0}|${window ? window.map((v) => `${v.x.toFixed(2)},${v.y.toFixed(2)}`).join(';') : ''}`;
     let cell = cellCache.get(cacheKey);
-    if (!cell) { cell = piecesOfCell(pattern, window, mirrored, thickness); cellCache.set(cacheKey, cell); }
+    if (!cell) { cell = piecesOfCell(pattern, window, mirrored, thickness, laminate); cellCache.set(cacheKey, cell); }
 
     let entry = perPattern.get(id);
-    if (!entry) { entry = { patternId: id, cells: 0, edgeCells: 0, approx: false, tally: new Map() }; perPattern.set(id, entry); }
+    if (!entry) { entry = { patternId: id, cells: 0, edgeCells: 0, approx: false, note: pattern.meta?.partsNote, laminated: pattern.laminations?.length ? grid.stockLaminated?.[id] !== false : null, tally: new Map() }; perPattern.set(id, entry); }
     entry.cells++;
     if (half) entry.edgeCells++;
     entry.approx = entry.approx || cell.approx;
@@ -128,7 +152,7 @@ export function computePanelParts({ grid, getPattern }) {
 
   const byPattern = [...perPattern.values()].map((e) => {
     const list = items(e.tally);
-    return { patternId: e.patternId, cells: e.cells, edgeCells: e.edgeCells, approx: e.approx, items: list, total: total(list) };
+    return { patternId: e.patternId, cells: e.cells, edgeCells: e.edgeCells, approx: e.approx, note: e.note, laminated: e.laminated, items: list, total: total(list) };
   });
   const byPiece = items(byPieceTally);
 

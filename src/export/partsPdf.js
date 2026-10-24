@@ -46,7 +46,7 @@ export function partsPdf(doc, { paper = 'letter', date = new Date() } = {}) {
       page.text(M + 24, y, group.title, { size: 10.5, bold: true });
       page.text(W - M - 6, y + 1, `${group.total} pieces`, { size: 8.5, align: 'right', color: MUTED });
       y += 15;
-      if (group.note) { page.text(M + 24, y, group.note, { size: 8, color: MUTED }); y += 11; }
+      if (group.note) for (const line of wrapText(group.note, W - 2 * M - 30, 8)) { page.text(M + 24, y, line, { size: 8, color: MUTED }); y += 11; }
       page.stroke(RULE).lineWidth(0.5).line(M + 6, y, W - M, y);
       y += 6;
       for (const it of group.items) y = drawItem(it, y);

@@ -104,6 +104,9 @@ const useAppStore = create((set, get) => ({
   // The Export dialog (parts list PDF / spreadsheet, 1:1 layout) and the paper the PDFs are made for.
   exportDialogOpen: false,
   setExportDialogOpen: (open) => set({ exportDialogOpen: !!open }),
+  // Per pattern: has the user glued up its laminated stock (a pattern with `laminations`)? Missing = yes.
+  stockLaminated: loadSetting('kumiko_stockLaminated', {}, (v) => v && typeof v === 'object' && !Array.isArray(v)),
+  setStockLaminated: (patternId, on) => set((s) => { const next = { ...s.stockLaminated, [patternId]: !!on }; saveSetting('kumiko_stockLaminated', next); return { stockLaminated: next }; }),
   printPaper: loadSetting('kumiko_printPaper', 'letter', (v) => v === 'letter' || v === 'a4'),
   setPrintPaper: (v) => { if (v === 'letter' || v === 'a4') { saveSetting('kumiko_printPaper', v); set({ printPaper: v }); } },
   focusPick: false, // the 3D view is waiting for a click on the piece to look at

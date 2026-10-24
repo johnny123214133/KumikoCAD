@@ -1,0 +1,141 @@
+{
+  "id": "builtin:rindo-tsanugi-a-sixth",
+  "name": "Rindo Tsanugi A",
+  "readOnly": true,
+  "version": 3,
+  "sideLength": 75,
+  "patternParams": {},
+  "stripProperties": [
+    {
+      "id": "sp0",
+      "width": 2,
+      "thickness": 6,
+      "material": "hinoki",
+      "grain": "along",
+      "color": "#e8d5b0",
+      "finish": "natural",
+      "edgeProfile": null
+    }
+  ],
+  "vertices": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 75,
+      "y": 0
+    },
+    "C": {
+      "x": 37.5,
+      "y": 64.9519052838329
+    }
+  },
+  "centroid": {
+    "x": 37.5,
+    "y": 21.650635094610966
+  },
+  "_note": "Reference snapshot generated from the rindo-tsanugi-a factory at cellWidth 75, gridStripWidth 0, patternStripWidth 2. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "strips": [
+    {
+      "id": "s0",
+      "start": {
+        "x": 1.9318516525781368,
+        "y": 3.3460652149512318
+      },
+      "end": {
+        "x": 47.03045662596206,
+        "y": 48.44467018833515
+      },
+      "orientation": 0.7853981633974483,
+      "cuts": [
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 1.9318516525781368,
+            "y": 3.3460652149512318
+          },
+          "angle": 15,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 47.03045662596206,
+            "y": 48.44467018833515
+          },
+          "angle": 75,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "joints": [
+    {
+      "id": "j0",
+      "position": {
+        "x": 1.9318516525781368,
+        "y": 3.3460652149512318
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j1",
+      "position": {
+        "x": 47.03045662596206,
+        "y": 48.44467018833515
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    }
+  ],
+  "pieceTemplates": [
+    {
+      "id": "pt0",
+      "stripPropertyId": "sp0",
+      "stripId": "s0",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 15,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 63.77905879746625,
+            "y": 0
+          },
+          "angle": 75,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "difficulty": "beginner",
+    "tags": [
+      "six-fold",
+      "traditional"
+    ],
+    "description": "Rindo with the strip from the right corner taken away: one strip at 45° rising from the left bottom corner, its ends mitred against the grid strips.",
+    "thumbnail": null
+  }
+}

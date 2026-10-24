@@ -1,0 +1,266 @@
+{
+  "id": "builtin:rindo-asanoha-sixth",
+  "name": "Rindo asanoha",
+  "readOnly": true,
+  "version": 3,
+  "sideLength": 75,
+  "patternParams": {},
+  "stripProperties": [
+    {
+      "id": "sp0",
+      "width": 2,
+      "thickness": 6,
+      "material": "hinoki",
+      "grain": "along",
+      "color": "#e8d5b0",
+      "finish": "natural",
+      "edgeProfile": null
+    }
+  ],
+  "vertices": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 75,
+      "y": 0
+    },
+    "C": {
+      "x": 37.5,
+      "y": 64.9519052838329
+    }
+  },
+  "centroid": {
+    "x": 37.5,
+    "y": 21.650635094610966
+  },
+  "_note": "Reference snapshot generated from the rindo-asanoha factory at cellWidth 75, gridStripWidth 0, patternStripWidth 2. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "strips": [
+    {
+      "id": "s0",
+      "start": {
+        "x": 18,
+        "y": 0
+      },
+      "end": {
+        "x": 37.5,
+        "y": 64.9519052838329
+      },
+      "orientation": 1.2791357466336843,
+      "cuts": [
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 18,
+            "y": 0
+          },
+          "angle": 106.71092029357449,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 37.5,
+            "y": 64.9519052838329
+          },
+          "angle": 16.710920293574475,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 37.5,
+            "y": 64.9519052838329
+          },
+          "angle": 166.7109202935745,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "start": {
+        "x": 57,
+        "y": 0
+      },
+      "end": {
+        "x": 37.5,
+        "y": 64.9519052838329
+      },
+      "orientation": 1.862456906956109,
+      "cuts": [
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 57,
+            "y": 0
+          },
+          "angle": 73.2890797064255,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j3",
+          "position": {
+            "x": 37.5,
+            "y": 64.9519052838329
+          },
+          "angle": 163.2890797064255,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j3",
+          "position": {
+            "x": 37.5,
+            "y": 64.9519052838329
+          },
+          "angle": 13.289079706425525,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "joints": [
+    {
+      "id": "j0",
+      "position": {
+        "x": 18,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j1",
+      "position": {
+        "x": 37.5,
+        "y": 64.9519052838329
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "asymMiter"
+    },
+    {
+      "id": "j2",
+      "position": {
+        "x": 57,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j3",
+      "position": {
+        "x": 37.5,
+        "y": 64.9519052838329
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "asymMiter"
+    }
+  ],
+  "pieceTemplates": [
+    {
+      "id": "pt0",
+      "stripPropertyId": "sp0",
+      "stripId": "s0",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 106.71092029357449,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 67.8159273327439,
+            "y": 0
+          },
+          "angle": 16.710920293574475,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 67.8159273327439,
+            "y": 0
+          },
+          "angle": 166.7109202935745,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt1",
+      "stripPropertyId": "sp0",
+      "stripId": "s1",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 73.2890797064255,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 67.8159273327439,
+            "y": 0
+          },
+          "angle": 163.2890797064255,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 67.8159273327439,
+            "y": 0
+          },
+          "angle": 13.289079706425525,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "difficulty": "beginner",
+    "tags": [
+      "six-fold",
+      "traditional"
+    ],
+    "description": "Matsuba without the central strip: two strips lean in from a quarter and three quarters of the bottom edge and meet on the cell's axis at the top corner, each ending in an asymmetric miter against the axis and the grid strip.",
+    "thumbnail": null
+  }
+}

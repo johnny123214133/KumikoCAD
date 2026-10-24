@@ -7,7 +7,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import useAppStore from '../../store/useAppStore.js'
 import { useTheme } from '../../store/useThemeStore.js'
 import { getMaterialColor } from '../../geometry/woodFinishColors.js'
-import { pieceSolid } from '../../geometry/parts/pieceSolid.js'
+import { pieceSolid, layerSolids } from '../../geometry/parts/pieceSolid.js'
 import { jointDotsOf } from '../../geometry/parts/profiles.js'
 import { formatLength } from '../../geometry/units.js'
 import { notchLabel } from '../pattern-editor/PatternLayer.jsx'
@@ -155,7 +155,7 @@ export default function PieceView3D() {
     const r = host.current.getBoundingClientRect()
     const ray = new THREE.Raycaster()
     ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1)), s.camera)
-    const hit = s.madeMesh ? ray.intersectObject(s.madeMesh, false)[0] : null
+    const hit = s.madeMeshes?.length ? ray.intersectObjects(s.madeMeshes, false)[0] : null
     if (hit) { s.controls.target.copy(hit.point); s.controls.update() }
     setFocusPick(false)
   }
@@ -180,8 +180,20 @@ export default function PieceView3D() {
     const edgeMat = new LineMaterial({ color: dark, linewidth: 1 })
     edgeMat.resolution.copy(s.size)
     s.lineMats.push(edgeMat)
-    let madeMesh = null
-    if (solid.made.positions.length) { const m = meshOf(solid.made.positions, woodMat, edgeMat); content.add(m.group); madeMesh = m.mesh }
+    const madeMeshes = []
+    if (piece.layers?.length) {
+      // laminated stock: each layer in its own wood
+      for (const { layer, made } of layerSolids(piece)) {
+        if (!made.positions.length) continue
+        const l = piece.layers[layer]
+        const c = getMaterialColor(l.material, l.finish)
+        const mat = new THREE.MeshStandardMaterial({ color: c, roughness: 0.75, metalness: 0, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 })
+        const em = new LineMaterial({ color: new THREE.Color(c).multiplyScalar(0.35), linewidth: 1 })
+        em.resolution.copy(s.size)
+        s.lineMats.push(em)
+        const m = meshOf(made.positions, mat, em); content.add(m.group); madeMeshes.push(m.mesh)
+      }
+    } else if (solid.made.positions.length) { const m = meshOf(solid.made.positions, woodMat, edgeMat); content.add(m.group); madeMeshes.push(m.mesh) }
     // the part of a trimmed strip that isn't made, as a ghost
     const ghostMat = new THREE.MeshStandardMaterial({ color: wood, transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide })
     const ghostEdge = new LineMaterial({ color: dark, linewidth: 1, transparent: true, opacity: 0.4 })
@@ -190,7 +202,7 @@ export default function PieceView3D() {
     for (const m of solid.missing) if (m.positions.length) content.add(meshOf(m.positions, ghostMat, ghostEdge).group)
     s.content = content
     s.scene.add(content)
-    s.madeMesh = madeMesh
+    s.madeMeshes = madeMeshes
 
     const box = new THREE.Box3().setFromObject(content)
     s.center = box.getCenter(new THREE.Vector3())
@@ -255,7 +267,7 @@ export default function PieceView3D() {
     const r = host.current.getBoundingClientRect()
     const ndc = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1))
     const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, s.camera)
-    const first = ray.intersectObjects(s.madeMesh ? [...s.hits, s.madeMesh] : s.hits, false)[0] // (the piece in front hides a dot behind it)
+    const first = ray.intersectObjects(s.madeMeshes?.length ? [...s.hits, ...s.madeMeshes] : s.hits, false)[0] // (the piece in front hides a dot behind it)
     if (first?.object.userData.text) {
       host.current.style.cursor = picking ? 'crosshair' : 'help'
       setTip({ x: e.clientX - r.left, y: e.clientY - r.top, text: first.object.userData.text })

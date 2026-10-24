@@ -118,3 +118,37 @@ export function pieceSolid(piece) {
   const missing = (piece.missing ?? []).filter((poly) => poly.length >= 3).map((poly) => solidOf(poly, t, []));
   return { made, missing, thickness: t };
 }
+
+// Clips a polygon [[x, y]] to the band lo ≤ y ≤ hi (Sutherland–Hodgman, once per bounding line).
+function clipBand(poly, lo, hi) {
+  const clip = (pts, inside, cross) => {
+    const out = [];
+    pts.forEach((p, i) => {
+      const q = pts[(i + 1) % pts.length];
+      const pi = inside(p), qi = inside(q);
+      if (pi) out.push(p);
+      if (pi !== qi) out.push(cross(p, q));
+    });
+    return out;
+  };
+  const at = (y) => (p, q) => [p[0] + ((q[0] - p[0]) * (y - p[1])) / (q[1] - p[1]), y];
+  let pts = clip(poly, (p) => p[1] <= hi + 1e-9, at(hi));
+  if (pts.length >= 3) pts = clip(pts, (p) => p[1] >= lo - 1e-9, at(lo));
+  return pts;
+}
+
+/**
+ * A laminated piece (`piece.layers`, left to right) as one solid per layer: [{ layer, made }] — the
+ * piece's outline and lap pockets cut into the bands the layers occupy across its width.
+ */
+export function layerSolids(piece) {
+  const t = piece.thickness;
+  const pockets = lapsOf(piece).flatMap((l) => l.regions.map((poly) => (l.face === 'top' ? { poly, z0: t - l.depth, z1: t } : { poly, z0: 0, z1: l.depth })));
+  let y = piece.width / 2;
+  return piece.layers.map((l, layer) => {
+    const hi = y; y -= l.width;
+    const outline = clipBand(piece.outline, y, hi);
+    const cut = pockets.map((p) => ({ ...p, poly: clipBand(p.poly, y, hi) })).filter((p) => p.poly.length >= 3);
+    return { layer, made: outline.length >= 3 ? solidOf(outline, t, cut) : { positions: new Float32Array(0), volume: 0 } };
+  });
+}

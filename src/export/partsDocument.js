@@ -30,7 +30,7 @@ export function buildPartsDocument({ parts, unit, projectName, patternName, patt
     id: 'patterns', title: 'Patterns', total: parts.patterns.total,
     groups: ordered.map((g) => ({
       id: `pattern:${g.patternId}`, title: `${patternName(g.patternId)} — ${g.cells} ${g.cells === 1 ? 'cell' : 'cells'}`, total: g.total,
-      note: [g.edgeCells > 0 ? `${g.edgeCells} at the panel's edge, trimmed to fit.` : '', g.approx ? 'Some curved strips at the edge are counted whole.' : ''].filter(Boolean).join(' ') || undefined,
+      note: [g.edgeCells > 0 ? `${g.edgeCells} at the panel's edge, trimmed to fit.` : '', g.approx ? 'Some curved strips at the edge are counted whole.' : '', g.note ?? '', g.laminated == null ? '' : g.laminated ? 'Counted as laminated stock (one piece per glued-up leg).' : 'Counted as separate strips.'].filter(Boolean).join(' ') || undefined,
       items: g.items.map(item(`pattern:${g.patternId}`)),
     })),
   });

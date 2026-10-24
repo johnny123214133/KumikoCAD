@@ -3,7 +3,7 @@ import useAppStore from '../../store/useAppStore.js'
 import usePartsStore, { findPart } from '../../store/usePartsStore.js'
 import { pieceEnd, endText } from '../../geometry/parts/pieces.js'
 import { formatLength } from '../../geometry/units.js'
-import { getMaterialLabel, getFinishLabel } from './stockLabels.js'
+import { getMaterialLabel, getFinishLabel, stockText } from './stockLabels.js'
 
 // The right panel of the Parts List: what the selected kind of piece is. Information only.
 const Row = ({ label, children }) => (
@@ -48,8 +48,14 @@ export default function PieceDetails() {
       <Row label="Length">{len(piece.length)}{piece.curved ? ' (before bending)' : ''}</Row>
       <Row label="Width">{len(piece.width)}</Row>
       <Row label="Thickness">{len(piece.thickness)}</Row>
-      <Row label="Wood">{getMaterialLabel(piece.material)}</Row>
-      <Row label="Finish">{getFinishLabel(piece.finish)}</Row>
+      {piece.layers?.length ? (
+        <Row label="Stock">{stockText(piece)}</Row>
+      ) : (
+        <>
+          <Row label="Wood">{getMaterialLabel(piece.material)}</Row>
+          <Row label="Finish">{getFinishLabel(piece.finish)}</Row>
+        </>
+      )}
       <Row label="Used in">{sections.join(', ')}</Row>
       <Row label="Start end">{start}</Row>
       <Row label="Finish end">{end}</Row>

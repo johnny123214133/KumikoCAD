@@ -1,0 +1,639 @@
+{
+  "id": "builtin:ume-b-variant-sixth",
+  "name": "Ume B Variant",
+  "readOnly": true,
+  "version": 3,
+  "sideLength": 75,
+  "patternParams": {},
+  "stripProperties": [
+    {
+      "id": "sp0",
+      "width": 2,
+      "thickness": 6,
+      "material": "hinoki",
+      "grain": "along",
+      "color": "#e8d5b0",
+      "finish": "natural",
+      "edgeProfile": null
+    },
+    {
+      "id": "sp1",
+      "width": 1,
+      "thickness": 6,
+      "material": "hinoki",
+      "grain": "along",
+      "color": "#e8d5b0",
+      "finish": "natural",
+      "edgeProfile": null,
+      "matchesGrid": true
+    },
+    {
+      "id": "sp2",
+      "width": 4,
+      "thickness": 6,
+      "material": "hinoki",
+      "grain": "along",
+      "color": "#e8d5b0",
+      "finish": "natural",
+      "edgeProfile": null
+    }
+  ],
+  "vertices": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 75,
+      "y": 0
+    },
+    "C": {
+      "x": 37.5,
+      "y": 64.9519052838329
+    }
+  },
+  "centroid": {
+    "x": 37.5,
+    "y": 21.650635094610966
+  },
+  "_note": "Reference snapshot generated from the ume-b-variant factory at cellWidth 75, gridStripWidth 0, patternStripWidth 2. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "strips": [
+    {
+      "id": "s0",
+      "start": {
+        "x": 36.21769349508055,
+        "y": 53.23421178875234
+      },
+      "end": {
+        "x": 1.0930804324227803,
+        "y": 1.8932708457156133
+      },
+      "orientation": -2.170801442671339,
+      "cuts": [
+        {
+          "jointId": "j6",
+          "position": {
+            "x": 36.21769349508055,
+            "y": 53.23421178875234
+          },
+          "angle": 146.53458634077606,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 1.0930804324227803,
+            "y": 1.8932708457156133
+          },
+          "angle": 27.22093531118003,
+          "depth": 1,
+          "role": "end"
+        }
+      ],
+      "curve": {
+        "sagitta": 6.551079809259283
+      }
+    },
+    {
+      "id": "s1",
+      "start": {
+        "x": 38.78230650491945,
+        "y": 53.23421178875234
+      },
+      "end": {
+        "x": 73.90691956757722,
+        "y": 1.8932708457156133
+      },
+      "orientation": -0.9707912109184541,
+      "cuts": [
+        {
+          "jointId": "j7",
+          "position": {
+            "x": 38.78230650491945,
+            "y": 53.23421178875234
+          },
+          "angle": 33.46541365922394,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j3",
+          "position": {
+            "x": 73.90691956757722,
+            "y": 1.8932708457156133
+          },
+          "angle": 152.77906468881997,
+          "depth": 1,
+          "role": "end"
+        }
+      ],
+      "curve": {
+        "sagitta": -6.551079809259283
+      }
+    },
+    {
+      "id": "s2",
+      "start": {
+        "x": 33.16987298107781,
+        "y": 57.4519052838329
+      },
+      "end": {
+        "x": 41.8301270189222,
+        "y": 57.4519052838329
+      },
+      "orientation": 0,
+      "cuts": [
+        {
+          "jointId": "j8",
+          "position": {
+            "x": 33.16987298107781,
+            "y": 57.4519052838329
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j9",
+          "position": {
+            "x": 41.8301270189222,
+            "y": 57.4519052838329
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "start": {
+        "x": 31.726497308103745,
+        "y": 54.9519052838329
+      },
+      "end": {
+        "x": 43.27350269189626,
+        "y": 54.9519052838329
+      },
+      "orientation": 0,
+      "cuts": [
+        {
+          "jointId": "j10",
+          "position": {
+            "x": 31.726497308103745,
+            "y": 54.9519052838329
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j11",
+          "position": {
+            "x": 43.27350269189626,
+            "y": 54.9519052838329
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 37.5,
+            "y": 54.51651829367178
+          },
+          "angle": 90,
+          "depth": 1,
+          "role": "notch",
+          "notchSide": "right"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "start": {
+        "x": 30.28312163512968,
+        "y": 52.4519052838329
+      },
+      "end": {
+        "x": 35.43538699016112,
+        "y": 52.4519052838329
+      },
+      "orientation": 0,
+      "cuts": [
+        {
+          "jointId": "j12",
+          "position": {
+            "x": 30.28312163512968,
+            "y": 52.4519052838329
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j13",
+          "position": {
+            "x": 35.43538699016112,
+            "y": 52.4519052838329
+          },
+          "angle": 45,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "start": {
+        "x": 39.56461300983888,
+        "y": 52.4519052838329
+      },
+      "end": {
+        "x": 44.71687836487033,
+        "y": 52.4519052838329
+      },
+      "orientation": 0,
+      "cuts": [
+        {
+          "jointId": "j15",
+          "position": {
+            "x": 39.56461300983888,
+            "y": 52.4519052838329
+          },
+          "angle": 135,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j14",
+          "position": {
+            "x": 44.71687836487033,
+            "y": 52.4519052838329
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "joints": [
+    {
+      "id": "j0",
+      "position": {
+        "x": 37.5,
+        "y": 54.51651829367179
+      },
+      "members": [
+        {
+          "stripId": "s3",
+          "role": "notch"
+        }
+      ],
+      "notchType": "taper"
+    },
+    {
+      "id": "j6",
+      "position": {
+        "x": 36.21769349508055,
+        "y": 53.23421178875234
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j2",
+      "position": {
+        "x": 1.0930804324227803,
+        "y": 1.8932708457156133
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j7",
+      "position": {
+        "x": 38.78230650491945,
+        "y": 53.23421178875234
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j3",
+      "position": {
+        "x": 73.90691956757722,
+        "y": 1.8932708457156133
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j8",
+      "position": {
+        "x": 33.16987298107781,
+        "y": 57.4519052838329
+      },
+      "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j9",
+      "position": {
+        "x": 41.8301270189222,
+        "y": 57.4519052838329
+      },
+      "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j10",
+      "position": {
+        "x": 31.726497308103745,
+        "y": 54.9519052838329
+      },
+      "members": [
+        {
+          "stripId": "s3",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j11",
+      "position": {
+        "x": 43.27350269189626,
+        "y": 54.9519052838329
+      },
+      "members": [
+        {
+          "stripId": "s3",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j12",
+      "position": {
+        "x": 30.28312163512968,
+        "y": 52.4519052838329
+      },
+      "members": [
+        {
+          "stripId": "s4",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j13",
+      "position": {
+        "x": 35.43538699016112,
+        "y": 52.4519052838329
+      },
+      "members": [
+        {
+          "stripId": "s4",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j14",
+      "position": {
+        "x": 44.71687836487033,
+        "y": 52.4519052838329
+      },
+      "members": [
+        {
+          "stripId": "s5",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j15",
+      "position": {
+        "x": 39.56461300983888,
+        "y": 52.4519052838329
+      },
+      "members": [
+        {
+          "stripId": "s5",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    }
+  ],
+  "pieceTemplates": [
+    {
+      "id": "pt0",
+      "stripPropertyId": "sp0",
+      "stripId": "s0",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 146.53458634077606,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 62.20635546081938,
+            "y": 0
+          },
+          "angle": 27.22093531118003,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt1",
+      "stripPropertyId": "sp0",
+      "stripId": "s1",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 33.46541365922394,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 62.20635546081938,
+            "y": 0
+          },
+          "angle": 152.77906468881997,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt2",
+      "stripPropertyId": "sp1",
+      "stripId": "s2",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 8.660254037844389,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt3",
+      "stripPropertyId": "sp2",
+      "stripId": "s3",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 11.547005383792516,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 5.773502691896255,
+            "y": 0
+          },
+          "angle": 90,
+          "depth": 1,
+          "role": "notch"
+        }
+      ]
+    },
+    {
+      "id": "pt4",
+      "stripPropertyId": "sp1",
+      "stripId": "s4",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 5.152265355031439,
+            "y": 0
+          },
+          "angle": 45,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt5",
+      "stripPropertyId": "sp1",
+      "stripId": "s5",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 135,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 5.152265355031453,
+            "y": 0
+          },
+          "angle": 120,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "difficulty": "advanced",
+    "tags": [
+      "six-fold",
+      "traditional",
+      "curved"
+    ],
+    "description": "Ume B with the thick strip laminated: a core between two outer strips in the grid's wood, the V-notch cut through the glued-up bar.",
+    "partsNote": "Each thick strip is laminated: glue its core between the two thin strips (cut from the grid's wood) face to face before cutting, then cut the miters and any V-notch through all three at once. They are listed as separate pieces because their wood and lengths differ.",
+    "thumbnail": null
+  }
+}

@@ -26,6 +26,7 @@ function snapshot() {
     cols: grid.cols, rows: grid.rows, cellWidth: grid.cellWidth, orientation: grid.orientation, cornerBehavior: grid.cornerBehavior,
     gridStripWidth: grid.gridStripWidth, borderWidth: grid.borderWidth, borderCorner: grid.borderCorner, panelDepth: grid.panelDepth,
     material: grid.material, finish: grid.finish, spacePatterns: grid.spacePatterns, spaceXforms: grid.spaceXforms,
+    stockLaminated: useAppStore.getState().stockLaminated,
   };
   const getPattern = (id, ctx) => patterns.getComputedPattern(id, ctx);
   const all = [...patterns.builtInPatterns, ...patterns.userPatterns];

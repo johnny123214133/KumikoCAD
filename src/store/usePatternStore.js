@@ -19,6 +19,19 @@ import tsunoAsanoha from '../patterns/tsuno-asanoha.json';
 import yaeAsanoha from '../patterns/yae-asanoha.json';
 import tsunoAsanohaPointed from '../patterns/tsuno-asanoha-pointed.json';
 import kikyoAsanoha from '../patterns/kikyo-asanoha.json';
+import kawariGoma from '../patterns/kawari-goma.json';
+import kawariGomaVariant from '../patterns/kawari-goma-variant.json';
+import kawariUrahanaKikko from '../patterns/kawari-urahana-kikko.json';
+import rindoAsanoha from '../patterns/rindo-asanoha.json';
+import sakuraKikkoA from '../patterns/sakura-kikko-a.json';
+import sakuraKikkoB from '../patterns/sakura-kikko-b.json';
+import kazaGurumaA from '../patterns/kaza-guruma-a.json';
+import kazaGurumaB from '../patterns/kaza-guruma-b.json';
+import rindoTsanugiA from '../patterns/rindo-tsanugi-a.json';
+import rindoTsanugiB from '../patterns/rindo-tsanugi-b.json';
+import ryusoKikkoA from '../patterns/ryuso-kikko-a.json';
+import ryusoKikkoB from '../patterns/ryuso-kikko-b.json';
+import mikadoVariant from '../patterns/mikado-variant-a.json';
 import komachiKikkoA from '../patterns/komachi-kikko-a.json';
 import komachiKikkoB from '../patterns/komachi-kikko-b.json';
 import ryusoAsanohaA from '../patterns/ryuso-asanoha-a.json';
@@ -38,6 +51,15 @@ import sakuraShippo from '../patterns/sakura-shippo.json';
 import sokutenKikko from '../patterns/sokuten-kikko.json';
 import ume from '../patterns/ume.json';
 import umeB from '../patterns/ume-b.json';
+import sakuraAVariant from '../patterns/sakura-a-variant.json';
+import sakuraBVariant from '../patterns/sakura-b-variant.json';
+import kawariUrahanaKikkoOriginal from '../patterns/kawari-urahana-kikko-original.json';
+import mitsuBishiVariant from '../patterns/mitsu-bishi-variant.json';
+import mitsuBishiVariantA from '../patterns/mitsu-bishi-variant-a.json';
+import mitsuBishiVariantB from '../patterns/mitsu-bishi-variant-b.json';
+import sakuraShippoVariant from '../patterns/sakura-shippo-variant.json';
+import umeAVariant from '../patterns/ume-a-variant.json';
+import umeBVariant from '../patterns/ume-b-variant.json';
 import blank from '../patterns/blank.json';
 import { validatePattern } from '../geometry/schema/validate.js';
 import { buildAsanoha } from '../geometry/factories/asanoha.js';
@@ -45,7 +67,7 @@ import { buildTsumiishiKikko } from '../geometry/factories/tsumiishiKikko.js';
 import { buildGoma } from '../geometry/factories/goma.js';
 import { buildMikado } from '../geometry/factories/mikado.js';
 import { buildKurumaKikko, buildKurumaKikkoTriangle } from '../geometry/factories/kurumaKikko.js';
-import { buildSakuraA, buildSakuraB } from '../geometry/factories/sakura.js';
+import { buildSakuraA, buildSakuraB, buildSakuraAVariant, buildSakuraBVariant } from '../geometry/factories/sakura.js';
 import { buildMitsukude } from '../geometry/factories/mitsukude.js';
 import { buildMatsuba } from '../geometry/factories/matsuba.js';
 import { buildBishamonKikkoA, buildBishamonKikkoB } from '../geometry/factories/bishamonKikko.js';
@@ -54,6 +76,14 @@ import { buildRindo } from '../geometry/factories/rindo.js';
 import { buildKawariYaeZakura, buildYaeZakuraKikko } from '../geometry/factories/kawariYaeZakura.js';
 import { buildTsunoAsanoha, buildTsunoAsanohaPointed } from '../geometry/factories/tsunoAsanoha.js';
 import { buildKikyoAsanoha } from '../geometry/factories/kikyoAsanoha.js';
+import { buildKawariGoma, buildKawariGomaVariant } from '../geometry/factories/kawariGoma.js';
+import { buildKawariUrahanaKikko, buildKawariUrahanaKikkoOriginal } from '../geometry/factories/kawariUrahanaKikko.js';
+import { buildRindoAsanoha } from '../geometry/factories/rindoAsanoha.js';
+import { buildSakuraKikkoA, buildSakuraKikkoB } from '../geometry/factories/sakuraKikko.js';
+import { buildKazaGurumaA, buildKazaGurumaB } from '../geometry/factories/kazaGuruma.js';
+import { buildRindoTsanugiA, buildRindoTsanugiB } from '../geometry/factories/rindoTsanugi.js';
+import { buildRyusoKikkoA, buildRyusoKikkoB } from '../geometry/factories/ryusoKikko.js';
+import { buildMikadoVariant } from '../geometry/factories/mikadoVariant.js';
 import { buildKomachiKikkoA, buildKomachiKikkoB, buildRyusoAsanohaA, buildRyusoAsanohaB } from '../geometry/factories/lappedTriangles.js';
 import { buildYaeAsanoha } from '../geometry/factories/yaeAsanoha.js';
 import { buildFutaeAsanoha } from '../geometry/factories/futaeAsanoha.js';
@@ -61,14 +91,14 @@ import { buildKawariAsanoha } from '../geometry/factories/kawariAsanoha.js';
 import { buildWarigikuKikko } from '../geometry/factories/warigikuKikko.js';
 import { buildOumeKikko } from '../geometry/factories/oumeKikko.js';
 import { buildSeiunKikko } from '../geometry/factories/seiunKikko.js';
-import { buildMitsuBishi } from '../geometry/factories/mitsuBishi.js';
+import { buildMitsuBishi, buildMitsuBishiVariant, buildMitsuBishiVariantA, buildMitsuBishiVariantB } from '../geometry/factories/mitsuBishi.js';
 import { buildUrahanaKikko } from '../geometry/factories/urahanaKikko.js';
 import { buildYaeUrahanaKikko } from '../geometry/factories/yaeUrahanaKikko.js';
 import { buildShippo } from '../geometry/factories/shippo.js';
 import { buildBishamonKikkoInsetA, buildBishamonKikkoInsetB } from '../geometry/factories/bishamonKikkoInset.js';
-import { buildSakuraShippo } from '../geometry/factories/sakuraShippo.js';
+import { buildSakuraShippo, buildSakuraShippoVariant } from '../geometry/factories/sakuraShippo.js';
 import { buildSokutenKikko } from '../geometry/factories/sokutenKikko.js';
-import { buildUme, buildUmeB } from '../geometry/factories/ume.js';
+import { buildUme, buildUmeB, buildUmeAVariant, buildUmeBVariant } from '../geometry/factories/ume.js';
 import { buildBlank } from '../geometry/factories/blank.js';
 import useGridStore from './useGridStore.js';
 import useSelectionStore from './useSelectionStore.js';
@@ -91,7 +121,7 @@ import { readLengthMm, lengthParam, resolveParamState, paramsKey, isRatioDef, ra
 // 'blank' is appended at the END deliberately — BUILT_INS[0] is what seeds the
 // default activePatternId below, and an empty pattern being the default on
 // first launch is exactly the bug that got fixed by removing asanoha-one.
-const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, matsuba, bishamonKikkoA, bishamonKikkoB, matsunoha, rindo, sakuraA, sakura, kawariYaeZakura, yaeZakuraKikko, tsunoAsanoha, tsunoAsanohaPointed, yaeAsanoha, kikyoAsanoha, komachiKikkoA, komachiKikkoB, ryusoAsanohaA, ryusoAsanohaB, futaeAsanoha, kawariAsanoha, warigikuKikko, oumeKikko, seiunKikko, mitsuBishi, urahanaKikko, yaeUrahanaKikko, shippo, ume, umeB, bishamonKikkoInsetA, bishamonKikkoInsetB, sakuraShippo, sokutenKikko, blank];
+const BUILT_INS = [asanoha, tsumiishiKikko, goma, mikado, kurumaKikko, kurumaKikkoTriangle, mitsukude, matsuba, bishamonKikkoA, bishamonKikkoB, matsunoha, rindo, sakuraA, sakuraAVariant, sakura, sakuraBVariant, kawariYaeZakura, yaeZakuraKikko, tsunoAsanoha, tsunoAsanohaPointed, yaeAsanoha, kikyoAsanoha, komachiKikkoA, komachiKikkoB, ryusoAsanohaA, ryusoAsanohaB, futaeAsanoha, kawariAsanoha, warigikuKikko, oumeKikko, seiunKikko, mitsuBishi, mitsuBishiVariant, mitsuBishiVariantA, mitsuBishiVariantB, urahanaKikko, yaeUrahanaKikko, shippo, ume, umeAVariant, umeB, umeBVariant, bishamonKikkoInsetA, bishamonKikkoInsetB, sakuraShippo, sakuraShippoVariant, sokutenKikko, kawariGoma, kawariGomaVariant, kawariUrahanaKikkoOriginal, kawariUrahanaKikko, rindoAsanoha, sakuraKikkoA, sakuraKikkoB, kazaGurumaA, kazaGurumaB, rindoTsanugiA, rindoTsanugiB, ryusoKikkoA, ryusoKikkoB, mikadoVariant, blank];
 
 BUILT_INS.forEach((p) => {
   const errs = validatePattern(p);
@@ -120,12 +150,28 @@ const FACTORY_BY_ID = {
   'builtin:matsunoha-sixth': buildMatsunoha,
   'builtin:rindo-cross-sixth': buildRindo,
   'builtin:sakura-a-sixth': buildSakuraA,
+  'builtin:sakura-a-variant-sixth': buildSakuraAVariant,
   'builtin:sakura-sixth': buildSakuraB,
+  'builtin:sakura-variant-sixth': buildSakuraBVariant,
   'builtin:kawari-yae-zakura-sixth': buildKawariYaeZakura,
   'builtin:yae-zakura-kikko-sixth': buildYaeZakuraKikko,
   'builtin:tsuno-asanoha-sixth': buildTsunoAsanoha,
   'builtin:tsuno-asanoha-pointed-sixth': buildTsunoAsanohaPointed,
   'builtin:kikyo-asanoha-sixth': buildKikyoAsanoha,
+  'builtin:kawari-goma-sixth': buildKawariGoma,
+  'builtin:kawari-goma-variant-sixth': buildKawariGomaVariant,
+  'builtin:kawari-urahana-kikko-sixth': buildKawariUrahanaKikko,
+  'builtin:kawari-urahana-kikko-original-sixth': buildKawariUrahanaKikkoOriginal,
+  'builtin:rindo-asanoha-sixth': buildRindoAsanoha,
+  'builtin:sakura-kikko-a-sixth': buildSakuraKikkoA,
+  'builtin:sakura-kikko-b-sixth': buildSakuraKikkoB,
+  'builtin:kaza-guruma-a-sixth': buildKazaGurumaA,
+  'builtin:kaza-guruma-b-sixth': buildKazaGurumaB,
+  'builtin:rindo-tsanugi-a-sixth': buildRindoTsanugiA,
+  'builtin:rindo-tsanugi-b-sixth': buildRindoTsanugiB,
+  'builtin:ryuso-kikko-a-sixth': buildRyusoKikkoA,
+  'builtin:ryuso-kikko-b-sixth': buildRyusoKikkoB,
+  'builtin:mikado-variant-a-sixth': buildMikadoVariant,
   'builtin:komachi-kikko-a-sixth': buildKomachiKikkoA,
   'builtin:komachi-kikko-b-sixth': buildKomachiKikkoB,
   'builtin:ryuso-asanoha-a-sixth': buildRyusoAsanohaA,
@@ -137,15 +183,21 @@ const FACTORY_BY_ID = {
   'builtin:oume-kikko-sixth': buildOumeKikko,
   'builtin:seiun-kikko-sixth': buildSeiunKikko,
   'builtin:mitsu-bishi-sixth': buildMitsuBishi,
+  'builtin:mitsu-bishi-variant-b-sixth': buildMitsuBishiVariantB,
+  'builtin:mitsu-bishi-variant-a-sixth': buildMitsuBishiVariantA,
+  'builtin:mitsu-bishi-variant-sixth': buildMitsuBishiVariant,
   'builtin:urahana-kikko-sixth': buildUrahanaKikko,
   'builtin:yae-urahana-kikko-sixth': buildYaeUrahanaKikko,
   'builtin:shippo-sixth': buildShippo,
   'builtin:bishamon-kikko-inset-a-sixth': buildBishamonKikkoInsetA,
   'builtin:bishamon-kikko-inset-b-sixth': buildBishamonKikkoInsetB,
   'builtin:sakura-shippo-sixth': buildSakuraShippo,
+  'builtin:sakura-shippo-variant-sixth': buildSakuraShippoVariant,
   'builtin:sokuten-kikko-sixth': buildSokutenKikko,
   'builtin:ume-sixth': buildUme,
+  'builtin:ume-variant-sixth': buildUmeAVariant,
   'builtin:ume-b-sixth': buildUmeB,
+  'builtin:ume-b-variant-sixth': buildUmeBVariant,
   'builtin:blank': buildBlank,
 };
 
@@ -513,9 +565,12 @@ const usePatternStore = create((set, get) => ({
     const finish = overrides.finish ?? template.stripProperties?.[0]?.finish ?? 'natural';
     const patternParams = { ...template.patternParams, ...overrides.params };
     const stripMaterials = mergeStripMaterials(template.stripMaterialOverrides, overrides.stripMaterials);
-    const key = ['c', cellWidth, paramCellWidth ?? '', gridStripWidth, patternStripWidth, material, finish, paramsKey(patternParams), JSON.stringify(stripMaterials), paramStep ?? ''].join('|');
+    // Patterns with strips in the grid's own wood and finish are built again when those change.
+    const gridMaterial = build.usesGridMaterial ? (ctx?.gridMaterial ?? grid.material) : undefined;
+    const gridFinish = build.usesGridMaterial ? (ctx?.gridFinish ?? grid.finish) : undefined;
+    const key = ['c', cellWidth, paramCellWidth ?? '', gridStripWidth, patternStripWidth, material, finish, paramsKey(patternParams), JSON.stringify(stripMaterials), paramStep ?? '', gridMaterial ?? '', gridFinish ?? ''].join('|');
     return memoBuilt(template, key, () => {
-      const computed = withTemplateIdentity(buildOrFallback(build, { cellWidth, paramCellWidth, gridStripWidth, patternStripWidth, patternParams, material, finish, paramStep }, template), template);
+      const computed = withTemplateIdentity(buildOrFallback(build, { cellWidth, paramCellWidth, gridStripWidth, patternStripWidth, patternParams, material, finish, paramStep, gridMaterial, gridFinish }, template), template);
       if (Object.keys(stripMaterials).length) {
         return applyStripColorOverrides(computed, stripMaterials, material, finish);
       }
@@ -546,11 +601,13 @@ const usePatternStore = create((set, get) => ({
     const cellWidth = ctx?.cellWidth ?? grid.cellWidth;
     const gridStripWidth = ctx?.gridStripWidth ?? grid.gridStripWidth;
     const paramStep = paramStepFor(useAppStore.getState().gridUnit);
-    return memoBuilt(template, `k|${cellWidth}|${gridStripWidth}|${paramStep ?? ''}`, () => {
+    const gridMaterial = build.usesGridMaterial ? grid.material : undefined;
+    const gridFinish = build.usesGridMaterial ? grid.finish : undefined;
+    return memoBuilt(template, `k|${cellWidth}|${gridStripWidth}|${paramStep ?? ''}|${gridMaterial ?? ''}|${gridFinish ?? ''}`, () => {
       const patternStripWidth = template.stripProperties?.[0]?.width ?? DEFAULT_PATTERN_STRIP_WIDTH_MM;
       const material = template.stripProperties?.[0]?.material ?? 'hinoki';
       const finish = template.stripProperties?.[0]?.finish ?? 'natural';
-      const computed = withTemplateIdentity(build({ cellWidth, gridStripWidth, patternStripWidth, patternParams: template.patternParams, material, finish, paramStep }), template);
+      const computed = withTemplateIdentity(build({ cellWidth, gridStripWidth, patternStripWidth, patternParams: template.patternParams, material, finish, paramStep, gridMaterial, gridFinish }), template);
       const stripMaterials = template.stripMaterialOverrides;
       if (stripMaterials && Object.keys(stripMaterials).length) {
         return applyStripColorOverrides(computed, stripMaterials, material, finish);

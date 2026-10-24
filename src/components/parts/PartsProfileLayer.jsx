@@ -4,7 +4,7 @@ import useAppStore from '../../store/useAppStore.js'
 import usePartsStore, { findPart } from '../../store/usePartsStore.js'
 import { useTheme } from '../../store/useThemeStore.js'
 import ScaleOverlay from '../shared/ScaleOverlay.jsx'
-import { profileLayout, jointDotsOf } from '../../geometry/parts/profiles.js'
+import { profileLayout, jointDotsOf, viewLayers } from '../../geometry/parts/profiles.js'
 import { getMaterialColor } from '../../geometry/woodFinishColors.js'
 import { darkenHex, lightenHex } from '../../geometry/color.js'
 import { stripEdgeColor } from '../../theme/themeRuntime.js'
@@ -89,6 +89,23 @@ export default function PartsProfileLayer() {
               tracePolygon(ctx, view.outline)
               ctx.fillStyle = fill
               ctx.fill()
+              if (view.bands) {
+                // Laminated stock: each layer in its own wood, the glue lines between them.
+                const xs = view.outline.map((p) => p[0])
+                const bx0 = Math.min(...xs), bx1 = Math.max(...xs)
+                ctx.save()
+                tracePolygon(ctx, view.outline)
+                ctx.clip()
+                for (const b of view.bands) {
+                  const l = piece.layers[b.layer]
+                  ctx.fillStyle = getMaterialColor(l.material, l.finish)
+                  ctx.fillRect(bx0, b.y0, bx1 - bx0, b.y1 - b.y0)
+                }
+                ctx.strokeStyle = seamColor
+                const edges = [...new Set(view.bands.flatMap((b) => [b.y0, b.y1]))].sort((m, n) => m - n).slice(1, -1)
+                for (const y of edges) { ctx.beginPath(); ctx.moveTo(bx0, y); ctx.lineTo(bx1, y); ctx.stroke() }
+                ctx.restore()
+              }
               ctx.fillStyle = cutFill
               // (one path, so pieces of one cut-away that touch leave no seam between them)
               ctx.beginPath()
@@ -101,8 +118,12 @@ export default function PartsProfileLayer() {
               ctx.strokeStyle = edge
               ctx.stroke()
             } else {
+              // Laminated stock: the side you look at is the outermost layer on it (right side = the last layer).
+              const lay = viewLayers(piece ?? {}, view.id === 'side-left')
+              const tone = (r) => (lay ? getMaterialColor(lay[r.layer ?? lay.length - 1].material, lay[r.layer ?? lay.length - 1].finish) : fill)
               for (const r of view.rects) {
-                ctx.fillStyle = r.state === 'cut' ? cutFill : fill
+                // laminated stock: a cut face is shown in the wood of the layer it is cut through (core or outer)
+                ctx.fillStyle = r.state === 'cut' ? (lay ? darkenHex(tone(r), CUT_FACE_DARKEN) : cutFill) : tone(r)
                 ctx.fillRect(r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0)
               }
               ctx.strokeStyle = edge

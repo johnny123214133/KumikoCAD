@@ -1,0 +1,372 @@
+{
+  "id": "builtin:ryuso-kikko-a-sixth",
+  "name": "Ryuso-kikko A",
+  "readOnly": true,
+  "version": 3,
+  "sideLength": 75,
+  "patternParams": {},
+  "stripProperties": [
+    {
+      "id": "sp0",
+      "width": 2,
+      "thickness": 6,
+      "material": "hinoki",
+      "grain": "along",
+      "color": "#e8d5b0",
+      "finish": "natural",
+      "edgeProfile": null
+    }
+  ],
+  "vertices": {
+    "A": {
+      "x": 0,
+      "y": 0
+    },
+    "B": {
+      "x": 75,
+      "y": 0
+    },
+    "C": {
+      "x": 37.5,
+      "y": 64.9519052838329
+    }
+  },
+  "centroid": {
+    "x": 37.5,
+    "y": 21.650635094610966
+  },
+  "_note": "Reference snapshot generated from the ryuso-kikko-a factory at cellWidth 75, gridStripWidth 0, patternStripWidth 2. Not what is rendered — the factory computes live geometry; this file supplies the template-level fields (id, name, patternParams, stripProperties, meta).",
+  "strips": [
+    {
+      "id": "s0",
+      "start": {
+        "x": 0,
+        "y": 0
+      },
+      "end": {
+        "x": 42.4691626915286,
+        "y": 44.1148456411326
+      },
+      "orientation": 0.8044026522450181,
+      "cuts": [
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 133.91112299723082,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j0",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 13.91112299723082,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j1",
+          "position": {
+            "x": 42.4691626915286,
+            "y": 44.1148456411326
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "start": {
+        "x": 75,
+        "y": 0
+      },
+      "end": {
+        "x": 15.560841644985672,
+        "y": 14.721950947751766
+      },
+      "orientation": 2.8987977546382138,
+      "cuts": [
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 75,
+            "y": 0
+          },
+          "angle": 133.9111229972308,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j2",
+          "position": {
+            "x": 75,
+            "y": 0
+          },
+          "angle": 13.911122997230791,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j3",
+          "position": {
+            "x": 15.560841644985672,
+            "y": 14.721950947751766
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "start": {
+        "x": 37.5,
+        "y": 64.9519052838329
+      },
+      "end": {
+        "x": 54.46999566348573,
+        "y": 6.115108694948532
+      },
+      "orientation": -1.2899924501481774,
+      "cuts": [
+        {
+          "jointId": "j4",
+          "position": {
+            "x": 37.5,
+            "y": 64.9519052838329
+          },
+          "angle": 133.9111229972308,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j4",
+          "position": {
+            "x": 37.5,
+            "y": 64.9519052838329
+          },
+          "angle": 13.91112299723082,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "jointId": "j5",
+          "position": {
+            "x": 54.46999566348573,
+            "y": 6.115108694948532
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "joints": [
+    {
+      "id": "j0",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "asymMiter"
+    },
+    {
+      "id": "j1",
+      "position": {
+        "x": 42.4691626915286,
+        "y": 44.1148456411326
+      },
+      "members": [
+        {
+          "stripId": "s0",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j2",
+      "position": {
+        "x": 75,
+        "y": 0
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "asymMiter"
+    },
+    {
+      "id": "j3",
+      "position": {
+        "x": 15.560841644985672,
+        "y": 14.721950947751766
+      },
+      "members": [
+        {
+          "stripId": "s1",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    },
+    {
+      "id": "j4",
+      "position": {
+        "x": 37.5,
+        "y": 64.9519052838329
+      },
+      "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        }
+      ],
+      "notchType": "asymMiter"
+    },
+    {
+      "id": "j5",
+      "position": {
+        "x": 54.46999566348573,
+        "y": 6.115108694948532
+      },
+      "members": [
+        {
+          "stripId": "s2",
+          "role": "end"
+        }
+      ],
+      "notchType": "miter"
+    }
+  ],
+  "pieceTemplates": [
+    {
+      "id": "pt0",
+      "stripPropertyId": "sp0",
+      "stripId": "s0",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 133.91112299723082,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 13.91112299723082,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 61.23519727787672,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt1",
+      "stripPropertyId": "sp0",
+      "stripId": "s1",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 133.9111229972308,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 13.911122997230791,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 61.23519727787671,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    },
+    {
+      "id": "pt2",
+      "stripPropertyId": "sp0",
+      "stripId": "s2",
+      "cuts": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 133.9111229972308,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 13.91112299723082,
+          "depth": 1,
+          "role": "end"
+        },
+        {
+          "position": {
+            "x": 61.235197277876715,
+            "y": 0
+          },
+          "angle": 60,
+          "depth": 1,
+          "role": "end"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "difficulty": "intermediate",
+    "tags": [
+      "six-fold",
+      "traditional"
+    ],
+    "description": "Bishamon-kikko Inset A turned so its strips enter the cell's corners: three strips pinwheel round a small triangle, each running in from beside a corner.",
+    "thumbnail": null
+  }
+}

@@ -338,7 +338,7 @@ export function buildLapTriangle(cell, { height, stackOrder = ['s1', 's0', 's2']
 // `patternParams` reports those same effective values. The factory function
 // carries `.paramDefs` so the store/UI can discover a pattern's parameters
 // without a separate registry.
-export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], build, maxStripWidth, defaultStripWidth }) {
+export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], build, maxStripWidth, defaultStripWidth, usesGridMaterial = false }) {
   // Each def learns the strip width the pattern starts at: its `default` (mm) is a value at the
   // reference dimensions with that strip width, which a ratio parameter's default ratio is
   // worked out from (geometry/params.js, referenceRatios).
@@ -346,6 +346,7 @@ export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], bu
   function factory({
     cellWidth, gridStripWidth = 0, patternStripWidth = DEFAULT_PATTERN_STRIP_WIDTH_MM, patternParams = {},
     material = 'hinoki', finish = 'natural', paramStep, paramCellWidth,
+    gridMaterial = material, gridFinish = finish,
   }) {
     const cell = cellContext(cellWidth, gridStripWidth);
     // `paramCellWidth`: the width of the full cell this one is a half of. The half cells along the
@@ -359,19 +360,26 @@ export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], bu
       const full = resolveParams(paramDefs, patternParams, { ...ctx, cellWidth: paramCellWidth });
       for (const def of paramDefs) if (!isRatioDef(def)) params[def.key] = full[def.key];
     }
-    const { strips, joints, stripWidths = {} } = build({ cell, params, patternStripWidth });
+    const { strips, joints, stripWidths = {}, gridMatched = [], laminations } = build({ cell, params, patternStripWidth });
 
     const stripProperties = makeStripProperties(patternStripWidth, material, finish);
-    const extraPropertyIds = new Map(); // width -> stripProperties id
+    const extraPropertyIds = new Map(); // width (+ grid flag) -> stripProperties id
+    const matchedToGrid = new Set(gridMatched);
     const propertyIdOf = (stripId) => {
-      const w = stripWidths[stripId];
-      if (w == null || w === patternStripWidth) return 'sp0';
-      if (!extraPropertyIds.has(w)) {
+      const w = stripWidths[stripId] ?? patternStripWidth;
+      const grid = matchedToGrid.has(stripId);
+      if (!grid && w === patternStripWidth) return 'sp0';
+      const key = `${w}|${grid ? 'g' : ''}`;
+      if (!extraPropertyIds.has(key)) {
         const spId = `sp${stripProperties.length}`;
-        stripProperties.push({ ...stripProperties[0], id: spId, width: w });
-        extraPropertyIds.set(w, spId);
+        // A strip "matched to the grid" is cut from the grid's own wood and finish, whatever the
+        // pattern's is (Kawari Urahana Kikko's 1 mm laminating strips); `matchesGrid` marks the entry.
+        stripProperties.push(grid
+          ? { ...stripProperties[0], id: spId, width: w, material: gridMaterial, finish: gridFinish, color: getMaterialColor(gridMaterial, gridFinish), matchesGrid: true }
+          : { ...stripProperties[0], id: spId, width: w });
+        extraPropertyIds.set(key, spId);
       }
-      return extraPropertyIds.get(w);
+      return extraPropertyIds.get(key);
     };
     const pieceTemplates = makePieceTemplates(strips, propertyIdOf);
 
@@ -388,11 +396,17 @@ export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], bu
       strips,
       joints,
       pieceTemplates,
+      // Groups of strips [outer, core, inner, ...] that are glued face to face into one piece of stock;
+      // the Parts List can treat each as a single laminated strip (see panelParts.js).
+      ...(laminations?.length ? { laminations } : {}),
       meta,
     };
   }
   factory.patternId = id;
   factory.paramDefs = paramDefs;
+  // True when some strips take the grid's wood and finish (`gridMatched`), so the store builds this
+  // pattern again when those change.
+  if (usesGridMaterial) factory.usesGridMaterial = true;
   // Optional per-pattern limits on the regular strip width (the curved patterns' strips must
   // stay thin enough to bend): the largest width the Inspector/store allow, and the width the
   // pattern's saved JSON starts at.
