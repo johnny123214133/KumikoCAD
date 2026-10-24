@@ -1,7 +1,7 @@
 import { curveLength } from '../../geometry/curve.js'
 import React, { useState, useEffect } from 'react'
 import { toast } from 'react-toastify'
-import usePatternStore from '../../store/usePatternStore.js'
+import usePatternStore, { stripWidthHidden } from '../../store/usePatternStore.js'
 import useAppStore from '../../store/useAppStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import { WOOD_OPTIONS, FINISH_OPTIONS } from '../../geometry/materials.js'
@@ -9,7 +9,7 @@ import {
   mmToIn, inToMm, MM_STEP, STRIP_IN_STEP, MIN_STRIP_WIDTH_MM,
   roundToMmStep, roundToStripInStep, formatLength, toUnit,
 } from '../../geometry/units.js'
-import Accordion from '../shared/Accordion.jsx'
+import Accordion, { AccordionHeader, useSectionOpen } from '../shared/Accordion.jsx'
 import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 import { FieldLabel } from '../shared/HelpTip.jsx'
 import ColorSwatchLine from '../shared/ColorSwatchLine.jsx'
@@ -101,6 +101,8 @@ export default function Inspector() {
   // shrink-clamp broadcast reaching this pattern from outside.
   usePatternStore(s => s.patternOverrides)
   const pattern = getActivePattern()
+  // The Save Pattern section stays pinned to the bottom of the panel; it can be folded away (open to start with).
+  const [saveOpen, toggleSave] = useSectionOpen('pe.save', true)
 
   // Strip width is genuinely live now — draft is a plain string so the user
   // can freely clear/retype (a bare controlled number input fights you the
@@ -253,28 +255,30 @@ export default function Inspector() {
           declares (e.g. Goma's inset) — each with a hover tooltip for its
           description and the range it can take right now. */}
       <Accordion id="pe.params" title="Pattern Parameters" defaultOpen>
-        <div className="mb-3">
-          <FieldLabel
-            label="Strip width"
-            htmlFor="pattern-strip-width"
-            tip="Width of the pattern's strips. It applies to the whole pattern — width isn't per-strip yet."
-          />
-          <div className="input-group input-group-sm">
-            <input
-              id="pattern-strip-width"
-              type="number"
-              min={minWidthDisplay}
-              max={widthMaxDisplay}
-              step={widthUnit === 'mm' ? MM_STEP : STRIP_IN_STEP}
-              className="form-control"
-              value={draftWidth}
-              onChange={onWidthInputChange}
-              onBlur={onWidthInputBlur}
+        {!stripWidthHidden(pattern.basePatternId ?? pattern.id) && (
+          <div className="mb-3">
+            <FieldLabel
+              label="Strip width"
+              htmlFor="pattern-strip-width"
+              tip="Width of the pattern's strips. It applies to the whole pattern — width isn't per-strip yet."
             />
-            <span className="input-group-text">{widthUnit}</span>
+            <div className="input-group input-group-sm">
+              <input
+                id="pattern-strip-width"
+                type="number"
+                min={minWidthDisplay}
+                max={widthMaxDisplay}
+                step={widthUnit === 'mm' ? MM_STEP : STRIP_IN_STEP}
+                className="form-control"
+                value={draftWidth}
+                onChange={onWidthInputChange}
+                onBlur={onWidthInputBlur}
+              />
+              <span className="input-group-text">{widthUnit}</span>
+            </div>
+            <div className="form-text" style={{ fontSize: '11px' }}>Range {Number(minWidthDisplay.toFixed(widthUnit === 'mm' ? 2 : 4))}–{Number(widthMaxDisplay.toFixed(widthUnit === 'mm' ? 2 : 4))} {widthUnit}</div>
           </div>
-          <div className="form-text" style={{ fontSize: '11px' }}>Range {Number(minWidthDisplay.toFixed(widthUnit === 'mm' ? 2 : 4))}–{Number(widthMaxDisplay.toFixed(widthUnit === 'mm' ? 2 : 4))} {widthUnit}</div>
-        </div>
+        )}
         <PatternParams pattern={pattern} patternStripWidth={effectiveWidthMm} />
       </Accordion>
 
@@ -313,7 +317,8 @@ export default function Inspector() {
       </div>
 
       <div className="flex-shrink-0 border-top pt-3 mt-2">
-        <div className="fw-semibold small text-uppercase text-muted mb-2" style={sectionLabelStyle}>Save pattern</div>
+        <AccordionHeader open={saveOpen} onToggle={toggleSave} controls="section-pe.save">Save pattern</AccordionHeader>
+        {saveOpen && <div id="section-pe.save" className="mt-2">
         <input
           type="text"
           className="form-control form-control-sm mb-2"
@@ -367,6 +372,7 @@ export default function Inspector() {
             </button>
           </>
         )}
+        </div>}
       </div>
     </div>
   )

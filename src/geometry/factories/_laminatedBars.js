@@ -16,7 +16,7 @@ export const LAMINATED_PARTS_NOTE = 'Each thick strip is laminated: glue its cor
 
 export const OUTER_STRIP_WIDTH = {
   key: 'outerStripWidth',
-  label: 'Outer strip width',
+  label: 'Laminated outer strip width',
   kind: 'length',
   default: 1.0,
   step: 0.5,

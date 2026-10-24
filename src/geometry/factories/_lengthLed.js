@@ -47,6 +47,7 @@ export function lengthLedParams({ spacingStep = 1, familyFor, thickLo, thickCap,
     {
       key: 'thickStripWidth',
       label: thickLabel ?? 'Thick strip width',
+      ...(thickLabel ? { laminated: true } : {}),
       kind: 'length',
       default: defaultThick,
       min: (ctx) => { const fs = gridFor(ctx).filter((c) => reaches(c.fam, ctx.params.curveLength)); return fs.length ? Math.min(...fs.map((c) => c.t)) : thickLo(ctx); },

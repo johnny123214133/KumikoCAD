@@ -32,7 +32,7 @@ function defineKawariGoma({ id, name, doubled, description }) {
     },
     {
       key: 'edgeInset',
-      label: 'Edge inset',
+      label: 'Secondary inset',
       kind: 'length',
       basis: 'cell',
       default: 3.0,
@@ -97,7 +97,7 @@ export const buildKawariGoma = defineKawariGoma({
 });
 export const buildKawariGomaVariant = defineKawariGoma({
   id: 'builtin:kawari-goma-variant-sixth',
-  name: 'Kawari Goma Variant',
+  name: 'Kawari Goma (All Sides)',
   doubled: DOUBLE_ALL,
   description: 'Goma with two parallel strips on every side: the outer strips are set in from the grid strips by the edge inset and each inner strip beyond its partner by the inset. Strips of different sides cross at half-laps, stacked in a fixed order, and all ends are 60° miters against the grid strips.',
 });

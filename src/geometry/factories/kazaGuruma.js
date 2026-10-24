@@ -11,7 +11,7 @@ import { MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM } from '../units.js';
 // width w, as the spokes' notches were in Sakura A.
 //
 // Kaza-guruma B makes each thick strip laminated stock, as in Kawari Urahana Kikko: a core of
-// `thickStripWidth` between two strips `secondaryStripWidth` wide (1 mm to start) in the grid's own
+// `thickStripWidth` between two strips `outerStripWidth` wide (1 mm to start) in the grid's own
 // wood and finish. The V-notch is cut into the glued-up bar, so it goes through the whole inner strip
 // (which, unlaminated, is two pieces either side of the notch) and (√3/2)·w into the core.
 //
@@ -29,8 +29,8 @@ const SQRT3 = Math.sqrt(3);
 export const KAZA_PARTS_NOTE = LAMINATED_PARTS_NOTE;
 
 function defineKaza({ id, name, laminated, description }) {
-  const barWidth = (params) => params.thickStripWidth + (laminated ? 2 * params.secondaryStripWidth : 0);
-  const secOf = (params) => (laminated ? params.secondaryStripWidth : 0);
+  const barWidth = (params) => params.thickStripWidth + (laminated ? 2 * params.outerStripWidth : 0);
+  const secOf = (params) => (laminated ? params.outerStripWidth : 0);
   // The notch's depth t (apex above the bar's inner face) range, and inset = (sp + Wbar − t) / 2.
   const tRange = ({ patternStripWidth: w, params }) => {
     const sec = secOf(params), depth = (SQRT3 / 2) * w;
@@ -42,25 +42,17 @@ function defineKaza({ id, name, laminated, description }) {
     name,
     usesGridMaterial: laminated,
     paramDefs: [
-      ...(laminated ? [{
-        key: 'secondaryStripWidth',
-        label: 'Secondary strip width',
-        kind: 'length',
-        default: 1.0,
-        step: 0.5,
-        min: MIN_STRIP_WIDTH_MM,
-        max: ({ cellWidth }) => Math.max(MIN_STRIP_WIDTH_MM, Math.min(4, cellWidth * 0.08)),
-        description: 'Width of the two outer strips of each laminated thick strip (the regular Strip width sets the triangle).',
-      }] : []),
+      ...(laminated ? [OUTER_STRIP_WIDTH] : []),
       {
         key: 'thickStripWidth',
-        label: laminated ? 'Thick strip core width' : 'Thick strip width',
+        label: laminated ? 'Laminated core strip width' : 'Thick strip width',
+        ...(laminated ? { laminated: true } : {}),
         kind: 'length',
         default: laminated ? 4.0 : 6.0,
         // The V-notch is (√3/2)·w deep and must leave the core 0.5 mm.
         min: ({ patternStripWidth }) => Math.max(MIN_STRIP_WIDTH_MM, (SQRT3 / 2) * patternStripWidth + 0.5),
         max: ({ cellWidth, gridStripWidth, patternStripWidth, params }) => {
-          const extra = laminated ? 2 * params.secondaryStripWidth : 0;
+          const extra = laminated ? 2 * params.outerStripWidth : 0;
           return Math.max((SQRT3 / 2) * patternStripWidth + 0.5, MIN_STRIP_WIDTH_MM,
             Math.min(cellWidth * MAX_STRIP_WIDTH_FRACTION, (SQRT3 * cellWidth - 3 * gridStripWidth) / 4) - extra);
         },
@@ -109,14 +101,14 @@ function defineKaza({ id, name, laminated, description }) {
 
 export const buildKazaGurumaA = defineKaza({
   id: 'builtin:kaza-guruma-a-sixth',
-  name: 'Kaza-guruma A',
+  name: 'Kaza-guruma',
   laminated: false,
   description: 'Three thick strips cut off the corners, each with a V-notch in its inner face, and an inner triangle of three mitred strips whose corners point at the cell\'s corners, each resting in a notch.',
 });
 
 export const buildKazaGurumaB = defineKaza({
   id: 'builtin:kaza-guruma-b-sixth',
-  name: 'Kaza-guruma B',
+  name: 'Kaza-guruma (Laminated)',
   laminated: true,
   description: 'Kaza-guruma with each thick strip laminated: a core between two thin strips in the grid\'s wood. The inner triangle\'s corners rest in V-notches cut through the glued-up bar.',
 });

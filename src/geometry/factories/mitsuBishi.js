@@ -16,6 +16,7 @@ import { MIN_STRIP_WIDTH_MM } from '../units.js';
 export const buildMitsuBishi = definePattern({
   id: 'builtin:mitsu-bishi-sixth',
   name: 'Mitsu-bishi',
+  hideStripWidth: true,
   meta: {
     difficulty: 'beginner',
     tags: ['six-fold', 'traditional'],
@@ -59,6 +60,7 @@ function defineMitsuVariant({ id, name, mode, description }) {
     id,
     name,
     usesGridMaterial: true,
+    hideStripWidth: true,
     paramDefs: [{
       ...OUTER_STRIP_WIDTH,
       max: ({ cellWidth, gridStripWidth }) => Math.max(MIN_STRIP_WIDTH_MM, (barOf(cellWidth, gridStripWidth) - MIN_STRIP_WIDTH_MM) / 2),
@@ -130,19 +132,19 @@ function defineMitsuVariant({ id, name, mode, description }) {
 
 export const buildMitsuBishiVariant = defineMitsuVariant({
   id: 'builtin:mitsu-bishi-variant-sixth',
-  name: 'Mitsu-bishi Variant',
+  name: 'Mitsu-bishi (Laminated)',
   mode: 'median',
   description: 'Mitsu-bishi with each diamond laminated, its layers running along the corner\'s median and cut to the diamond\'s points. The outer strips are in the grid\'s wood.',
 });
 export const buildMitsuBishiVariantA = defineMitsuVariant({
   id: 'builtin:mitsu-bishi-variant-a-sixth',
-  name: 'Mitsu-bishi Variant A',
+  name: 'Mitsu-bishi (Laminated A)',
   mode: 'sideA',
   description: 'Mitsu-bishi with each diamond laminated, its layers parallel to the cell side toward the next corner and mitred at both ends. The outer strips are in the grid\'s wood.',
 });
 export const buildMitsuBishiVariantB = defineMitsuVariant({
   id: 'builtin:mitsu-bishi-variant-b-sixth',
-  name: 'Mitsu-bishi Variant B',
+  name: 'Mitsu-bishi (Laminated B)',
   mode: 'sideB',
   description: 'Mitsu-bishi with each diamond laminated, its layers parallel to the cell side toward the previous corner and mitred at both ends. The outer strips are in the grid\'s wood.',
 });

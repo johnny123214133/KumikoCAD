@@ -54,7 +54,8 @@ function defineSakura({ id, name, notch, laminated = false, description }) {
     }] : []),
     {
       key: 'thickStripWidth',
-      label: laminated ? 'Thick strip core width' : 'Thick strip width',
+      label: laminated ? 'Laminated core strip width' : 'Thick strip width',
+      ...(laminated ? { laminated: true } : {}),
       kind: 'length',
       default: laminated ? 4.0 : 6.0,
       // Sakura A: the thick strip must be deeper than the spoke's V-notch, (√3/2)·w.
@@ -148,7 +149,7 @@ export const buildSakuraA = defineSakura({
 });
 export const buildSakuraBVariant = defineSakura({
   id: 'builtin:sakura-variant-sixth',
-  name: 'Sakura B Variant',
+  name: 'Sakura B (Laminated)',
   notch: false,
   laminated: true,
   description: 'Sakura B with each thick strip laminated: a core between two outer strips in the grid\'s wood. The thin spokes butt against the middle of each glued-up bar.',
@@ -156,7 +157,7 @@ export const buildSakuraBVariant = defineSakura({
 
 export const buildSakuraAVariant = defineSakura({
   id: 'builtin:sakura-a-variant-sixth',
-  name: 'Sakura A Variant',
+  name: 'Sakura A (Laminated)',
   notch: true,
   laminated: true,
   description: 'Sakura A with each thick strip laminated: a core between two outer strips in the grid\'s wood. The thin spokes end in a point fitted into a V-notch cut through the glued-up bar.',

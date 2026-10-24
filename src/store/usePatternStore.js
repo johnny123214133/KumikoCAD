@@ -240,7 +240,11 @@ function loadUserPatterns() {
 
 // Used by the project file (store/projectFormat.js).
 export const isKnownBasePattern = (id) => typeof id === 'string' && id in FACTORY_BY_ID;
-export { recipeKey, storedParams, paramDefsFor };
+// True when the pattern's factory says the regular strip width doesn't apply to it.
+function stripWidthHidden(basePatternId) {
+  return !!FACTORY_BY_ID[basePatternId]?.hideStripWidth;
+}
+export { recipeKey, storedParams, paramDefsFor, stripWidthHidden };
 
 // (Reusing a stripProperties entry is keyed on WIDTH as well as wood/finish —
 // see applyStripColorOverrides — because a pattern like Sakura has strips of

@@ -1,6 +1,7 @@
 import { definePattern, makeStrip, endCut, endJoint, normalize, inradius, localCutAngle, lineIntersect } from './_shared.js';
 import { buildMitredTriangle } from './kurumaKikko.js';
 import { SECONDARY_STRIP_WIDTH } from './kawariYaeZakura.js';
+import { OUTER_STRIP_WIDTH } from './_laminatedBars.js';
 import { DEFAULT_PATTERN_STRIP_WIDTH_MM, MIN_STRIP_WIDTH_MM } from '../units.js';
 
 // Kawari Urahana Kikko: Kikyo-asanoha with a laminated chevron laid into each corner.
@@ -28,10 +29,11 @@ import { DEFAULT_PATTERN_STRIP_WIDTH_MM, MIN_STRIP_WIDTH_MM } from '../units.js'
 const SQRT3 = Math.sqrt(3);
 const THIN = 1; // the laminating strips' width
 
-export const URAHANA_PARTS_NOTE = 'Each corner leg is laminated: glue its thick strip between the two 1 mm strips (cut from the grid\'s wood) face to face before cutting, then cut the miter and the end of the leg through all three at once. They are listed as separate pieces because their wood and lengths differ.';
+export const URAHANA_PARTS_NOTE = 'Each corner leg is laminated: glue its core between the two outer strips (cut from the grid\'s wood) face to face before cutting, then cut the miter and the end of the leg through all three at once. They are listed as separate pieces because their wood and lengths differ.';
 
 function defineUrahana({ id, name, laminated, description }) {
-  const setOf = (params) => (laminated ? 2 * THIN : 0) + params.thickStripWidth;
+  const outerOf = (params) => (laminated ? params.outerStripWidth : 0);
+  const setOf = (params) => 2 * outerOf(params) + params.thickStripWidth;
   return definePattern({
   id,
   name,
@@ -49,15 +51,18 @@ function defineUrahana({ id, name, laminated, description }) {
       max: ({ cellWidth, gridStripWidth, patternStripWidth }) => inradius(cellWidth) - gridStripWidth / 2 - patternStripWidth,
       description: 'Gap between the inner triangle and the grid strips. Larger = smaller triangle.',
     },
+    // The outer strips, the core and the secondary strip's 1 mm all have to fit inside 2·inset.
+    ...(laminated ? [{ ...OUTER_STRIP_WIDTH, max: (ctx) => Math.max(MIN_STRIP_WIDTH_MM, Math.min(OUTER_STRIP_WIDTH.max(ctx), (ctx.params.inset - MIN_STRIP_WIDTH_MM - 0.5) / 2)) }] : []),
     {
       key: 'thickStripWidth',
       kind: 'length',
-      label: laminated ? 'Thick strip width' : 'Thick strip width',
+      label: laminated ? 'Laminated core strip width' : 'Thick strip width',
+      ...(laminated ? { laminated: true } : {}),
       default: laminated ? DEFAULT_PATTERN_STRIP_WIDTH_MM : DEFAULT_PATTERN_STRIP_WIDTH_MM + 2 * THIN,
       min: MIN_STRIP_WIDTH_MM,
       // The secondary strip must keep 1 mm: 2·inset ≥ 2·(set width) + 1.
-      max: ({ params }) => Math.max(MIN_STRIP_WIDTH_MM, params.inset - (laminated ? 2 * THIN : 0) - 0.5),
-      description: laminated ? 'Width of the core strip of each corner leg, between its two 1 mm strips.' : 'Width of each corner leg.',
+      max: ({ params }) => Math.max(MIN_STRIP_WIDTH_MM, params.inset - 2 * outerOf(params) - 0.5),
+      description: laminated ? 'Width of the core strip of each corner leg, between its two outer strips.' : 'Width of each corner leg.',
     },
     {
       key: 'cornerSpacing',
@@ -90,10 +95,11 @@ function defineUrahana({ id, name, laminated, description }) {
     const corners = [cell.inner.A, cell.inner.B, cell.inner.C];
     const setWidth = setOf(params);
     // Layers from the mouth side inward: centreline offset (perpendicular to the leg) and width.
+    const thin = outerOf(params);
     const layers = laminated ? [
-      { e: THIN / 2, width: THIN, grid: true },
-      { e: THIN + wc / 2, width: wc, grid: false },
-      { e: THIN + wc + THIN / 2, width: THIN, grid: true },
+      { e: thin / 2, width: thin, grid: true },
+      { e: thin + wc / 2, width: wc, grid: false },
+      { e: thin + wc + thin / 2, width: thin, grid: true },
     ] : [{ e: wc / 2, width: wc, grid: false }];
     const nl = layers.length;
 
@@ -147,7 +153,7 @@ export const buildKawariUrahanaKikkoOriginal = defineUrahana({
 
 export const buildKawariUrahanaKikko = defineUrahana({
   id: 'builtin:kawari-urahana-kikko-sixth',
-  name: 'Kawari Urahana Kikko Variant',
+  name: 'Kawari Urahana Kikko (Laminated)',
   laminated: true,
-  description: 'Kawari Urahana Kikko with each leg laminated: a thick strip glued between two 1 mm strips in the grid\'s wood. The corner strips end in V-notches that hold the V\'s point.',
+  description: 'Kawari Urahana Kikko with each leg laminated: a thick strip glued between two outer strips (1 mm to start) in the grid\'s wood. The corner strips end in V-notches that hold the V\'s point.',
 });

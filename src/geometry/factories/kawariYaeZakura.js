@@ -61,7 +61,7 @@ function defineYaeZakura({ id, name, meta, kikko }) {
     SECONDARY_STRIP_WIDTH,
     {
       key: 'secondarySpacing',
-      label: 'Secondary spacing',
+      label: 'Secondary inset',
       kind: 'length',
       basis: 'cell',
       default: 4.0,

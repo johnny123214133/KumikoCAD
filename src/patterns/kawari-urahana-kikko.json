@@ -1,12 +1,16 @@
 {
   "id": "builtin:kawari-urahana-kikko-sixth",
-  "name": "Kawari Urahana Kikko Variant",
+  "name": "Kawari Urahana Kikko (Laminated)",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
   "patternParams": {
     "secondaryStripWidth": {
       "length": 2,
+      "unit": "mm"
+    },
+    "outerStripWidth": {
+      "length": 1,
       "unit": "mm"
     },
     "thickStripWidth": {
@@ -2040,8 +2044,8 @@
       "six-fold",
       "traditional"
     ],
-    "description": "Kawari Urahana Kikko with each leg laminated: a thick strip glued between two 1 mm strips in the grid's wood. The corner strips end in V-notches that hold the V's point.",
-    "partsNote": "Each corner leg is laminated: glue its thick strip between the two 1 mm strips (cut from the grid's wood) face to face before cutting, then cut the miter and the end of the leg through all three at once. They are listed as separate pieces because their wood and lengths differ.",
+    "description": "Kawari Urahana Kikko with each leg laminated: a thick strip glued between two outer strips (1 mm to start) in the grid's wood. The corner strips end in V-notches that hold the V's point.",
+    "partsNote": "Each corner leg is laminated: glue its core between the two outer strips (cut from the grid's wood) face to face before cutting, then cut the miter and the end of the leg through all three at once. They are listed as separate pieces because their wood and lengths differ.",
     "thumbnail": null
   }
 }

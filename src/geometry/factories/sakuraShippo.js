@@ -88,7 +88,7 @@ function defineSakuraShippo({ id, name, laminated, description }) {
     spacingCap: (ctx, t) => spacingCap(ctx, t + 2 * secOf(ctx)), defaultLength: 26.5, defaultThick: laminated ? 4 : 6, defaultSpacing: 6,
     lengthDescription: 'Length of each bent strip, notch to notch; a longer strip bows more (and cuts a shallower notch), and past a point runs straight along the notch before it bends. The thick strip\'s ranges follow this length.',
     thickDescription: laminated ? 'Width of the core of each thick strip, between its two outer strips (the regular Strip width sets the bent strips).' : 'Width of the three thick strips (the regular Strip width sets the bent strips).',
-    thickLabel: laminated ? 'Thick strip core width' : undefined,
+    thickLabel: laminated ? 'Laminated core strip width' : undefined,
     spacingDescription: 'Gap between each corner and the thick strip nearest it.',
   })],
   meta: {
@@ -140,7 +140,7 @@ export const buildSakuraShippo = defineSakuraShippo({
 
 export const buildSakuraShippoVariant = defineSakuraShippo({
   id: 'builtin:sakura-shippo-variant-sixth',
-  name: 'Sakura-shippo Variant',
+  name: 'Sakura-shippo (Laminated)',
   laminated: true,
   description: 'Sakura-shippo with each thick strip laminated: a core between two outer strips in the grid\'s wood, with the V-notch cut through the glued-up bar. Thin strip width defaults to and is capped at 3 mm.',
 });

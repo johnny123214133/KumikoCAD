@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useId } from 'react'
 import usePatternStore from '../../store/usePatternStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useAppStore from '../../store/useAppStore.js'
-import { resolveParamState, isRatioDef } from '../../geometry/params.js'
+import { resolveParamState, isRatioDef, inDisplayOrder } from '../../geometry/params.js'
 import { mmToIn, inToMm, MM_STEP, STRIP_IN_STEP } from '../../geometry/units.js'
 import { FieldLabel } from '../shared/HelpTip.jsx'
 
@@ -109,7 +109,7 @@ export default function PatternParams({ pattern, patternStripWidth }) {
 
   return (
     <>
-      {defs.map(def => (
+      {inDisplayOrder(defs).map(def => (
         <LengthParamInput
           key={`${pattern.id}:${def.key}`}
           def={def}

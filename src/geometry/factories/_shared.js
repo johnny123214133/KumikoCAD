@@ -338,7 +338,7 @@ export function buildLapTriangle(cell, { height, stackOrder = ['s1', 's0', 's2']
 // `patternParams` reports those same effective values. The factory function
 // carries `.paramDefs` so the store/UI can discover a pattern's parameters
 // without a separate registry.
-export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], build, maxStripWidth, defaultStripWidth, usesGridMaterial = false }) {
+export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], build, maxStripWidth, defaultStripWidth, usesGridMaterial = false, hideStripWidth = false }) {
   // Each def learns the strip width the pattern starts at: its `default` (mm) is a value at the
   // reference dimensions with that strip width, which a ratio parameter's default ratio is
   // worked out from (geometry/params.js, referenceRatios).
@@ -407,6 +407,9 @@ export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], bu
   // True when some strips take the grid's wood and finish (`gridMatched`), so the store builds this
   // pattern again when those change.
   if (usesGridMaterial) factory.usesGridMaterial = true;
+  // True when the regular strip width means nothing to the pattern (Mitsu-bishi's diamonds are sized by
+  // the cell), so the Inspector leaves the control out.
+  if (hideStripWidth) factory.hideStripWidth = true;
   // Optional per-pattern limits on the regular strip width (the curved patterns' strips must
   // stay thin enough to bend): the largest width the Inspector/store allow, and the width the
   // pattern's saved JSON starts at.

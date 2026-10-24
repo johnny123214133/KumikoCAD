@@ -82,6 +82,6 @@ function defineMikadoVariant({ id, name, description }) {
 
 export const buildMikadoVariant = defineMikadoVariant({
   id: 'builtin:mikado-variant-a-sixth', // id kept from when this had an A/B pair, so saved projects still load
-  name: 'Mikado Variant',
+  name: 'Mikado (Stubs)',
   description: 'Mikado with its centre lap replaced by Futae-asanoha\'s three tapered stubs: each strip is cut at the centre and its half-strips end in tapers that fit the corners between the stubs.',
 });

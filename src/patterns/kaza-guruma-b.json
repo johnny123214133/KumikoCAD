@@ -1,11 +1,11 @@
 {
   "id": "builtin:kaza-guruma-b-sixth",
-  "name": "Kaza-guruma B",
+  "name": "Kaza-guruma (Laminated)",
   "readOnly": true,
   "version": 3,
   "sideLength": 75,
   "patternParams": {
-    "secondaryStripWidth": {
+    "outerStripWidth": {
       "length": 1,
       "unit": "mm"
     },

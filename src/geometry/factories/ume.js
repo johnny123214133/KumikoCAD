@@ -221,7 +221,7 @@ const defineUme = ({ id, name, variant, laminated = false, description }) => {
     spacingCap: (ctx, t) => spacingCap(ctx, t + 2 * secOf(ctx)), defaultLength: variant === 'A' ? 36.5 : 36, defaultThick: laminated ? 4 : 6, defaultSpacing: 7,
     lengthDescription: 'Length of each bent strip; a longer strip bows more (and cuts a shallower notch), and past a point runs straight down from the notch before it bends. The thick strip\'s ranges follow this length.',
     thickDescription: laminated ? 'Width of the core of the thick strip across the top corner, between its two outer strips (the regular Strip width sets the two bent strips).' : 'Width of the thick strip across the top corner (the regular Strip width sets the two bent strips).',
-    thickLabel: laminated ? 'Thick strip core width' : undefined,
+    thickLabel: laminated ? 'Laminated core strip width' : undefined,
     spacingDescription: 'Gap between the top corner and the thick strip.',
   })],
   meta: {
@@ -282,11 +282,11 @@ export const buildUmeB = defineUme({
   description: 'Like Ume A, but the bent strips end in a single miter along the side border (as in Rindo) instead of tapering across the bottom border, leaving room for them to run straight, bend, and run straight again at longer lengths.',
 });
 export const buildUmeAVariant = defineUme({
-  id: 'builtin:ume-variant-sixth', name: 'Ume A Variant', variant: 'A', laminated: true,
+  id: 'builtin:ume-variant-sixth', name: 'Ume A (Laminated)', variant: 'A', laminated: true,
   description: 'Ume A with the thick strip laminated: a core between two outer strips in the grid\'s wood, the V-notch cut through the glued-up bar. Thin strip width defaults to and is capped at 3 mm.',
 });
 export const buildUmeBVariant = defineUme({
-  id: 'builtin:ume-b-variant-sixth', name: 'Ume B Variant', variant: 'B', laminated: true,
+  id: 'builtin:ume-b-variant-sixth', name: 'Ume B (Laminated)', variant: 'B', laminated: true,
   description: 'Ume B with the thick strip laminated: a core between two outer strips in the grid\'s wood, the V-notch cut through the glued-up bar.',
 });
 export const buildUme = buildUmeA;

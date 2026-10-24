@@ -207,3 +207,10 @@ export function paramsKey(patternParams) {
     .map(([k, v]) => (ratioOf(v) != null ? `${k}=r${Number(ratioOf(v).toFixed(6))}` : `${k}=${readLengthMm(v, '')}`))
     .join(',');
 }
+
+// The order the Inspector lists a pattern's parameters in (declaration order is kept for resolving
+// them, since a range can depend on earlier params): secondary strips, stubs, curve, thick strip,
+// inset, corner spacing, the secondary inset, then the laminated strips' widths.
+const DISPLAY_RANK = { secondaryStripWidth: 1, stubLength: 2, curveLength: 3, thickStripWidth: 4, inset: 5, cornerSpacing: 6, edgeInset: 7, secondarySpacing: 7, outerStripWidth: 9 };
+export const displayRank = (def) => (def.laminated && def.key === 'thickStripWidth' ? 8 : DISPLAY_RANK[def.key] ?? 5.5);
+export const inDisplayOrder = (defs) => defs.map((d, i) => [d, i]).sort((a, b) => displayRank(a[0]) - displayRank(b[0]) || a[1] - b[1]).map((x) => x[0]);
