@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 import usePatternStore, { stripWidthHidden } from '../../store/usePatternStore.js'
 import useAppStore from '../../store/useAppStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
-import { WOOD_OPTIONS, FINISH_OPTIONS } from '../../geometry/materials.js'
+import { WOOD_OPTIONS, finishOptionsFor, allowedFinish } from '../../geometry/materials.js'
 import {
   mmToIn, inToMm, MM_STEP, STRIP_IN_STEP, MIN_STRIP_WIDTH_MM,
   roundToMmStep, roundToStripInStep, formatLength, toUnit,
@@ -137,8 +137,11 @@ export default function Inspector() {
     : getEffectiveFinish(activePatternId)
 
   const onMaterialChange = (value) => {
-    if (hasStripSelection) setStripsMaterial(activePatternId, selectedStripIds, value)
-    else setPatternMaterial(activePatternId, value)
+    if (hasStripSelection) {
+      setStripsMaterial(activePatternId, selectedStripIds, value)
+      // a wood that isn't offered in the current finish (Purpleheart) takes its unfinished look
+      if (allowedFinish(value, finish) !== finish) setStripsFinish(activePatternId, selectedStripIds, allowedFinish(value, finish))
+    } else setPatternMaterial(activePatternId, value)
   }
   const onFinishChange = (value) => {
     if (hasStripSelection) setStripsFinish(activePatternId, selectedStripIds, value)
@@ -292,15 +295,7 @@ export default function Inspector() {
           </div>
         )}
       >
-        <div className="mb-2">
-          <label className="form-label small mb-1">Wood{hasStripSelection ? ' (selected strips)' : ''}</label>
-          <ThemedSelect className="form-select-sm" aria-label="Wood" value={material} onChange={onMaterialChange} options={asOptions(WOOD_OPTIONS)} />
-        </div>
-        <div>
-          <label className="form-label small mb-1">Finish{hasStripSelection ? ' (selected strips)' : ''}</label>
-          <ThemedSelect className="form-select-sm" aria-label="Finish" value={finish} onChange={onFinishChange} options={asOptions(FINISH_OPTIONS)} />
-        </div>
-        <ColorSwatchLine material={material} finish={finish} />
+        <ColorSwatchLine className="" material={material} finish={finish} onPick={(w, f) => { onMaterialChange(w); onFinishChange(f) }} />
       </Accordion>
 
       {/* The strips' cut details. A fixed max-height box with its own scroll: the

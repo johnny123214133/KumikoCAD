@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { clampGridDimensions, fitCellCounts, clampBorderWidth, clampPanelDepth, DEFAULT_PANEL_DEPTH_MM, DEFAULT_CELL_WIDTH_MM, DEFAULT_GRID_STRIP_WIDTH_MM, DEFAULT_BORDER_WIDTH_MM } from '../geometry/units.js';
+import { allowedFinish } from '../geometry/woodFinishColors.js';
 import { reflectXform } from '../geometry/grid/computeGridGeometry.js';
 
 const BLANK_PATTERN_ID = 'builtin:blank';
@@ -35,7 +36,7 @@ const useGridStore = create((set, get) => ({
   // vs "Midpoint" (fill — corner lands mid-cell), which is how it was
   // requested; kept as taper/fill internally to match the schema doc.
   cornerBehavior: 'fill',
-  material: 'hinoki',
+  material: 'basswood',
   finish: 'natural',
   // Per-cell pattern placement: { [spaceId]: patternId }. A cell with no
   // entry here renders the blank pattern.
@@ -58,10 +59,11 @@ const useGridStore = create((set, get) => ({
   // has to be mirrored the same amount to sit consistently beside them.
   placementFlip: false,
   // The wood and finish the Fill / paint tool applies.
-  paintMaterial: 'hinoki',
+  paintMaterial: 'basswood',
   paintFinish: 'natural',
-  setPaintMaterial: (paintMaterial) => set({ paintMaterial }),
-  setPaintFinish: (paintFinish) => set({ paintFinish }),
+  // A wood that's only offered in some finishes (Purpleheart) brings the finish along to one it has.
+  setPaintMaterial: (paintMaterial) => set((s) => ({ paintMaterial, paintFinish: allowedFinish(paintMaterial, s.paintFinish) })),
+  setPaintFinish: (paintFinish) => set((s) => ({ paintFinish: allowedFinish(s.paintMaterial, paintFinish) })),
   // cols × rows is capped (MAX_PANEL_CELLS): setting one past the limit scales the other back.
   setCols: (cols) => set(fitCellCounts(get(), 'cols', cols)),
   setRows: (rows) => set(fitCellCounts(get(), 'rows', rows)),
@@ -124,8 +126,8 @@ const useGridStore = create((set, get) => ({
     for (const id of Object.keys(s.spacePatterns)) spaceXforms[id] = reflectXform(s.spaceXforms[id]);
     return { cornerBehavior, spaceXforms, placementFlip: !s.placementFlip };
   }),
-  setMaterial: (material) => set({ material }),
-  setFinish: (finish) => set({ finish }),
+  setMaterial: (material) => set((s) => ({ material, finish: allowedFinish(material, s.finish) })),
+  setFinish: (finish) => set((s) => ({ finish: allowedFinish(s.material, finish) })),
   // Placing the blank pattern empties the cell. Placing over an existing
   // pattern keeps how that cell was turned/mirrored; a fresh placement starts
   // at rotation 0 with the panel's current mirroring.

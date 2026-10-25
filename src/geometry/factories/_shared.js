@@ -345,7 +345,7 @@ export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], bu
   const paramDefs = declaredDefs.map((def) => ({ ...def, refStripWidth: defaultStripWidth ?? DEFAULT_PATTERN_STRIP_WIDTH_MM }));
   function factory({
     cellWidth, gridStripWidth = 0, patternStripWidth = DEFAULT_PATTERN_STRIP_WIDTH_MM, patternParams = {},
-    material = 'hinoki', finish = 'natural', paramStep, paramCellWidth,
+    material = 'basswood', finish = 'natural', paramStep, paramCellWidth,
     gridMaterial = material, gridFinish = finish,
   }) {
     const cell = cellContext(cellWidth, gridStripWidth);
@@ -424,7 +424,7 @@ export function definePattern({ id, name, meta, paramDefs: declaredDefs = [], bu
 // affect rendering, since everything downstream (computeStripRenderData, the
 // canvas cache, the live Konva strips) reads stripProperties[0].color
 // rather than knowing about material/finish itself.
-export function makeStripProperties(patternStripWidth, material = 'hinoki', finish = 'natural') {
+export function makeStripProperties(patternStripWidth, material = 'basswood', finish = 'natural') {
   return [{
     id: 'sp0', width: patternStripWidth, thickness: 6.0,
     material, grain: 'along', color: getMaterialColor(material, finish), finish, edgeProfile: null,

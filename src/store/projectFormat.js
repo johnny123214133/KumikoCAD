@@ -1,4 +1,4 @@
-import { WOOD_OPTIONS, FINISH_OPTIONS } from '../geometry/materials.js';
+import { WOOD_OPTIONS, FINISH_OPTIONS, canonicalWood, allowedFinish } from '../geometry/materials.js';
 import {
   MAX_PANEL_CELLS, MIN_CELL_WIDTH_MM, MAX_CELL_WIDTH_MM, MIN_GRID_STRIP_WIDTH_MM, MAX_STRIP_WIDTH_FRACTION, MIN_STRIP_WIDTH_MM,
   MAX_BORDER_WIDTH_MM, minBorderWidthMm, MIN_PANEL_DEPTH_MM, MAX_PANEL_DEPTH_MM, DEFAULT_PANEL_DEPTH_MM,
@@ -111,8 +111,10 @@ function readRecipe(raw, where) {
     fail(`${where} uses a pattern shape this version doesn’t have (${String(basePatternId).slice(0, 60)}).`);
   }
   if (!isNum(raw.patternStripWidth) || raw.patternStripWidth < MIN_STRIP_WIDTH_MM || raw.patternStripWidth > 1000) fail(`${where} has an invalid strip width.`);
+  raw = { ...raw, material: canonicalWood(raw.material) }; // an earlier version's wood id stands for its successor
   if (!WOODS.has(raw.material)) fail(`${where} uses a wood this version doesn’t have (${String(raw.material).slice(0, 40)}).`);
   if (!FINISHES.has(raw.finish)) fail(`${where} uses a finish this version doesn’t have (${String(raw.finish).slice(0, 40)}).`);
+  raw = { ...raw, finish: allowedFinish(raw.material, raw.finish) };
 
   // Parameters: only the shapes the app writes, only the ones the shape declares.
   const defs = paramDefsFor(basePatternId);
@@ -132,7 +134,7 @@ function readRecipe(raw, where) {
     for (const [stripId, v] of Object.entries(raw.stripMaterials)) {
       if (stripId.length > 80 || !isObject(v)) fail(`${where} has invalid strip colours.`);
       const entry = {};
-      if (v.material !== undefined) { if (!WOODS.has(v.material)) fail(`${where} has a strip in an unknown wood.`); entry.material = v.material; }
+      if (v.material !== undefined) { if (!WOODS.has(canonicalWood(v.material))) fail(`${where} has a strip in an unknown wood.`); entry.material = canonicalWood(v.material); }
       if (v.finish !== undefined) { if (!FINISHES.has(v.finish)) fail(`${where} has a strip in an unknown finish.`); entry.finish = v.finish; }
       if (entry.material || entry.finish) stripMaterials[stripId] = entry;
     }
@@ -170,8 +172,10 @@ function validate(doc) {
   if (!isNum(panelDepth) || panelDepth < MIN_PANEL_DEPTH_MM - 1e-9 || panelDepth > MAX_PANEL_DEPTH_MM) fail('The panel’s depth is out of range.');
   if (p.orientation !== 'horizontal' && p.orientation !== 'vertical') fail('The panel’s orientation is invalid.');
   if (p.cornerBehavior !== 'taper' && p.cornerBehavior !== 'fill') fail('The panel’s corner type is invalid.');
+  p = { ...p, material: canonicalWood(p.material) };
   if (!WOODS.has(p.material)) fail('The panel’s wood is not one this version has.');
   if (!FINISHES.has(p.finish)) fail('The panel’s finish is not one this version has.');
+  p = { ...p, finish: allowedFinish(p.material, p.finish) };
   if (typeof p.placementFlip !== 'boolean') fail('The panel’s mirroring setting is invalid.');
 
   const rawPatterns = isObject(doc.patterns) ? doc.patterns : {};

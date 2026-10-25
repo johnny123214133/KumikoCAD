@@ -31,14 +31,27 @@
 // match geometry/materials.js's WOOD_OPTIONS ids — checked at the bottom of
 // this file.
 export const WOOD_BASE_COLORS = {
-  hinoki: '#E8D5B0',
-  sugi: '#D9B98C',
+  basswood: '#EDE0C8',
+  cedar: '#D9B98C',
   keyaki: '#B8763F',
-  shina: '#EDE0C8',
-  walnut: '#5C4530',
-  cherry: '#A15C3E',
+  walnut: '#907A70',
+  cherry: '#D89664',     // unfinished: a little more orange than cedar
   maple: '#E4C99B',
-  sapele: '#8B4A32',
+  sapele: '#B67C52',     // unfinished; it finishes fairly red (see COLOR_OVERRIDES)
+  purpleheart: '#BF7085',
+  padauk: '#DD6040',
+  blackWalnut: '#624436',
+};
+
+// Ids that earlier versions saved, and the wood each now stands for.
+export const WOOD_ALIASES = { hinoki: 'basswood', shina: 'basswood', sugi: 'cedar' };
+export const canonicalWood = (id) => WOOD_ALIASES[id] ?? id;
+
+// Woods that are only offered in some finishes (Purpleheart: unfinished and lacquered).
+export const WOOD_FINISHES = { purpleheart: ['natural', 'lacquered'] };
+export const allowedFinish = (woodId, finishId) => {
+  const list = WOOD_FINISHES[canonicalWood(woodId)];
+  return !list || list.includes(finishId) ? finishId : 'natural';
 };
 
 // Per-finish HSL transform applied on top of a wood's base color:
@@ -60,7 +73,15 @@ export const FINISH_TRANSFORMS = {
 // `'<woodId>:<finishId>': '#hex'` as real combinations need correcting. If
 // this table ever grows to cover most/all combinations, that's the signal
 // to just switch to a full lookup table instead of the compositional path.
-export const COLOR_OVERRIDES = {};
+export const COLOR_OVERRIDES = {
+  // Sapele finishes fairly red, well past what a generic nudge of its unfinished color gives.
+  'sapele:oiled': '#A04F33',
+  'sapele:lacquered': '#A9553A',
+  'sapele:stained': '#7B3A28',
+  // Purpleheart goes from pinkish-purple to a deeper purple under lacquer.
+  'purpleheart:natural': '#BF7085',
+  'purpleheart:lacquered': '#94507B',
+};
 
 function clamp01(v) { return Math.max(0, Math.min(1, v)); }
 
@@ -108,10 +129,12 @@ function hslToHex(h, s, l) {
  * full swap to a lookup table) without touching call sites.
  */
 export function getMaterialColor(woodId, finishId) {
+  woodId = canonicalWood(woodId);
+  finishId = allowedFinish(woodId, finishId);
   const overrideKey = `${woodId}:${finishId}`;
   if (COLOR_OVERRIDES[overrideKey]) return COLOR_OVERRIDES[overrideKey];
 
-  const base = WOOD_BASE_COLORS[woodId] ?? WOOD_BASE_COLORS.hinoki;
+  const base = WOOD_BASE_COLORS[woodId] ?? WOOD_BASE_COLORS.basswood;
   const t = FINISH_TRANSFORMS[finishId] ?? FINISH_TRANSFORMS.natural;
   const { h, s, l } = hexToHsl(base);
   const nh = (h + t.hueShift + 360) % 360;

@@ -27,9 +27,9 @@
       "id": "sp0",
       "width": 2,
       "thickness": 6,
-      "material": "hinoki",
+      "material": "basswood",
       "grain": "along",
-      "color": "#e8d5b0",
+      "color": "#ede0c8",
       "finish": "natural",
       "edgeProfile": null
     },
@@ -37,9 +37,9 @@
       "id": "sp1",
       "width": 1,
       "thickness": 6,
-      "material": "hinoki",
+      "material": "basswood",
       "grain": "along",
-      "color": "#e8d5b0",
+      "color": "#ede0c8",
       "finish": "natural",
       "edgeProfile": null,
       "matchesGrid": true

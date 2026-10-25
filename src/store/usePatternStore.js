@@ -108,7 +108,7 @@ import {
   mmToIn, inToMm, STRIP_IN_STEP, roundUpToStripInStep, roundDownToMmStep,
 } from '../geometry/units.js';
 import { getMaterialColor } from '../geometry/woodFinishColors.js';
-import { WOOD_OPTIONS, FINISH_OPTIONS } from '../geometry/materials.js';
+import { WOOD_OPTIONS, FINISH_OPTIONS, canonicalWood, allowedFinish } from '../geometry/materials.js';
 import { builds, maxFeasibleStripWidth, feasibleParamRange } from '../geometry/feasibility.js';
 import { readLengthMm, lengthParam, resolveParamState, paramsKey, isRatioDef, ratioOf, storedParamFor, migrateParams, ratioForMm } from '../geometry/params.js';
 
@@ -565,8 +565,8 @@ const usePatternStore = create((set, get) => ({
     const paramStep = paramStepFor(useAppStore.getState().gridUnit);
     const overrides = (ctx?.patternOverrides ?? state.patternOverrides)[id] || {};
     const patternStripWidth = overrides.patternStripWidth ?? template.stripProperties?.[0]?.width ?? DEFAULT_PATTERN_STRIP_WIDTH_MM;
-    const material = overrides.material ?? template.stripProperties?.[0]?.material ?? 'hinoki';
-    const finish = overrides.finish ?? template.stripProperties?.[0]?.finish ?? 'natural';
+    const material = canonicalWood(overrides.material ?? template.stripProperties?.[0]?.material ?? 'basswood');
+    const finish = allowedFinish(material, overrides.finish ?? template.stripProperties?.[0]?.finish ?? 'natural');
     const patternParams = { ...template.patternParams, ...overrides.params };
     const stripMaterials = mergeStripMaterials(template.stripMaterialOverrides, overrides.stripMaterials);
     // Patterns with strips in the grid's own wood and finish are built again when those change.
@@ -609,8 +609,8 @@ const usePatternStore = create((set, get) => ({
     const gridFinish = build.usesGridMaterial ? grid.finish : undefined;
     return memoBuilt(template, `k|${cellWidth}|${gridStripWidth}|${paramStep ?? ''}|${gridMaterial ?? ''}|${gridFinish ?? ''}`, () => {
       const patternStripWidth = template.stripProperties?.[0]?.width ?? DEFAULT_PATTERN_STRIP_WIDTH_MM;
-      const material = template.stripProperties?.[0]?.material ?? 'hinoki';
-      const finish = template.stripProperties?.[0]?.finish ?? 'natural';
+      const material = canonicalWood(template.stripProperties?.[0]?.material ?? 'basswood');
+      const finish = allowedFinish(material, template.stripProperties?.[0]?.finish ?? 'natural');
       const computed = withTemplateIdentity(build({ cellWidth, gridStripWidth, patternStripWidth, patternParams: template.patternParams, material, finish, paramStep, gridMaterial, gridFinish }), template);
       const stripMaterials = template.stripMaterialOverrides;
       if (stripMaterials && Object.keys(stripMaterials).length) {
@@ -629,12 +629,12 @@ const usePatternStore = create((set, get) => ({
   getEffectiveMaterial: (id) => {
     const state = get();
     const template = [...state.builtInPatterns, ...state.userPatterns].find(p => p.id === id);
-    return state.patternOverrides[id]?.material ?? template?.stripProperties?.[0]?.material ?? 'hinoki';
+    return canonicalWood(state.patternOverrides[id]?.material ?? template?.stripProperties?.[0]?.material ?? 'basswood');
   },
   getEffectiveFinish: (id) => {
     const state = get();
     const template = [...state.builtInPatterns, ...state.userPatterns].find(p => p.id === id);
-    return state.patternOverrides[id]?.finish ?? template?.stripProperties?.[0]?.finish ?? 'natural';
+    return allowedFinish(get().getEffectiveMaterial(id), state.patternOverrides[id]?.finish ?? template?.stripProperties?.[0]?.finish ?? 'natural');
   },
   // Per-STRIP material/finish — checks this session's live override first,
   // then a saved pattern's own baked-in per-strip override (template.
@@ -742,8 +742,10 @@ const usePatternStore = create((set, get) => ({
     }));
   },
   setPatternMaterial: (id, material) => {
+    // A wood that's only offered in some finishes (Purpleheart) brings the finish along to one it has.
+    const finish = allowedFinish(material, get().getEffectiveFinish(id));
     set((state) => ({
-      patternOverrides: { ...state.patternOverrides, [id]: { ...state.patternOverrides[id], material } },
+      patternOverrides: { ...state.patternOverrides, [id]: { ...state.patternOverrides[id], material, finish } },
     }));
   },
   setPatternFinish: (id, finish) => {
@@ -783,7 +785,13 @@ const usePatternStore = create((set, get) => ({
       return { patternOverrides: { ...state.patternOverrides, [id]: { ...patternOv, stripMaterials } } };
     });
   },
+  // Strips glued into one laminated piece are finished as one: a finish set on any layer
+  // goes to every strip of its lamination group (the wood can still differ per layer).
   setStripsFinish: (id, stripIds, finish) => {
+    const groups = (get().getComputedPattern(id)?.laminations ?? []).map((g) => g.flat());
+    const all = new Set(stripIds);
+    for (const g of groups) if (g.some((sid) => all.has(sid))) g.forEach((sid) => all.add(sid));
+    stripIds = [...all];
     set((state) => {
       const patternOv = state.patternOverrides[id] || {};
       const stripMaterials = { ...patternOv.stripMaterials };
@@ -875,12 +883,12 @@ const usePatternStore = create((set, get) => ({
   getTemplateRecipe: (template) => ({
     basePatternId: template.basePatternId ?? template.id,
     patternStripWidth: template.stripProperties?.[0]?.width ?? DEFAULT_PATTERN_STRIP_WIDTH_MM,
-    material: template.stripProperties?.[0]?.material ?? 'hinoki',
-    finish: template.stripProperties?.[0]?.finish ?? 'natural',
+    material: canonicalWood(template.stripProperties?.[0]?.material ?? 'basswood'),
+    finish: allowedFinish(canonicalWood(template.stripProperties?.[0]?.material ?? 'basswood'), template.stripProperties?.[0]?.finish ?? 'natural'),
     params: template.patternParams ?? {},
     stripMaterials: normalizeStripMaterials(
       template.stripMaterialOverrides,
-      template.stripProperties?.[0]?.material ?? 'hinoki',
+      canonicalWood(template.stripProperties?.[0]?.material ?? 'basswood'),
       template.stripProperties?.[0]?.finish ?? 'natural',
     ),
   }),

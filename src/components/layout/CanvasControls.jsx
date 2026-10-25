@@ -1,12 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import useAppStore, { useCameraApi, is3dView } from '../../store/useAppStore.js'
 import useGridStore from '../../store/useGridStore.js'
 import useSelectionStore from '../../store/useSelectionStore.js'
 import usePatternStore from '../../store/usePatternStore.js'
 import { paintCells } from '../../store/paintActions.js'
 import { useTheme } from '../../store/useThemeStore.js'
-import { WOOD_OPTIONS, FINISH_OPTIONS } from '../../geometry/materials.js'
-import ColorSwatchLine from '../shared/ColorSwatchLine.jsx'
+import { WOOD_OPTIONS, finishOptionsFor } from '../../geometry/materials.js'
+import ColorSwatchLine, { ColorPalette } from '../shared/ColorSwatchLine.jsx'
 import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 import { ZoomFitIcon, ZoomInIcon, ZoomOutIcon } from './icons.jsx'
 import useSlide, { SLIDE_MS, prefersReducedMotion } from './useSlide.js'
@@ -120,6 +120,7 @@ function FillPanel({ right, workspace }) {
   const spacePatterns = useGridStore((s) => s.spacePatterns)
   const selectedSpaceIds = useSelectionStore((s) => s.selectedSpaceIds)
   const selectedStripIds = useSelectionStore((s) => s.selectedStripIds)
+  const [picking, setPicking] = useState(false)
   const reduced = prefersReducedMotion()
   if (!render) return null
   const inPatternEditor = workspace === 'pattern-editor'
@@ -152,11 +153,15 @@ function FillPanel({ right, workspace }) {
       }}
     >
       <div className="fw-semibold small text-uppercase text-muted mb-2" style={{ letterSpacing: '0.05em', fontSize: 11 }}>Fill / paint</div>
-      <label className="form-label small mb-1">Wood</label>
-      <ThemedSelect className="form-select-sm mb-2" aria-label="Paint wood" value={paintMaterial} onChange={setPaintMaterial} options={asOptions(WOOD_OPTIONS)} />
-      <label className="form-label small mb-1">Finish</label>
-      <ThemedSelect className="form-select-sm mb-2" aria-label="Paint finish" value={paintFinish} onChange={setPaintFinish} options={asOptions(FINISH_OPTIONS)} />
-      <ColorSwatchLine material={paintMaterial} finish={paintFinish} className="mb-2" />
+      {picking ? (
+        <ColorPalette
+          material={paintMaterial}
+          finish={paintFinish}
+          onPick={(w, f) => { setPaintMaterial(w); setPaintFinish(f); setPicking(false) }}
+          onCancel={() => setPicking(false)}
+        />
+      ) : (<>
+      <ColorSwatchLine material={paintMaterial} finish={paintFinish} className="mb-2" onOpen={() => setPicking(true)} />
       <div className="d-flex flex-column gap-2">
         <button
           type="button"
@@ -175,6 +180,7 @@ function FillPanel({ right, workspace }) {
           </button>
         )}
       </div>
+      </>)}
     </div>
   )
 }

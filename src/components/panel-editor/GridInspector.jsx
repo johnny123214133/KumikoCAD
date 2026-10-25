@@ -9,7 +9,7 @@ import Accordion from '../shared/Accordion.jsx'
 import ThemedSelect, { asOptions } from '../shared/ThemedSelect.jsx'
 import { FieldLabel } from '../shared/HelpTip.jsx'
 import ColorSwatchLine from '../shared/ColorSwatchLine.jsx'
-import { WOOD_OPTIONS, FINISH_OPTIONS } from '../../geometry/materials.js'
+import { WOOD_OPTIONS, finishOptionsFor } from '../../geometry/materials.js'
 import {
   formatLength, MAX_PANEL_CELLS, MAX_STRIP_WIDTH_FRACTION,
   MIN_CELL_WIDTH_MM, MAX_CELL_WIDTH_MM, CELL_MM_STEP, CELL_IN_STEP, snapCellWidthForUnit,
@@ -174,15 +174,7 @@ export default function GridInspector() {
       </Accordion>
 
       <Accordion id="ge.props" title="Strip Properties">
-        <div className="mb-2">
-          <label className="form-label small mb-1">Wood</label>
-          <ThemedSelect className="form-select-sm" aria-label="Wood" value={material} onChange={setMaterial} options={asOptions(WOOD_OPTIONS)} />
-        </div>
-        <div>
-          <label className="form-label small mb-1">Finish</label>
-          <ThemedSelect className="form-select-sm" aria-label="Finish" value={finish} onChange={setFinish} options={asOptions(FINISH_OPTIONS)} />
-        </div>
-        <ColorSwatchLine material={material} finish={finish} />
+        <ColorSwatchLine className="" material={material} finish={finish} onPick={(w, f) => { setMaterial(w); setFinish(f) }} />
       </Accordion>
     </div>
   )

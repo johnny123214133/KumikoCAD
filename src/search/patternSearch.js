@@ -1,4 +1,4 @@
-import { WOOD_OPTIONS, FINISH_OPTIONS } from '../geometry/materials.js'
+import { WOOD_OPTIONS, FINISH_OPTIONS, canonicalWood } from '../geometry/materials.js'
 
 // What the pattern library's search box and the command palette look in for a pattern:
 //   • its name                                   (a hit here counts most)
@@ -11,7 +11,7 @@ export function patternFields(pattern, builtIns) {
   const base = pattern.readOnly ? null : builtIns.find((b) => b.id === pattern.basePatternId)?.name
   const fields = [{ text: pattern.name, weight: 1 }]
   if (base && base !== pattern.name) fields.push({ text: base, weight: 0.8 })
-  if (sp?.material) fields.push({ text: WOOD_OPTIONS.find((o) => o.id === sp.material)?.label ?? sp.material, weight: 0.5 })
+  if (sp?.material) fields.push({ text: WOOD_OPTIONS.find((o) => o.id === canonicalWood(sp.material))?.label ?? sp.material, weight: 0.5 })
   if (sp?.finish) fields.push({ text: FINISH_OPTIONS.find((o) => o.id === sp.finish)?.label ?? sp.finish, weight: 0.4 })
   return fields
 }

@@ -15,6 +15,7 @@
 // so those cells make different — fewer, shorter — pieces than a full cell; `edgeCells` counts them.
 // A pattern placed flipped is made of mirror-image pieces (see pieces.js).
 
+import { canonicalWood, allowedFinish } from '../woodFinishColors.js';
 import { computeGridGeometry } from '../grid/computeGridGeometry.js';
 import { computePanelStrips, stripWidthOf, stripThicknessOf } from '../grid/gridStrips.js';
 import { DEFAULT_PANEL_DEPTH_MM } from '../units.js';
@@ -54,7 +55,7 @@ function piecesOfCell(pattern, window, mirrored, thickness, laminate) {
       const ux = Math.cos(core.orientation), uy = Math.sin(core.orientation);
       const side = (s) => ux * (mid(s).y - mid(core).y) - uy * (mid(s).x - mid(core).x); // > 0: to the core's left
       const stack = [...reps].sort((p, q) => side(q) - side(p)); // leftmost first
-      const layers = stack.map((s) => { const sp = spOfStrip(s); return { width: sp.width, material: sp.material, finish: sp.finish }; });
+      const layers = stack.map((s) => { const sp = spOfStrip(s); return { width: sp.width, material: canonicalWood(sp.material), finish: allowedFinish(sp.material, sp.finish) }; });
       merged.set(core.id, { ...spOfStrip(core), width: layers.reduce((n, l) => n + l.width, 0), layers });
       layerIds.flat().filter((id) => id !== core.id).forEach((id) => skip.add(id));
     }
@@ -78,7 +79,7 @@ function piecesOfCell(pattern, window, mirrored, thickness, laminate) {
   const pieces = used.map(({ strip, sp }) => {
     // At the panel's edge a lap whose mate was trimmed away is not cut.
     const kept = window ? { ...strip, cuts: strip.cuts.filter((c) => !c.role.startsWith('cut-') || regions.get(lapKey(strip.id, c.jointId, c.role))?.length) } : strip;
-    const piece = pieceFromStrip({ strip: kept, joints, width: sp.width, thickness, material: sp.material, finish: sp.finish, lapRegions: regions, layers: sp.layers });
+    const piece = pieceFromStrip({ strip: kept, joints, width: sp.width, thickness, material: canonicalWood(sp.material), finish: allowedFinish(sp.material, sp.finish), lapRegions: regions, layers: sp.layers });
     return mirrored ? mirrorPiece(piece) : piece;
   });
   return { pieces, approx };
@@ -101,7 +102,7 @@ export function computePanelParts({ grid, getPattern }) {
     const piece = pieceFromStrip({
       strip, joints: jointMap,
       width: stripWidthOf(strip, grid), thickness: stripThicknessOf(strip, grid),
-      material: grid.material, finish: grid.finish, lapRegions: regions,
+      material: canonicalWood(grid.material), finish: allowedFinish(grid.material, grid.finish), lapRegions: regions,
     });
     const entry = addToTally(strip.kind === 'border' ? borderTally : gridTally, piece, 1, strip.kind === 'border' ? BORDER : GRID);
     (entry.stripIds ??= []).push(strip.id);
