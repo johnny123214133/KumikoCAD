@@ -1,0 +1,101 @@
+# Builds the Kumiko CAD installers for Windows, macOS (Apple Silicon + Intel) and Linux.
+#
+#   Release:    git tag v0.1.0 && git push origin v0.1.0
+#               -> builds all platforms and attaches the installers to a DRAFT GitHub Release
+#                  (review it, then press "Publish release").
+#   Test build: Actions tab -> "Release" -> Run workflow
+#               -> builds all platforms and keeps the installers as run artifacts (no release).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write # lets the tag build create the release and upload to it
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS (Apple Silicon)
+            os: macos-latest
+            args: --target aarch64-apple-darwin
+            rust-targets: aarch64-apple-darwin
+          - name: macOS (Intel)
+            os: macos-latest
+            args: --target x86_64-apple-darwin
+            rust-targets: x86_64-apple-darwin
+          - name: Linux
+            os: ubuntu-22.04
+            args: ''
+            rust-targets: ''
+          - name: Windows
+            os: windows-latest
+            args: ''
+            rust-targets: ''
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      # The icon set normally lives in the repo (src-tauri/icons). If it was not committed,
+      # make it from app-icon.png so the build still works.
+      - name: Generate icons if missing
+        shell: bash
+        run: |
+          if [ ! -f src-tauri/icons/icon.ico ]; then npm run desktop:icons; fi
+
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          releaseName: 'Kumiko CAD ${{ github.ref_name }}'
+          releaseBody: 'Download the installer for your system below. These builds are not code-signed: Windows may show "Windows protected your PC" (More info, then Run anyway), and on macOS right-click the app and choose Open the first time.'
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+
+      # Manual runs have no release to attach to, so keep the installers on the run itself.
+      - name: Keep the installers (manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kumiko-cad-${{ matrix.name }}
+          path: |
+            src-tauri/target/**/release/bundle/**/*.msi
+            src-tauri/target/**/release/bundle/**/*.exe
+            src-tauri/target/**/release/bundle/**/*.dmg
+            src-tauri/target/**/release/bundle/**/*.deb
+            src-tauri/target/**/release/bundle/**/*.rpm
+            src-tauri/target/**/release/bundle/**/*.AppImage
+          if-no-files-found: warn
